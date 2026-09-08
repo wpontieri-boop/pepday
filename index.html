@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#07131f"/>
+  <meta name="description" content="PepDay — calculadora e organizador de rotina de peptídeos."/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" href="icon.svg" type="image/svg+xml"/>
+  <link rel="stylesheet" href="style.css"/>
+  <title>PepDay</title>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <img src="icon.svg" alt="PepDay"/>
+      <div><b>PEP<span>DAY</span></b><small>Sua rotina. Seus números. Seu controle.</small></div>
+    </div>
+    <button id="installBtn" class="ghost hidden">Instalar</button>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="hero">
+        <small>PEPDAY • V1</small>
+        <h1>Resumo de hoje</h1>
+        <p id="todayLabel"></p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>ROTINAS DE HOJE</span><button class="link" data-go="routines">Gerenciar</button></div>
+        <div id="todayRoutines" class="stack"></div>
+      </div>
+      <div class="grid2">
+        <button class="action" data-go="calculator"><strong>＋</strong><span>Calcular</span><small>mg, mcg, mL e UI</small></button>
+        <button class="action" data-go="routines"><strong>◷</strong><span>Nova rotina</span><small>Organize sua frequência</small></button>
+      </div>
+      <div class="card disclaimer"><b>Ferramenta de cálculo e organização</b><p>O PepDay não recomenda doses, tratamentos ou protocolos. Use apenas valores e frequências definidos por você com orientação profissional.</p></div>
+    </section>
+
+    <section id="calculator" class="screen">
+      <div class="section-head"><div><small>CALCULADORA</small><h2>Reconstituição</h2></div><button class="ghost" id="resetCalc">Limpar</button></div>
+      <div class="card form">
+        <label>Nome / identificação <input id="pepName" placeholder="Ex.: Peptídeo A"/></label>
+        <div class="grid2 inputs">
+          <label>Quantidade no frasco
+            <div class="input-unit"><input id="vialMg" type="number" inputmode="decimal" min="0" step="any" placeholder="10"><span>mg</span></div>
+          </label>
+          <label>Diluente adicionado
+            <div class="input-unit"><input id="waterMl" type="number" inputmode="decimal" min="0" step="any" placeholder="2"><span>mL</span></div>
+          </label>
+        </div>
+        <label>Quantidade informada
+          <div class="dose-row">
+            <input id="dose" type="number" inputmode="decimal" min="0" step="any" placeholder="1">
+            <select id="doseUnit"><option value="mg">mg</option><option value="mcg">mcg</option></select>
+          </div>
+        </label>
+        <label>Escala da seringa
+          <select id="syringe">
+      <option value="30">U-100 • 0,3 mL = 30 UI</option>
+      <option value="50">U-100 • 0,5 mL = 50 UI</option>
+      <option value="100" selected>U-100 • 1 mL = 100 UI</option>
+    </select>
+        </label>
+        <button class="primary" id="calculate">CALCULAR</button>
+      </div>
+
+      <div id="result" class="card result hidden">
+        <small>RESULTADO MATEMÁTICO</small>
+        <div class="big" id="uiResult">— UI</div>
+        <div class="result-grid">
+          <div><small>VOLUME</small><b id="mlResult">—</b></div>
+          <div><small>CONCENTRAÇÃO</small><b id="concResult">—</b></div>
+          <div><small>DOSES TEÓRICAS</small><b id="dosesResult">—</b></div>
+        </div>
+        <div class="syringe-wrap">
+          <div class="syringe">
+            <div class="bar"><div id="fill" class="fill"></div></div>
+            <div class="ticks" id="ticks"></div>
+          </div>
+          <small id="syringeNote"></small>
+        </div>
+        <button class="secondary" id="saveRoutineFromCalc">SALVAR COMO ROTINA</button>
+      </div>
+    </section>
+
+    <section id="routines" class="screen">
+      <div class="section-head"><div><small>ROTINAS</small><h2>Minha agenda</h2></div><button class="primary compact" id="newRoutine">＋ Nova</button></div>
+      <div id="routineList" class="stack"></div>
+      <div id="routineForm" class="card form hidden">
+        <h3 id="routineFormTitle">Nova rotina</h3>
+        <label>Nome <input id="rName" placeholder="Ex.: Peptídeo A"/></label>
+        <div class="grid2 inputs">
+          <label>Valor calculado <div class="input-unit"><input id="rUi" type="number" step="any" placeholder="20"><span>UI</span></div></label>
+          <label>Volume <div class="input-unit"><input id="rMl" type="number" step="any" placeholder="0,20"><span>mL</span></div></label>
+        </div>
+        <label>Frequência
+          <select id="frequency">
+            <option value="daily">Todos os dias</option>
+            <option value="alternate">Dia sim / dia não</option>
+            <option value="5on2off">5 dias ON / 2 dias OFF</option>
+            <option value="weekdays">Dias específicos da semana</option>
+          </select>
+        </label>
+        <div id="weekdaysBox" class="hidden">
+          <small>Selecione os dias</small>
+          <div class="days">
+            <label><input type="checkbox" value="0">D</label><label><input type="checkbox" value="1">S</label><label><input type="checkbox" value="2">T</label><label><input type="checkbox" value="3">Q</label><label><input type="checkbox" value="4">Q</label><label><input type="checkbox" value="5">S</label><label><input type="checkbox" value="6">S</label>
+          </div>
+        </div>
+        <label>Início da rotina <input id="startDate" type="date"/></label>
+        <label>Horário (opcional) <input id="rTime" type="time"/></label>
+        <div class="grid2">
+          <button class="ghost" id="cancelRoutine">Cancelar</button>
+          <button class="primary" id="saveRoutine">Salvar</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="vials" class="screen">
+      <div class="section-head"><div><small>FRASCOS</small><h2>Meus frascos</h2></div></div>
+      <div class="card empty"><strong>🧪</strong><h3>Controle de frascos</h3><p>A estrutura está preparada para a próxima etapa: saldo, custo, data de reconstituição e histórico automático.</p><span class="badge">PRÓXIMA VERSÃO</span></div>
+    </section>
+
+    <section id="profile" class="screen">
+      <div class="section-head"><div><small>PERFIL</small><h2>PepDay</h2></div></div>
+      <div class="card"><h3>PEPDAY FREE</h3><p>Calculadora, seringa visual e rotinas salvas localmente neste aparelho.</p></div>
+      <div class="card"><h3>Sobre os dados</h3><p>Nesta V1, os dados ficam no armazenamento local do navegador. Não há conta, servidor ou envio para nuvem.</p></div>
+      <button class="danger" id="eraseData">Apagar meus dados locais</button>
+    </section>
+  </main>
+
+  <nav>
+    <button data-go="home" class="active"><b>⌂</b><span>Início</span></button>
+    <button data-go="calculator"><b>＋</b><span>Calcular</span></button>
+    <button data-go="routines"><b>◷</b><span>Rotinas</span></button>
+    <button data-go="vials"><b>◉</b><span>Frascos</span></button>
+    <button data-go="profile"><b>●</b><span>Perfil</span></button>
+  </nav>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
