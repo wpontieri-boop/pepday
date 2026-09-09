@@ -1,0 +1,11 @@
+{
+  "archive": "97bcbd10377a5f7fd3b6a1432f5f9fad8052eade973f332f76ab6fd8fe89e0ca",
+  "files": {
+    "app.js": "6b5a76bda00ef69f16bc2c7499d19089d2b7b9ecf82e8494f3d3a84f689a83a3",
+    "icon.svg": "8f1d7c769c5cf05194216947638416501bd5b4195a03e4f0528b13cb97579775",
+    "index.html": "db4650e24bb5dc63b92bf1849bfb14599ef9a9f5ae723b0bfa0655bddac17c04",
+    "manifest.json": "1b7113ccfca9259f59bc8ab526b9e0593cb4eeb454e61f5b10736beefacdf4e2",
+    "style.css": "af687063035716697277d7cfb1239ae78dedef8d328e78da8f705496843dfd0d",
+    "sw.js": "6442542675fb5621e80ffd3e99695e2a17dd926e62aa5172880704ed23b7ae56"
+  }
+}

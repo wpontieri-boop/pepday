@@ -1,0 +1,7 @@
+{
+  "supabaseUrl": "",
+  "supabasePublishableKey": "",
+  "authRedirectUrl": "",
+  "allowedRedirects": [],
+  "cloudEnabled": false
+}

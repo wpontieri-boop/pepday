@@ -1,0 +1,1039 @@
+PROJETO: PEPDAY — IMPLEMENTAÇÃO V3.0
+
+Você está atuando como executor técnico do projeto PepDay.
+
+IMPORTANTE:
+O produto, UX, regras comerciais, arquitetura, banco, segurança, sincronização e fluxos já foram definidos e aprovados previamente.
+
+NÃO redesenhe o produto.
+NÃO invente funcionalidades.
+NÃO remova funcionalidades existentes.
+NÃO altere o visual já aprovado sem necessidade técnica.
+NÃO publique em produção antes da validação completa.
+NÃO substitua a versão estável atual enquanto a V3.0 não estiver validada.
+
+==================================================
+1. BASE OFICIAL
+==================================================
+
+Use EXCLUSIVAMENTE como base a versão estável oficial:
+
+PepDay_V2.9_Final_Publicada(1).zip
+
+Essa é a versão pós-correções da publicação V2.9.
+
+Arquivos esperados:
+- index.html
+- app.js
+- style.css
+- manifest.json
+- icon.svg
+- sw.js
+
+Preserve a V2.9 publicada em produção.
+
+Crie a V3.0 separadamente.
+
+Repositório:
+wpontieri-boop/pepday
+branch principal atual: main
+
+NÃO substituir main/produção até a V3.0 estar completamente validada.
+
+==================================================
+2. PRINCÍPIO FUNDAMENTAL
+==================================================
+
+O PepDay é uma ferramenta de cálculo e organização.
+
+Ele NÃO:
+- prescreve;
+- recomenda doses;
+- recomenda substâncias;
+- recomenda tratamentos;
+- cria protocolos médicos.
+
+Manter disclaimer:
+
+“O PepDay é uma ferramenta de cálculo e organização de informações inseridas pelo próprio usuário. O PepDay não prescreve, indica ou recomenda substâncias, doses, tratamentos ou protocolos e não substitui avaliação ou orientação de profissional habilitado. Utilize apenas valores e frequências definidos por você com orientação profissional adequada.”
+
+==================================================
+3. NAVEGAÇÃO
+==================================================
+
+MANTER a ordem:
+
+Início
+Calcular
+Rotinas
+Frascos
+Perfil
+
+NÃO inverter Rotinas e Frascos.
+
+Rotinas é a experiência principal de uso diário.
+Frascos é área de suporte/estoque/acompanhamento.
+
+==================================================
+4. CALCULADORA
+==================================================
+
+Preservar a calculadora existente.
+
+Entradas:
+- mg do frasco
+- água bacteriostática em mL
+- quantidade desejada em mg ou mcg
+- seringa U-100: 30 / 50 / 100 UI
+
+Cálculos:
+
+concentração = mg do frasco / mL de água
+
+se dose em mcg:
+dose_mg = mcg / 1000
+
+volume_ml = dose_mg / concentração
+
+UI = volume_ml × 100
+
+Manter bloqueio/aviso caso UI calculada ultrapasse a capacidade da seringa.
+
+Escalas aprovadas:
+30 UI e 50 UI:
+1 UI por traço pequeno, números a cada 5.
+
+100 UI:
+2 UI por traço pequeno, números a cada 10.
+
+NÃO alterar o desenho aprovado das seringas sem necessidade.
+
+==================================================
+5. FLUXO ROTINA ↔ FRASCO — OBRIGATÓRIO
+==================================================
+
+Este é um requisito central da V3.0.
+
+Na tela NOVA ROTINA:
+
+Campo:
+Frasco
+
+Se houver frascos:
+permitir selecionar um existente.
+
+Também mostrar:
+“＋ Cadastrar novo frasco”
+
+Se não houver frasco:
+permitir cadastrar um frasco diretamente a partir da criação da rotina.
+
+IMPORTANTE:
+
+Ao clicar em “Cadastrar novo frasco”:
+
+1. preservar todos os dados já digitados na rotina;
+2. abrir cadastro de frasco;
+3. cadastrar nome/fármaco, mg, água/mL, data etc.;
+4. salvar;
+5. retornar AUTOMATICAMENTE para Nova Rotina;
+6. selecionar automaticamente o frasco recém-criado;
+7. restaurar os demais campos da rotina;
+8. permitir concluir a rotina.
+
+O usuário NÃO deve precisar abandonar a rotina para cadastrar o frasco.
+
+Também implementar integração com Calculadora:
+
+Após calcular:
+oferecer discretamente:
+
+“Salvar e acompanhar”
+ou
+“Salvar como rotina”
+
+Se não houver frasco:
+“Cadastrar frasco e continuar”
+
+Pré-preencher no cadastro de frasco, quando disponíveis:
+- nome
+- mg
+- mL
+
+Salvar frasco → voltar para rotina → frasco selecionado.
+
+Fluxo conceitual:
+
+CALCULAR
+→ ROTINA
+→ se necessário CADASTRAR FRASCO
+→ voltar para ROTINA
+→ concluir.
+
+A aba FRASCOS continua existindo separadamente para gerenciamento.
+
+==================================================
+6. FRASCOS
+==================================================
+
+Frasco é a fonte de verdade da preparação.
+
+Guardar:
+- nome
+- mg inicial
+- saldo mg
+- água/mL
+- concentração
+- data
+- custo opcional
+- ativo/inativo
+
+Exibir:
+- saldo
+- aplicações restantes
+- previsão aproximada de término
+- alerta de reposição
+- histórico/movimentos
+
+Threshold de reposição:
+2 / 3 / 4 / 5 aplicações
+padrão = 3.
+
+==================================================
+7. ROTINAS
+==================================================
+
+Rotina referencia um frasco existente.
+
+Guardar:
+- frasco
+- nome
+- quantidade por aplicação
+- mg ou mcg
+- seringa
+- frequência
+- data inicial
+- horário
+- threshold de reposição
+- status
+
+Frequências:
+- todos os dias
+- dia sim/dia não
+- 5 dias / 2 dias
+- dias específicos da semana
+
+Usar internamente:
+daily
+alternate
+5on2off
+weekdays
+
+IMPORTANTE:
+O identificador correto do 5x2 é:
+5on2off
+
+NÃO reintroduzir o bug antigo “5x2”.
+
+Editar uma rotina afeta somente aplicações futuras.
+
+Histórico passado NÃO muda.
+
+==================================================
+8. APLICAÇÕES / HISTÓRICO
+==================================================
+
+Registrar aplicação deve:
+
+- registrar evento imutável;
+- guardar dose original;
+- guardar mg normalizado;
+- guardar volume mL;
+- guardar UI;
+- guardar concentração utilizada;
+- guardar saldo antes;
+- guardar saldo depois;
+- descontar exatamente o mg correspondente.
+
+UNDO:
+- não apagar histórico;
+- marcar aplicação como desfeita;
+- criar movimento inverso;
+- devolver exatamente o mg correspondente ao frasco.
+
+Operação de:
+aplicação + movimento + saldo
+
+deve ser ATÔMICA.
+
+Não permitir desconto duplicado por reenvio de rede.
+
+Usar idempotência/UUID.
+
+==================================================
+9. SUPABASE
+==================================================
+
+Usar Supabase inicialmente no plano FREE.
+
+Supabase será responsável por:
+- autenticação;
+- PostgreSQL;
+- dados;
+- sincronização;
+- segurança/RLS;
+- status comercial/entitlements.
+
+Criar estrutura equivalente a:
+
+profiles
+subscriptions
+trials
+vials
+routines
+routine_versions
+applications
+vial_movements
+settings
+audit_logs
+local_data_imports
+
+Utilizar UUIDs.
+
+Adicionar created_at / updated_at onde apropriado.
+
+Para registros editáveis e sincronizados, utilizar deleted_at quando apropriado para soft-delete.
+
+==================================================
+10. PROFILES
+==================================================
+
+Campos necessários:
+
+id
+name
+email
+country
+timezone
+role
+is_adult_confirmed
+terms_accepted_at
+terms_version
+privacy_accepted_at
+privacy_version
+created_at
+updated_at
+
+role:
+user
+admin
+
+==================================================
+11. SUBSCRIPTIONS
+==================================================
+
+Campos:
+
+id
+user_id
+status
+plan
+access_override
+provider
+provider_subscription_id
+started_at
+current_period_start
+current_period_end
+cancel_at_period_end
+cancelled_at
+created_at
+updated_at
+
+status:
+
+free
+trial
+pro_active
+pro_expired
+
+plan:
+
+free
+monthly
+annual
+
+==================================================
+12. TRIAL
+==================================================
+
+Teste PRO:
+
+7 dias
+SEM cartão.
+
+O trial começa SOMENTE quando o usuário clicar:
+
+“Começar 7 dias grátis”
+
+Nunca iniciar automaticamente ao instalar ou abrir o aplicativo.
+
+Guardar no servidor:
+
+trial_used
+started_at
+ends_at
+completed_at
+
+Uma conta não pode receber o trial duas vezes.
+
+Reinstalar PWA não reinicia trial.
+
+Logout/login não reinicia trial.
+
+Não usar IP como bloqueio principal.
+
+==================================================
+13. CONTA ADMINISTRATIVA
+==================================================
+
+Criar suporte a:
+
+role = admin
+access_override = admin
+
+Conta administrativa tem acesso PRO interno sem cobrança.
+
+IMPORTANTE:
+
+Admin NÃO deve automaticamente poder visualizar dados sensíveis de usuários.
+
+Administração de assinatura ≠ acesso ao conteúdo privado.
+
+Qualquer futuro acesso excepcional de suporte deve ser controlado e auditado.
+
+Prever possibilidade futura de:
+“Visualizar como FREE”
+para testes administrativos.
+
+==================================================
+14. LOGIN
+==================================================
+
+FREE Calculator pode funcionar SEM login.
+
+Login passa a ser necessário para:
+- iniciar trial;
+- usar recursos PRO;
+- sincronizar;
+- salvar na nuvem;
+- assinar.
+
+Métodos:
+
+Continuar com Google
+
+Continuar com e-mail
+
+E-mail:
+código de 6 dígitos e/ou magic link.
+
+Não exigir:
+CPF
+telefone
+endereço
+
+Cadastro:
+
+nome
+e-mail
+país
+timezone automático
+confirmação 18+
+Termos
+Política de Privacidade
+consentimentos aplicáveis.
+
+==================================================
+15. MIGRAÇÃO V2.9 → CONTA
+==================================================
+
+NÃO perder dados existentes.
+
+Ao primeiro login, se houver dados locais:
+
+“Encontramos dados do PepDay neste aparelho”
+
+Opções:
+
+IMPORTAR MEUS DADOS
+AGORA NÃO
+
+Importação:
+
+1. snapshot/backup local;
+2. identificar importação;
+3. enviar dados;
+4. verificar;
+5. evitar duplicidade;
+6. confirmar;
+7. somente então marcar importação concluída.
+
+NÃO apagar automaticamente a cópia local.
+
+Se houver dados locais e nuvem:
+
+oferecer:
+MESCLAR COM SEGURANÇA
+USAR DADOS DA MINHA CONTA
+REVISAR ANTES DE SINCRONIZAR
+
+==================================================
+16. SINCRONIZAÇÃO
+==================================================
+
+Modelo local-first.
+
+Salvar localmente primeiro.
+
+Sincronizar com Supabase quando houver conexão.
+
+Offline:
+usuário deve continuar podendo utilizar as funcionalidades compatíveis.
+
+Ao voltar internet:
+sincronizar pendências.
+
+Conflitos:
+
+Frascos/rotinas/settings:
+usar timestamps/versionamento com cuidado.
+
+Applications e vial_movements:
+NÃO usar simplesmente “último vence”.
+São eventos históricos imutáveis.
+
+Adicionar indicador discreto no Perfil:
+
+“Sincronizado agora”
+
+ou
+
+“X alterações aguardando conexão”
+
+==================================================
+17. SEGURANÇA / RLS
+==================================================
+
+Ativar Row Level Security.
+
+Regra fundamental:
+
+cada usuário somente lê/altera registros pertencentes ao próprio user_id.
+
+subscriptions/trials:
+usuário pode consultar seus próprios dados;
+alterações críticas devem ser controladas pelo backend.
+
+audit_logs:
+não editáveis por usuário normal.
+
+Não armazenar conteúdo sensível desnecessariamente em logs.
+
+Não expor service-role keys no frontend.
+
+Nunca colocar segredos no repositório público.
+
+Se qualquer segredo/chave for necessário:
+PARE nessa etapa e informe exatamente qual configuração humana é necessária.
+
+NÃO invente credenciais.
+
+==================================================
+18. FREE / PRO
+==================================================
+
+FREE:
+
+- calculadora mg/mcg/mL/UI
+- U-100 30/50/100
+- seringa visual
+- concentração
+- cálculos ilimitados
+- tutorial
+- anúncios discretos futuramente
+
+PRO:
+
+- sem anúncios
+- Frascos
+- saldo
+- histórico
+- Rotinas
+- registrar aplicação
+- dedução automática
+- aplicações restantes
+- previsão de término
+- alerta de reposição
+- sincronização/backup quando implementados
+
+Tabs Rotinas e Frascos permanecem VISÍVEIS no FREE.
+
+Não escondê-las.
+
+Ao tocar:
+mostrar explicação PRO.
+
+==================================================
+19. TESTE PRO
+==================================================
+
+Primeiro:
+tutorial existente V2.9.
+
+Depois:
+convite:
+
+COMEÇAR 7 DIAS GRÁTIS
+AGORA NÃO
+
+Se Agora não:
+continuar FREE.
+
+Não mostrar modal repetidamente.
+
+Mostrar convite contextual ao tentar usar recurso PRO.
+
+3 dias restantes:
+aviso discreto.
+
+1 dia:
+aviso discreto.
+
+Fim:
+“Seu teste PRO terminou”
+
+Opções:
+ver planos
+continuar FREE.
+
+DADOS NÃO SÃO APAGADOS.
+
+==================================================
+20. PREÇOS
+==================================================
+
+FREE:
+R$ 0
+
+PRO Mensal:
+R$ 14,90/mês
+
+PRO Anual:
+R$ 99,90/ano
+
+Anual:
+“Mais vantajoso”
+
+“Economize R$ 78,90 por ano”
+
+==================================================
+21. MERCADO PAGO
+==================================================
+
+Gateway oficial inicial do PepDay.
+
+Implementar arquitetura preparada para:
+
+monthly
+annual
+
+Pagamento confirmado SOMENTE via backend/webhook.
+
+NUNCA liberar PRO apenas pelo retorno/redirecionamento do navegador.
+
+Estados:
+
+pagamento aprovado
+pendente
+recusado
+renovação
+cancelamento
+expiração
+reativação
+
+Tolerância após falha de renovação:
+3 dias.
+
+Durante tolerância:
+PRO continua ativo.
+
+Cancelamento:
+mantém PRO até final do período pago.
+
+Dados nunca são apagados por cancelamento/expiração.
+
+Troca mensal/anual:
+no lançamento, preferir alteração no próximo ciclo, sem pró-rata complexo.
+
+==================================================
+22. TELAS COMERCIAIS
+==================================================
+
+Manter:
+
+Escolha seu PepDay PRO
+
+Mensal
+R$14,90/mês
+
+Anual
+R$99,90/ano
+Mais vantajoso
+
+Economize R$78,90 por ano
+
+Benefícios:
+Rotinas
+Frascos
+Histórico
+Previsão de término
+Alertas de reposição
+Sem anúncios
+Sincronização quando disponível
+
+Rodapé:
+
+“Seus dados permanecem salvos mesmo se o teste ou a assinatura terminar. Ao voltar ao PRO, tudo é liberado novamente.”
+
+Criar estados:
+
+PEPDAY FREE
+PEPDAY PRO — TESTE GRÁTIS
+PEPDAY PRO ATIVO
+PEPDAY PRO EXPIRADO
+
+==================================================
+23. BREVO
+==================================================
+
+Brevo é o serviço inicial de e-mails transacionais.
+
+Preparar arquitetura para:
+
+- código/link de login
+- conta criada
+- início trial
+- fim trial
+- pagamento aprovado
+- renovação
+- falha de pagamento
+- fim tolerância
+- cancelamento
+- reativação
+- segurança da conta
+
+Brevo NÃO decide entitlement.
+
+Ele apenas envia mensagens.
+
+==================================================
+24. FIREBASE CLOUD MESSAGING
+==================================================
+
+FCM é o serviço inicial de push.
+
+Push para:
+
+- rotina do dia
+- reposição
+- avisos operacionais quando aplicável
+
+Push deve respeitar preferência do usuário.
+
+NÃO expor na tela bloqueada:
+substância
+dose
+histórico
+informações sensíveis.
+
+Exemplo:
+
+“PepDay — você tem uma rotina programada para hoje.”
+
+==================================================
+25. MARKETING
+==================================================
+
+Separar completamente:
+
+essencial/segurança
+operacional
+marketing
+
+Marketing deve ser opcional.
+
+Não condicionar funcionamento da conta ao aceite de marketing.
+
+==================================================
+26. LGPD / PRIVACIDADE
+==================================================
+
+Tratar informações de rotina/frascos/histórico com alto nível de proteção, considerando possibilidade de dados pessoais sensíveis relacionados à saúde.
+
+Implementar suporte para:
+
+- Termos de Uso
+- Política de Privacidade
+- versão aceita
+- data/hora do aceite
+- consentimentos destacados quando aplicáveis
+- exportação de dados
+- exclusão de conta
+- canal de privacidade
+- gerenciamento de dados
+
+Não criar cláusulas que tentem excluir toda responsabilidade do PepDay.
+
+Prever transparência sobre:
+Supabase
+Mercado Pago
+Google
+Brevo
+Firebase
+e futuros fornecedores.
+
+A versão jurídica final será revisada antes do lançamento comercial.
+
+==================================================
+27. NOTIFICAÇÕES
+==================================================
+
+Categorias:
+
+CRÍTICAS
+login, segurança, cobrança, conta.
+
+OPERACIONAIS
+rotina, reposição, sincronização.
+
+MARKETING
+novidades e ofertas.
+
+Perfil → Notificações:
+
+Lembretes de rotina
+Alertas de reposição
+Avisos da conta e segurança
+Novidades e ofertas
+
+Não expor conteúdo sensível em push.
+
+==================================================
+28. SERVICE WORKER / CACHE
+==================================================
+
+A V2.9 teve problema de cache durante publicação.
+
+NÃO reintroduzir esse problema.
+
+Atualizar corretamente o cache da V3.0.
+
+Garantir que uma nova versão realmente substitua assets antigos após atualização.
+
+Preservar funcionamento PWA/offline.
+
+==================================================
+29. TUTORIAL
+==================================================
+
+Preservar tutorial interativo V2.9.
+
+6 passos existentes.
+
+Manter possibilidade:
+Perfil → Ver tutorial novamente.
+
+Não remover.
+
+Adaptar somente se necessário para as novas telas da V3.0.
+
+==================================================
+30. README / MANUAL DO PROJETO
+==================================================
+
+Criar README claro, em português, para o proprietário do PepDay.
+
+Explicar de forma simples:
+
+GitHub Pages → frontend/PWA
+Supabase → login/banco/sincronização/entitlement
+Mercado Pago → pagamentos
+Brevo → e-mails
+Firebase/FCM → push
+Google/e-mail → autenticação
+RLS → segurança
+Admin → acesso interno
+FREE/TRIAL/PRO → comercial
+LGPD/Termos/Disclaimer → jurídico
+
+Também explicar:
+
+- onde cada configuração fica;
+- quais contas/serviços são usados;
+- quais são gratuitos inicialmente;
+- quando pode ser necessário upgrade;
+- onde ficam as variáveis de ambiente;
+- como publicar;
+- como atualizar;
+- como fazer backup;
+- o que NÃO deve ser alterado sem cuidado.
+
+NÃO incluir senhas ou segredos no README.
+
+==================================================
+31. EXECUÇÃO EM BLOCOS
+==================================================
+
+Trabalhe em quatro blocos:
+
+BLOCO A
+Base V3.0
+Supabase
+Auth
+Banco
+RLS
+Migração
+Admin
+
+BLOCO B
+FREE/TRIAL/PRO
+Rotina ↔ Frasco
+Sincronização
+Perfil
+Fluxos funcionais
+
+BLOCO C
+Mercado Pago
+Brevo
+Firebase
+Telas comerciais
+Estados de assinatura
+
+BLOCO D
+LGPD/Termos
+Testes
+README
+PWA/cache
+validação final
+ZIP/release candidate
+
+Dentro de cada bloco:
+execute o máximo possível sem pedir confirmação desnecessária.
+
+==================================================
+32. TESTES OBRIGATÓRIOS
+==================================================
+
+Antes de considerar V3.0 pronta:
+
+- validar HTML/CSS/JS;
+- validar PWA;
+- validar manifest;
+- validar service worker;
+- validar mobile;
+- validar desktop;
+- validar calculadora;
+- validar 30/50/100 UI;
+- validar mg/mcg;
+- validar 5on2off;
+- validar Rotina ↔ Frasco;
+- validar criação de frasco dentro da rotina;
+- validar retorno sem perda de campos;
+- validar aplicações;
+- validar undo;
+- validar saldo;
+- validar forecast;
+- validar reposição;
+- validar login;
+- validar logout;
+- validar trial;
+- validar trial único;
+- validar FREE;
+- validar PRO;
+- validar admin;
+- validar migração V2.9;
+- validar sincronização;
+- validar offline/online;
+- validar RLS;
+- validar que um usuário NÃO acessa dados de outro;
+- validar pagamento em ambiente de teste;
+- validar webhooks;
+- validar cancelamento;
+- validar expiração;
+- validar reativação;
+- validar e-mails;
+- validar push;
+- validar cache/update.
+
+==================================================
+33. PRODUÇÃO
+==================================================
+
+NÃO substituir a V2.9 em produção automaticamente.
+
+Primeiro:
+
+1. concluir V3.0;
+2. validar;
+3. gerar release candidate;
+4. informar exatamente o que foi implementado;
+5. informar o que depende de credenciais/configuração humana;
+6. fornecer arquivos/ZIP;
+7. aguardar aprovação para substituir produção.
+
+A V2.9 deve permanecer funcionando durante todo o desenvolvimento.
+
+==================================================
+34. REGRA DE ECONOMIA DE TEMPO/TOKENS
+==================================================
+
+Não desperdice tempo reavaliando decisões de produto já aprovadas.
+
+Não produza longas análises conceituais.
+
+Priorize:
+IMPLEMENTAR
+TESTAR
+CORRIGIR
+VALIDAR
+DOCUMENTAR.
+
+Se encontrar uma decisão realmente bloqueante que não esteja definida:
+pergunte.
+
+Caso contrário:
+execute.
+
+Se o limite da sessão estiver próximo:
+pare em um ponto seguro,
+salve tudo,
+documente exatamente:
+- o que terminou;
+- arquivos alterados;
+- testes realizados;
+- pendências;
+- próximo passo.
+
+Assim o trabalho poderá continuar em outra sessão sem ser refeito.
+
+==================================================
+35. RESULTADO ESPERADO
+==================================================
+
+Entregar uma PepDay V3.0 funcional, segura e preparada para comercialização, preservando integralmente a V2.9 aprovada e todos os fluxos existentes.
+
+Não publicar em produção sem autorização final.
+
+COMECE AGORA PELO BLOCO A.
+Antes de modificar qualquer arquivo, confirme que está utilizando a V2.9 FINAL PUBLICADA como base e faça uma cópia/branch de segurança.
+Depois execute o trabalho.
