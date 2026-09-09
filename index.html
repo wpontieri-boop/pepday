@@ -23,7 +23,7 @@
   <main>
     <section id="home" class="screen active">
       <div class="hero">
-        <small>PEPDAY • V2.9</small>
+        <small>PEPDAY • V1</small>
         <h1>Resumo de hoje</h1>
         <p id="todayLabel"></p>
       </div>
@@ -74,19 +74,10 @@
           <div><small>CONCENTRAÇÃO</small><b id="concResult">—</b></div>
           <div><small>DOSES TEÓRICAS</small><b id="dosesResult">—</b></div>
         </div>
-        <div class="syringe-wrap premium-syringe">
-          <div class="syringe-scene" aria-hidden="true">
-            <div class="needle"><i></i></div>
-            <div class="syringe-flange left"></div>
-            <div class="syringe">
-              <div class="bar">
-                <div id="fill" class="fill"></div>
-                <div class="glass-shine"></div>
-              </div>
-              <div class="ticks" id="ticks"></div><div class="syringe-numbered-scale" id="syringeNumberedScale" aria-hidden="true"></div>
-            </div>
-            <div class="syringe-flange right"></div>
-            <div class="plunger"><i></i></div>
+        <div class="syringe-wrap">
+          <div class="syringe">
+            <div class="bar"><div id="fill" class="fill"></div></div>
+            <div class="ticks" id="ticks"></div>
           </div>
           <small id="syringeNote"></small>
         </div>
@@ -100,32 +91,10 @@
       <div id="routineForm" class="card form hidden">
         <h3 id="routineFormTitle">Nova rotina</h3>
         <label>Nome <input id="rName" placeholder="Ex.: Peptídeo A"/></label>
-        <label>Frasco
-          <select id="rVial"><option value="">Selecione um frasco</option></select>
-        </label>
         <div class="grid2 inputs">
-          <label>Quantidade por aplicação
-            <div class="dose-row"><input id="rDose" type="number" min="0" step="any" placeholder="1"><select id="rDoseUnit"><option value="mg">mg</option><option value="mcg">mcg</option></select></div>
-          </label>
-          <label>Seringa
-            <select id="rSyringe"><option value="30">U-100 • 30 UI</option><option value="50">U-100 • 50 UI</option><option value="100" selected>U-100 • 100 UI</option></select>
-          </label>
+          <label>Valor calculado <div class="input-unit"><input id="rUi" type="number" step="any" placeholder="20"><span>UI</span></div></label>
+          <label>Volume <div class="input-unit"><input id="rMl" type="number" step="any" placeholder="0,20"><span>mL</span></div></label>
         </div>
-        <div class="edit-rule-note">Ao editar a quantidade, o novo valor vale apenas para as próximas aplicações. O histórico anterior não é alterado.</div>
-        <div id="routineCalcPreview" class="routine-preview hidden">
-          <small>RESULTADO POR APLICAÇÃO</small>
-          <strong id="rPreviewUi">— UI</strong>
-          <div><span id="rPreviewMl">— mL</span><span id="rPreviewConc">— mg/mL</span></div>
-          <p id="rPreviewWarning"></p>
-        </div>
-        <label>Avisar reposição quando faltarem
-          <select id="rRefillAt">
-            <option value="2">2 aplicações</option>
-            <option value="3" selected>3 aplicações</option>
-            <option value="4">4 aplicações</option>
-            <option value="5">5 aplicações</option>
-          </select>
-        </label>
         <label>Frequência
           <select id="frequency">
             <option value="daily">Todos os dias</option>
@@ -150,30 +119,14 @@
     </section>
 
     <section id="vials" class="screen">
-      <div class="section-head"><div><small>FRASCOS</small><h2>Meus frascos</h2></div><button class="primary compact" id="newVial">＋ Novo</button></div>
-      <div id="vialList" class="stack"></div>
-      <div id="vialForm" class="card form hidden">
-        <h3 id="vialFormTitle">Novo frasco</h3>
-        <label>Nome / identificação <input id="vName" placeholder="Ex.: Frasco A"></label>
-        <div class="grid2 inputs">
-          <label>Quantidade inicial<div class="input-unit"><input id="vMg" type="number" min="0" step="any" placeholder="10"><span>mg</span></div></label>
-          <label>Diluente<div class="input-unit"><input id="vWater" type="number" min="0" step="any" placeholder="2"><span>mL</span></div></label>
-        </div>
-        <label>Data de reconstituição <input id="vDate" type="date"></label>
-        <label>Custo (opcional)<div class="input-unit"><span>R$</span><input id="vCost" type="number" min="0" step="0.01" placeholder="0,00"></div></label>
-        <div class="grid2"><button class="ghost" id="cancelVial">Cancelar</button><button class="primary" id="saveVial">Salvar frasco</button></div>
-      </div>
-      <div id="historyCard" class="card hidden">
-        <div class="card-title"><span>HISTÓRICO DO FRASCO</span><button class="link" id="closeHistory">Fechar</button></div>
-        <div id="vialHistory" class="stack"></div>
-      </div>
+      <div class="section-head"><div><small>FRASCOS</small><h2>Meus frascos</h2></div></div>
+      <div class="card empty"><strong>🧪</strong><h3>Controle de frascos</h3><p>A estrutura está preparada para a próxima etapa: saldo, custo, data de reconstituição e histórico automático.</p><span class="badge">PRÓXIMA VERSÃO</span></div>
     </section>
 
     <section id="profile" class="screen">
       <div class="section-head"><div><small>PERFIL</small><h2>PepDay</h2></div></div>
       <div class="card"><h3>PEPDAY FREE</h3><p>Calculadora, seringa visual e rotinas salvas localmente neste aparelho.</p></div>
       <div class="card"><h3>Sobre os dados</h3><p>Nesta V1, os dados ficam no armazenamento local do navegador. Não há conta, servidor ou envio para nuvem.</p></div>
-      <button class="secondary tutorial-replay-btn" id="replayTutorial">▶ Ver tutorial novamente</button>
       <button class="danger" id="eraseData">Apagar meus dados locais</button>
     </section>
   </main>
@@ -185,26 +138,6 @@
     <button data-go="vials"><b>◉</b><span>Frascos</span></button>
     <button data-go="profile"><b>●</b><span>Perfil</span></button>
   </nav>
-
-  <div id="tutorialOverlay" class="tutorial-overlay hidden" aria-live="polite">
-    <div class="tutorial-dim"></div>
-    <div id="tutorialSpotlight" class="tutorial-spotlight"></div>
-    <div id="tutorialArrow" class="tutorial-arrow">↓</div>
-    <div id="tutorialCard" class="tutorial-card">
-      <div class="tutorial-top">
-        <span id="tutorialStep">1 de 6</span>
-        <button id="tutorialSkip" class="tutorial-skip">Pular</button>
-      </div>
-      <div id="tutorialIcon" class="tutorial-icon">⌂</div>
-      <h3 id="tutorialTitle">Início</h3>
-      <p id="tutorialText"></p>
-      <div class="tutorial-actions">
-        <button id="tutorialBack" class="ghost">Voltar</button>
-        <button id="tutorialNext" class="primary">Próximo</button>
-      </div>
-    </div>
-  </div>
-
 </div>
 <script src="app.js"></script>
 </body>
