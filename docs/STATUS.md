@@ -1,47 +1,63 @@
-# Ponto de retomada — 09/09/2026
+# Ponto de retomada — Bloco A, checkpoint A2
 
-Estado: **fundação do Bloco A; NÃO pronta para produção**.
+Estado: **integração de conta preparada; Bloco A ainda incompleto**.
 
-## Base e isolamento
+## O que mudou nesta etapa
 
-- ZIP original preservado em backup/PepDay_V2.9_Final_Publicada.zip.
-- Seis hashes Git blob conferidos contra a main, todos idênticos.
-- Base GitHub: 25f1d48d34b395be285d35391b6a5b7ebe6d848c.
-- Branch de trabalho: v3.0-bloco-a.
-- Nenhum deploy, alteração na main, conta paga ou configuração externa de Auth.
+- Projeto de testes confirmado: pepday-v3-test / fsbqpyyprtymwrmzsacp.
+- A chave publishable do proprietário responde HTTP 200 em /auth/v1/settings.
+- Provedor e-mail habilitado; Google desabilitado.
+- /rest/v1/profiles?select=id&limit=0 respondeu 404: tabela não disponível na API.
+- config.js contém somente configuração pública do projeto de testes.
+- SDK oficial 2.116.0 salvo localmente em vendor/, com origem, SHA-256 e licença.
+- index.html integra o novo Perfil sem alterar cálculo, seringas ou navegação.
+- account.css afeta somente controles novos; style.css permanece idêntico à V2.9.
+- src/account-ui.mjs integra envio/verificação de OTP, Google condicionado à
+  configuração, sessão, logout, formulário de cadastro e revisão de backup legado.
+- Consentimentos desabilitados até documentos reais e versões serem configurados.
+- src/cloud.mjs valida projeto/chave pública, impede uso no caminho de produção,
+  separa armazenamento Auth do ambiente de testes e traduz erros sem expor payloads.
+- A importação confere no servidor o UUID esperado, protegendo contra troca de
+  conta entre a criação do backup e o envio.
+- sw.js usa cache V3.0 A2; Auth, query strings e respostas privadas ficam fora.
+- Servidor de desenvolvimento sem dependências, usado somente em preview interno.
 
-## Arquivos adicionados
+## Preservação
 
-- supabase/migrations/202609090001_block_a.sql: estrutura das 11 tabelas, RLS,
-  grants, bootstrap, onboarding, entitlement, trial e recebimento de snapshot.
-- supabase/tests/block_a.sql: casos de leitura entre contas, admin sem acesso
-  global, bloqueio de autopromoção, trial único, bloqueio de escrita direta e anon.
-- src/account.mjs: adaptador de Auth injetável.
-- src/legacy-import.mjs: inspeção, backup, hash e recebimento para revisão.
-- tests/block-a.test.mjs: 13 testes unitários com cliente e storage simulados.
-- config.example.json, .gitignore, README.md, docs/STATUS.md, backup/SHA256.json.
-- REQUISITOS.txt: prompt mestre original para continuidade.
+- main de produção não foi alterada. Branch de trabalho: v3.0-bloco-a.
+- app.js, style.css, manifest.json e icon.svg continuam byte a byte V2.9.
+- index.html e sw.js têm alterações somente na branch de desenvolvimento.
+- Backup V2.9 original e hashes continuam disponíveis em backup/.
+- Nenhum deploy, envio de e-mail, criação de usuário ou acesso com chave elevada.
 
-## Validação e limites
+## Testes executados
 
-- Executado: 13/13 testes Node aprovados.
-- Executado: sintaxe JavaScript dos arquivos originais e módulos novos.
-- Executado: integridade ZIP, hashes dos seis arquivos e referências locais HTML/manifest.
-- Não executado: SQL/PostgreSQL/RLS real, concorrência no banco, login Google/e-mail,
-  envio de OTP, sessão real, teste em dois aparelhos, migração completa,
-  integração visual mobile/desktop, trial no servidor.
-- Blocos B/C/D pendentes. Pagamentos, push, e-mails, sincronização e política de
-  cache V3.0 não implementados aqui.
+- 21/21 testes Node aprovados: backup, consentimento, troca de conta,
+  verificação de snapshot, adaptador Auth, configuração pública e cache.
+- Navegador desktop: Perfil carregado com e-mail disponível e Google desabilitado,
+  tutorial de seis passos e repetição pelo Perfil funcionando.
+- Navegador: 10 mg / 2 mL / 1 mg = 20 UI na seringa de 30 UI; 1000 mcg = 20 UI
+  nas seringas de 50 e 100 UI. Exemplos apenas de teste matemático.
+- SDK carregou localmente; nenhum erro JavaScript do aplicativo observado.
+- Sintaxe JS, integridade SDK/backup e referências locais verificadas.
+
+## Ainda NÃO validado/concluído
+
+- SQL não aplicado nem executado: publishable key não administra esquema.
+- Sem PostgreSQL/Docker/Supabase CLI local para rodar testes de banco nesta sessão.
+- Login/logout reais, entrega de OTP, Google e sessão autenticada dependem de
+  configuração do painel e teste do proprietário; não foram simulados como sucesso.
+- Cadastro aguarda documentos acessíveis; os aceites não são fictícios.
+- Migração guarda snapshot para revisão; ainda não converte e mescla registros
+  em frascos/rotinas/aplicações da nuvem. Histórico incompleto não é reconstruído.
+- Sincronização local-first e operações de saldo/undo são do Bloco B.
+- Testes mobile, offline/update reais e testes completos dos blocos B/C/D pendentes.
 
 ## Próximo passo exato
 
-Configurar projeto Supabase de homologação, URL pública e publishable key.
-O item 17 do prompt mestre exige parar quando forem necessárias credenciais ou
-configuração humana. Não inventar chaves ou contornar esse ponto.
-Depois, aplicar/testar SQL, instalar SDK oficial fixado, conectar conta à interface
-sem redesenhar, completar migração revisada e executar validação real do Bloco A.
+O proprietário deve seguir docs/CONFIGURAR_TESTES.md e executar no SQL Editor do
+pepday-v3-test a migração inicial e depois supabase/tests/block_a.sql.
+Nenhuma senha, service_role ou secret key deve ser enviada.
 
-Não repetir backup ou reconstruir V2.9. Reutilizar esta branch e estes arquivos.
-Não chamar snapshot recebido de importação concluída. Não converter histórico
-incompleto em eventos supostamente exatos. Não habilitar escrita direta nas tabelas
-de saldo/histórico para contornar a ausência das RPCs do Bloco B.
+Após confirmação do SQL: conferir isolamento real e continuar integração/migração.
+Manter a mesma branch e os arquivos existentes. Não refazer V2.9 nem publicar.

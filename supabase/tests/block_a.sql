@@ -39,6 +39,19 @@ do $$ begin
   exception when insufficient_privilege then null; end;
 end $$;
 select public.complete_onboarding('Pessoa de teste','BR','America/Sao_Paulo',true,'test','test',false);
+do $$ declare first_id uuid; repeated_id uuid; begin
+  first_id:=public.stage_local_import(repeat('a',64),'{"sourceVersion":"2.9","raw":{}}'::jsonb,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+  repeated_id:=public.stage_local_import(repeat('a',64),'{"sourceVersion":"2.9","raw":{}}'::jsonb,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+  if first_id is distinct from repeated_id then raise exception 'FAIL duplicate import'; end if;
+  begin
+    perform public.stage_local_import(repeat('b',64),'{}'::jsonb,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+    raise exception 'FAIL import account switch';
+  exception when raise_exception then
+    if SQLERRM<>'Conta alterada durante a importação' then raise; end if;
+  end;
+end $$;
 select public.start_trial();
 do $$ declare a timestamptz; b timestamptz; begin
   select ends_at into a from public.trials;

@@ -70,7 +70,9 @@ export async function stageLegacyImport(client, storage, { consent, expectedUser
   }
   const backup = await snapshotLegacy(storage);
   if (!backup.hasData) return { status: 'empty' };
-  const result = await client.rpc('stage_local_import', { p_hash: backup.hash, p_snapshot: backup.snapshot });
+  const result = await client.rpc('stage_local_import', {
+    p_hash: backup.hash, p_snapshot: backup.snapshot, p_expected_user: expectedUserId
+  });
   if (result.error) throw result.error;
   const verified = await client.from('local_data_imports')
     .select('id,user_id,source_hash,source_snapshot,status')

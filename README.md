@@ -1,128 +1,114 @@
-# PepDay V3.0 — checkpoint do Bloco A
+# PepDay V3.0 — Bloco A / checkpoint A2
 
 **Em desenvolvimento. Não é release candidate nem versão pronta para publicar.**
 
-Base: `PepDay_V2.9_Final_Publicada(2).zip`, enviada pelo proprietário.
-Os seis arquivos de interface são idênticos aos da `main` no commit
-`25f1d48d34b395be285d35391b6a5b7ebe6d848c`. A branch de trabalho é
-`v3.0-bloco-a`. Não houve alteração ou publicação na `main`.
+Base oficial: PepDay_V2.9_Final_Publicada(2).zip. Branch de trabalho:
+`v3.0-bloco-a`. A main de produção continua no commit
+`25f1d48d34b395be285d35391b6a5b7ebe6d848c`.
 
-## O que já existe neste checkpoint
+## Próximo passo
 
-- Backup do ZIP estável e SHA-256 por arquivo em `backup/`.
-- Migração SQL das 11 tabelas aprovadas, UUIDs, vínculos por usuário,
-  preparação/concentração, versionamento e estrutura de histórico.
-- RLS e permissões explícitas. Cada conta consulta somente os próprios dados;
-  o papel `admin` não possui leitura global.
-- Inicialização de conta FREE; cadastro com maioridade e aceites separados de marketing.
-- Funções de consulta de acesso e início explícito de trial de sete dias.
-  A operação de início usa bloqueio de linha para não reiniciar o trial.
-- Adaptador de autenticação Google/e-mail/OTP, sessão, logout e cadastro em `src/account.mjs`.
-  Recebe uma instância do SDK oficial; o SDK e a conexão real ainda não foram instalados/configurados.
-- Snapshot local, hash, backup conferido e envio idempotente para área privada de
-  revisão em `src/legacy-import.mjs`. Não apaga dados locais nem marca o envio
-  como migração concluída.
-- 13 testes Node executados com sucesso; roteiro SQL de isolamento preparado.
+O projeto Supabase `pepday-v3-test` já responde com a configuração pública
+fornecida pelo proprietário. E-mail está habilitado; Google está desabilitado;
+profiles ainda não está disponível na API.
 
-## O que ainda não está concluído
+**Seguir [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md) para aplicar o SQL
+pelo painel. Não precisamos de senha, service_role ou secret key.**
 
-**Bloco A não está concluído.** A fundação foi preparada; a conexão e validação
-real estão bloqueadas pela configuração humana do projeto Supabase, conforme
-o item 17 do prompt mestre. O SQL não foi aplicado nem executado neste ambiente,
-que não tem PostgreSQL, Supabase CLI ou Docker disponíveis.
+O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
-O adaptador de conta não está ligado à interface e não há login funcionando
-neste pacote. O `index.html`, visual, calculadora, tutorial e service worker
-continuam V2.9. Abrir o pacote não demonstra a V3.0.
+## Implementado e preparado
 
-A migração recebe e verifica o snapshot, mas ainda não converte os registros em
-frascos, rotinas e aplicações da conta. Precisa de revisão do legado, resolução
-de colisões e confirmação do usuário quando já existirem dados na nuvem.
-Históricos antigos podem não ter concentração original ou eventos apagados por
-undo; esses dados não podem ser reconstruídos por suposição.
+- Backup íntegro do ZIP V2.9 e hashes em backup/.
+- Estrutura SQL das 11 tabelas aprovadas, UUIDs, vínculos por dono, RLS e grants.
+- Inicialização FREE, cadastro, consulta de acesso e trial explícito de sete dias.
+- Admin tem acesso PRO próprio, sem leitura global de conteúdo privado.
+- SDK oficial Supabase 2.116.0 salvo em vendor/ com origem, hash e licença.
+- Perfil integrado a métodos de login, OTP, sessão, logout, cadastro e revisão
+  de backup. O fluxo real ainda depende das configurações no painel.
+- Snapshot local conferido antes do envio, idempotência e verificação da conta
+  esperada no servidor. Nenhum dado local é apagado automaticamente.
+- Cache V3.0 separado, somente para assets públicos; Auth/API/query strings fora.
+- 21 testes locais passaram; calculadora e tutorial conferidos no navegador.
 
-As tabelas de domínio têm somente leitura para clientes nesta etapa. As mutações
-transacionais, dedução/undo, versionamento efetivo, sincronização local-first e
-resolução de conflitos serão conectadas no Bloco B. Não abrir permissões de
-escrita direta para fazer a interface funcionar.
+## Limites deste checkpoint
 
-## Configuração humana necessária agora
+**Bloco A ainda incompleto.** SQL e RLS reais não foram executados. Não houve
+login real, entrega de e-mail, criação de usuário ou publicação.
+O formulário não coleta aceite enquanto Termos/Privacidade não tiverem URLs e
+versões reais configuradas. Não inventar documentos aceitos.
 
-1. Criar ou identificar um projeto Supabase de **homologação** do PepDay.
-2. Obter a URL do projeto e sua chave **publishable** (pública).
-   Preencher uma cópia local de `config.example.json` chamada `config.local.json`.
-   Nenhum valor foi inventado ou incluído neste checkpoint.
-3. Guardar a senha do banco no gerenciador de senhas do proprietário. Não enviar
-   senha, service-role key ou secret key por chat e não colocar no repositório.
-4. Configurar autenticação por e-mail e URLs exatas de retorno do ambiente de
-   testes. Para OTP, configurar o template de e-mail para incluir o token de seis
-   dígitos. Para Google, configurar o provedor no painel Supabase e guardar o
-   segredo OAuth somente nesse painel.
-5. Aplicar `supabase/migrations/202609090001_block_a.sql` uma vez no banco de testes
-   e executar `supabase/tests/block_a.sql`. O teste roda dentro de transação e faz
-   rollback; usa contas fictícias reservadas ao teste.
-6. Após login e cadastro reais, identificar o UUID da conta administrativa.
-   A promoção é uma operação do backend/SQL Editor: ajustar `profiles.role` para
-   `admin` e `subscriptions.access_override` para `admin` na mesma transação,
-   somente para esse UUID. Registrar `admin_access_granted` em `audit_logs`.
-   Não criar botão ou RPC pública de promoção e não usar o e-mail como regra automática.
+A migração recebe uma cópia para revisão, mas ainda não converte/mescla dados em
+frascos, rotinas e aplicações da nuvem. O histórico V2.9 pode ter eventos apagados
+por undo e concentração histórica ausente; não reconstruir por suposição.
 
-Depois dessas configurações: instalar e fixar a versão do SDK oficial, ligar a
-interface de conta no Perfil, validar Google/e-mail/logout, concluir e testar a
-migração e executar testes reais com duas contas antes de encerrar o Bloco A.
+As tabelas de domínio permitem somente leitura ao cliente nesta fundação. As
+mutações transacionais de saldo/undo, versionamento efetivo e sincronização serão
+ligadas no Bloco B. Não abrir escrita direta para contornar essas pendências.
 
-## Serviços do projeto
+## Onde fica cada parte
 
-| Serviço | Responsabilidade | Estado neste checkpoint |
-| --- | --- | --- |
-| GitHub Pages | Frontend e PWA | V2.9 preservada |
-| Supabase | Auth, banco, RLS, sincronização e acesso PRO | Fundação SQL; projeto não conectado |
-| Google/e-mail | Métodos de login via Supabase | Adaptador preparado; integração pendente |
-| Mercado Pago | Cobrança e webhooks verificados pelo backend | Bloco C |
-| Brevo | E-mails transacionais; não decide acesso PRO | Bloco C |
-| Firebase/FCM | Push opcional sem informações sensíveis | Bloco C |
+| Arquivo/serviço | Função |
+| --- | --- |
+| index.html, app.js, style.css | Interface existente e calculadora |
+| config.js | URL e publishable key públicas do projeto de testes |
+| account.css, src/account-ui.mjs | Controles novos do Perfil |
+| src/account.mjs, src/cloud.mjs | Integração Auth/conta e validação de configuração |
+| src/legacy-import.mjs | Backup e envio do legado para revisão |
+| supabase/migrations/ | SQL para o projeto de testes |
+| supabase/tests/ | Testes de banco para executar no SQL Editor |
+| sw.js | Cache dos arquivos públicos do PWA |
+| GitHub Pages | Frontend/PWA, produção V2.9 preservada |
+| Supabase | Auth, PostgreSQL, RLS, acesso PRO e futura sincronização |
+| Mercado Pago | Pagamentos/webhooks verificados pelo backend, Bloco C |
+| Brevo | E-mails transacionais; não decide acesso PRO, Bloco C |
+| Firebase/FCM | Push opcional sem substância/dose na tela bloqueada, Bloco C |
 
-O plano previsto para começar é Supabase FREE; verificar os limites vigentes no
-painel antes da ativação. Os demais custos e limites devem ser conferidos na
-configuração de cada serviço. Não há assinatura ou recurso pago contratado por
-este checkpoint. Crescimento de banco, tráfego, mensagens ou exigências de backup
-pode demandar mudança de plano; não há garantia de operação gratuita ilimitada.
+Este é um aplicativo estático, não Next.js. Os nomes NEXT_PUBLIC_* enviados
+pelo proprietário foram mapeados para config.js; o navegador não lê variáveis
+de ambiente do servidor em runtime. Somente configuração pública vai ao frontend.
+Credenciais futuras de serviços permanecem no backend/painéis apropriados.
 
-## Validação local e preservação da base
+## Desenvolvimento e testes
 
-Com Node instalado: `node --test tests/block-a.test.mjs`.
-Verificação de sintaxe: `node --check app.js`, `node --check sw.js` e
-`node --check src/account.mjs`, `node --check src/legacy-import.mjs`.
-O relatório detalhado está em `docs/STATUS.md`.
+Com Node instalado: `node --test tests/*.test.mjs`.
+Para desenvolvimento local: `node scripts/dev-server.mjs`.
+O servidor é apenas uma ferramenta de teste e não publica o aplicativo.
 
-O ZIP de segurança em `backup/` é do aplicativo, não dos dados dos usuários.
-Dados da V2.9 ficam no navegador. O importador cria uma cópia local adicional
-antes de enviar; não confundir isso com backup externo do banco.
+No navegador foram conferidos Perfil sem login, disponibilidade dos métodos,
+repetição do tutorial e cálculos mg/mcg nas seringas 30/50/100 UI.
+Ainda faltam autenticação real, RLS entre duas contas, mobile, offline/update,
+conversão completa da migração e demais testes do prompt mestre.
 
-## Publicação e atualização futuras
+## Dados, backup e segurança
 
-Não publicar este checkpoint. Para promover uma V3.0 futura: concluir os quatro
-blocos, executar todos os testes do prompt mestre, gerar release candidate,
-obter aprovação final do proprietário e somente então substituir produção.
-Antes disso, revisar configuração do GitHub Pages e manter possibilidade de
-retorno ao commit estável. Não mudar a branch de publicação agora.
+app.js, style.css, manifest.json e icon.svg permanecem idênticos à V2.9.
+index.html e sw.js foram alterados somente na branch de desenvolvimento.
+O ZIP em backup/ permite recuperar o código estável; não contém dados dos usuários.
+Os dados V2.9 ficam no navegador; o importador mantém uma cópia adicional antes
+que o usuário autorize envio. Isso não substitui backup externo do banco.
 
-O service worker V3.0 deve receber cache próprio, servir apenas assets públicos
-do app e não cachear respostas Auth/banco. Nesta etapa ele permanece V2.9 para
-preservação byte a byte. O mecanismo de atualização será validado no Bloco D.
+Não alterar sem revisão: RLS/grants, funções security definer, saldos/histórico,
+UUIDs, chaves locais, 5on2off, trial/assinaturas, cache e configuração de projetos.
+O frontend nunca é autoridade para liberar PRO. Pagamentos só liberarão acesso
+após verificação no backend. Trial nunca começa ao abrir, instalar ou entrar.
 
-Não alterar sem revisão: RLS, grants, funções security definer, saldos/histórico,
-UUIDs, chaves de armazenamento local, `5on2off`, trial/assinaturas, cache e
-credenciais. O frontend nunca é autoridade para conceder PRO.
+## Publicação futura e custos
 
-## Privacidade e texto aprovado
+Não publicar este checkpoint. Primeiro concluir A/B/C/D, validar os testes
+obrigatórios, gerar release candidate e receber a aprovação final do proprietário.
+Manter backup/commit estável e conferir configuração GitHub Pages antes de promover.
 
-Termos e Política finais ainda serão revisados antes do lançamento comercial.
-Exportação/exclusão de conta, canal de privacidade e consentimentos destacados
-pertencem aos fluxos ainda pendentes. Não tratar este checkpoint como conformidade
-jurídica validada.
+O plano inicial aprovado é Supabase FREE. Conferir limites vigentes no painel;
+não foi contratado nenhum recurso pago nesta etapa. Banco, tráfego, envio de
+mensagens e exigências de backup podem exigir upgrade conforme o uso. Mercado
+Pago, Brevo e Firebase serão configurados no Bloco C, com seus custos conferidos
+nessa etapa. Não presumir operação gratuita ilimitada.
 
-Texto a manter na V3.0:
+## Privacidade e disclaimer aprovado
+
+A revisão jurídica, exportação/exclusão de conta, canal de privacidade e gestão
+completa de consentimentos permanecem pendentes antes do lançamento comercial.
 
 “O PepDay é uma ferramenta de cálculo e organização de informações inseridas pelo
 próprio usuário. O PepDay não prescreve, indica ou recomenda substâncias, doses,
@@ -130,10 +116,9 @@ tratamentos ou protocolos e não substitui avaliação ou orientação de profis
 habilitado. Utilize apenas valores e frequências definidos por você com orientação
 profissional adequada.”
 
-## Referências técnicas consultadas
+## Referências técnicas
 
-- [RLS e permissões Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Chaves públicas](https://supabase.com/docs/guides/getting-started/api-keys)
+- [RLS e grants](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Login sem senha](https://supabase.com/docs/guides/auth/auth-email-passwordless)
-- [SDK: signInWithOtp](https://supabase.com/docs/reference/javascript/auth-signinwithotp)
-- [SDK: Google/OAuth](https://supabase.com/docs/reference/javascript/auth-signinwithoauth)
-- [SDK: logout](https://supabase.com/docs/reference/javascript/auth-signout)
+- [SDK oficial](https://supabase.com/docs/reference/javascript/installing)

@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="icon" href="icon.svg" type="image/svg+xml"/>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="account.css"/>
   <title>PepDay</title>
 </head>
 <body>
@@ -23,7 +24,7 @@
   <main>
     <section id="home" class="screen active">
       <div class="hero">
-        <small>PEPDAY • V2.9</small>
+        <small>PEPDAY • V3.0 — TESTES</small>
         <h1>Resumo de hoje</h1>
         <p id="todayLabel"></p>
       </div>
@@ -171,8 +172,59 @@
 
     <section id="profile" class="screen">
       <div class="section-head"><div><small>PERFIL</small><h2>PepDay</h2></div></div>
-      <div class="card"><h3>PEPDAY FREE</h3><p>Calculadora, seringa visual e rotinas salvas localmente neste aparelho.</p></div>
-      <div class="card"><h3>Sobre os dados</h3><p>Nesta V1, os dados ficam no armazenamento local do navegador. Não há conta, servidor ou envio para nuvem.</p></div>
+      <div class="card"><h3 id="planLabel">PEPDAY FREE</h3><p>Calculadora e dados locais disponíveis neste aparelho.</p></div>
+      <section class="card form" id="accountPanel" aria-labelledby="accountTitle">
+        <h3 id="accountTitle">Minha conta</h3>
+        <p id="accountStatus" role="status" aria-live="polite">Preparando acesso à conta…</p>
+        <div id="accountSignedOut">
+          <button class="secondary" id="accountGoogle" type="button" disabled>Continuar com Google</button>
+          <p class="muted" id="googleStatus">Verificando disponibilidade do Google…</p>
+          <form id="accountEmailForm">
+            <label for="accountEmail">E-mail</label>
+            <input id="accountEmail" type="email" autocomplete="email" maxlength="254" required>
+            <button class="secondary" id="accountSendCode" type="submit" disabled>Continuar com e-mail</button>
+          </form>
+          <form id="accountCodeForm" class="hidden">
+            <label for="accountCode">Código de 6 dígitos</label>
+            <input id="accountCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
+            <button class="secondary" type="submit">Confirmar código</button>
+            <button class="ghost" id="accountChangeEmail" type="button">Alterar e-mail</button>
+          </form>
+        </div>
+        <div id="accountSignedIn" class="hidden">
+          <p class="account-email" id="accountIdentity"></p>
+          <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
+          <form id="accountProfileForm" class="hidden">
+            <h3>Complete seu cadastro</h3>
+            <label for="accountName">Nome</label><input id="accountName" autocomplete="name" maxlength="200" required>
+            <label for="accountCountry">País</label><input id="accountCountry" value="BR" pattern="[A-Za-z]{2}" minlength="2" maxlength="2" required aria-describedby="countryHint">
+            <p class="muted" id="countryHint">Código de duas letras. Brasil: BR.</p>
+            <p class="muted" id="accountTimezone"></p>
+            <label class="account-check"><input id="accountAdult" type="checkbox" required>Confirmo que tenho 18 anos ou mais.</label>
+            <label class="account-check"><input id="accountTerms" type="checkbox" required disabled><span>Li e aceito os <a id="accountTermsLink" target="_blank" rel="noopener noreferrer">Termos de Uso</a>.</span></label>
+            <label class="account-check"><input id="accountPrivacy" type="checkbox" required disabled><span>Li e aceito a <a id="accountPrivacyLink" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span></label>
+            <p class="muted" id="legalStatus">O cadastro completo será liberado quando os Termos e a Política de Privacidade estiverem disponíveis.</p>
+            <label class="account-check"><input id="accountMarketing" type="checkbox">Quero receber novidades e ofertas (opcional).</label>
+            <button class="secondary" id="accountSaveProfile" type="submit" disabled>Salvar cadastro</button>
+          </form>
+          <div id="accountImport" class="hidden">
+            <h3>Encontramos dados do PepDay neste aparelho</h3>
+            <p class="muted" id="accountImportSummary"></p>
+            <p class="muted">Nesta etapa, você pode revisar e guardar uma cópia na conta. A conversão e a sincronização das rotinas ainda estão em preparação.</p>
+            <div class="account-actions">
+              <button class="ghost" id="accountReviewImport" type="button">Revisar antes de sincronizar</button>
+              <button class="ghost" id="accountImportLater" type="button">Agora não</button>
+            </div>
+            <div id="accountImportReview" class="account-details hidden">
+              <p id="accountImportIssues" class="muted"></p>
+              <label class="account-check"><input id="accountImportConsent" type="checkbox">Autorizo guardar estes dados na conta indicada acima.</label>
+              <button class="secondary" id="accountStageImport" type="button">Guardar cópia para revisão</button>
+              <p class="muted">A cópia local será preservada. Guardar a cópia não conclui a importação.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="card"><h3>Sobre os dados</h3><p>Suas rotinas continuam salvas neste aparelho. Entrar na conta não envia os dados locais automaticamente.</p></div>
       <button class="secondary tutorial-replay-btn" id="replayTutorial">▶ Ver tutorial novamente</button>
       <button class="danger" id="eraseData">Apagar meus dados locais</button>
     </section>
@@ -207,5 +259,7 @@
 
 </div>
 <script src="app.js"></script>
+<script defer src="vendor/supabase-2.116.0.js"></script>
+<script type="module" src="src/account-ui.mjs"></script>
 </body>
 </html>

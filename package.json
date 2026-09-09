@@ -1,0 +1,9 @@
+{
+  "name": "pepday-v3-test",
+  "version": "3.0.0-alpha.2",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

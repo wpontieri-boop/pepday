@@ -257,11 +257,12 @@ grant execute on function public.start_trial() to authenticated;
 
 -- Etapa de recebimento para revisão. Não marca uma migração concluída sem que
 -- a conversão e conferência de saldos/histórico tenham sido implementadas.
-create function public.stage_local_import(p_hash text,p_snapshot jsonb) returns uuid
+create function public.stage_local_import(p_hash text,p_snapshot jsonb,p_expected_user uuid) returns uuid
 language plpgsql security definer set search_path='' as $$
 declare u uuid:=auth.uid(); result uuid; saved jsonb;
 begin
   if u is null then raise exception 'Autenticação necessária'; end if;
+  if p_expected_user is distinct from u then raise exception 'Conta alterada durante a importação'; end if;
   if p_hash is null or p_hash !~ '^[a-f0-9]{64}$' or p_snapshot is null
     or jsonb_typeof(p_snapshot)<>'object' or octet_length(p_snapshot::text)>10485760 then
     raise exception 'Snapshot inválido';
@@ -273,8 +274,8 @@ begin
   if saved<>p_snapshot then raise exception 'Identificador reutilizado com conteúdo diferente'; end if;
   return result;
 end $$;
-revoke all on function public.stage_local_import(text,jsonb) from public,anon,authenticated;
-grant execute on function public.stage_local_import(text,jsonb) to authenticated;
+revoke all on function public.stage_local_import(text,jsonb,uuid) from public,anon,authenticated;
+grant execute on function public.stage_local_import(text,jsonb,uuid) to authenticated;
 
 -- Não há RPC pública de promoção a admin nem política de leitura global.
 commit;

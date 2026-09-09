@@ -1,0 +1,75 @@
+# Próxima ação no projeto pepday-v3-test
+
+Projeto confirmado: `fsbqpyyprtymwrmzsacp`.
+URL pública: `https://fsbqpyyprtymwrmzsacp.supabase.co`.
+A chave publishable fornecida pelo proprietário já está em `config.js`.
+Nenhuma chave elevada é necessária para configurar o frontend.
+
+## 1. Preparar o banco pelo painel
+
+No painel Supabase, selecione **pepday-v3-test → SQL Editor → New query**.
+Confira o nome do projeto antes de executar.
+
+Copie o conteúdo completo de:
+
+`supabase/migrations/202609090001_block_a.sql`
+
+Execute como uma consulta única. O arquivo usa transação: falhas interrompem a
+instalação sem deixar metade das tabelas criadas. Esta é a migração inicial;
+se já foi aplicada, não execute novamente. Informe o resultado para retomarmos
+pela próxima migração, sem remover tabelas existentes.
+
+Depois execute, em outra consulta:
+
+`supabase/tests/block_a.sql`
+
+Ele cria fixtures dentro da transação e executa rollback ao final. Testa acesso
+entre contas, papel admin, bloqueio de autopromoção, trial repetido e envio
+idempotente. Os fixtures têm identificadores fixos de teste; conflito com algum
+registro existente interrompe o teste, sem removê-lo.
+
+Não compartilhe senha, chave service_role ou secret key. O proprietário executa
+o SQL no próprio painel já autenticado. A publishable key não permite criar as
+tabelas nem modificar as políticas do banco.
+
+## 2. Preparar o código por e-mail
+
+O provedor de e-mail está habilitado. Ainda é necessário conferir no painel o
+template **Authentication → Email Templates → Magic Link** (os nomes do menu
+podem variar).
+
+Para o fluxo por código, incluir `{{ .Token }}` no corpo do e-mail e configurar
+OTP com seis dígitos. O aplicativo envia a solicitação e confirma com `verifyOtp`.
+Não precisamos do código aqui no chat: ele será digitado no próprio aplicativo
+quando fizermos o teste de login.
+
+O remetente padrão do Supabase pode limitar destinatários/envios durante testes.
+Conferir isso no painel. A configuração de e-mails de produção com Brevo pertence
+ao Bloco C. Nenhum e-mail foi disparado nesta etapa de desenvolvimento.
+
+## 3. Google e endereço de retorno
+
+Google está desabilitado no projeto. Habilitar o provedor pelo painel para
+testá-lo. Quando tivermos um endereço de homologação definido, adicioná-lo à
+lista de redirects do Supabase e preencher `authRedirectUrl` e
+`allowedRedirects` em `config.js` com o endereço exato.
+
+Não usar o endereço de produção como retorno dos testes. O frontend de testes
+tem um bloqueio adicional para o caminho de produção do PepDay.
+
+## 4. Documentos e cadastro
+
+O formulário de nome, país, fuso, maioridade e consentimentos está preparado.
+Os aceites ficam desabilitados enquanto não houver URLs e versões de Termos e
+Privacidade em `config.js`. Não marcar aceite de documentos inexistentes.
+As versões devem identificar o texto efetivamente exibido ao usuário.
+
+## Retomada
+
+Após executar os dois arquivos SQL, informe o resultado de sucesso ou o erro
+mostrado, sem credenciais. Isso permitirá seguir na validação do banco.
+A publicação continua bloqueada até conclusão, validação e autorização final.
+
+Referências: [chaves públicas](https://supabase.com/docs/guides/getting-started/api-keys),
+[login por código](https://supabase.com/docs/guides/auth/auth-email-passwordless),
+[Google](https://supabase.com/docs/guides/auth/social-login/auth-google).

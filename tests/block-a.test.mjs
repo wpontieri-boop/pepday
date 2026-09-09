@@ -60,7 +60,7 @@ test('envio conferido é staged, nunca importação concluída', async () => {
   const s=fixture(); let saved;
   const query={select(){return this;},eq(){return this;},async single(){return {data:saved};}};
   const client={auth:{getUser:async()=>({data:{user:{id}}})},
-    async rpc(name,p){saved={id:'import-id',user_id:id,source_hash:p.p_hash,source_snapshot:p.p_snapshot,status:'staged'};
+    async rpc(name,p){assert.equal(p.p_expected_user,id);saved={id:'import-id',user_id:id,source_hash:p.p_hash,source_snapshot:p.p_snapshot,status:'staged'};
       return {data:'import-id'};},from:()=>query};
   const result=await stageLegacyImport(client,s,{consent:true,expectedUserId:id});
   assert.equal(result.status,'staged');

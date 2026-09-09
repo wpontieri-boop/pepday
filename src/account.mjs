@@ -1,9 +1,13 @@
-// Adaptador do SDK oficial Supabase. Não é carregado pela V2.9 neste checkpoint.
+// Adaptador do SDK oficial Supabase. A calculadora continua independente da conta.
 // O chamador injeta createClient(url, publishableKey); nunca uma service_role key.
-export function createAccountService(client, { redirectTo, allowedRedirects }) {
-  const url = new URL(redirectTo);
-  if (url.protocol !== 'https:' || !allowedRedirects.includes(url.href)) {
-    throw new Error('URL de retorno precisa ser HTTPS e estar autorizada.');
+export function createAccountService(client, { redirectTo = null, allowedRedirects = [], allowLocalhost = false } = {}) {
+  let url = null;
+  if (redirectTo) {
+    url = new URL(redirectTo);
+    const local = allowLocalhost && url.protocol === 'http:' && ['localhost','127.0.0.1'].includes(url.hostname);
+    if ((!local && url.protocol !== 'https:') || !allowedRedirects.includes(url.href) || url.username || url.password) {
+      throw new Error('URL de retorno precisa ser HTTPS e estar autorizada.');
+    }
   }
   async function unwrap(request) {
     const result = await request;
@@ -16,11 +20,12 @@ export function createAccountService(client, { redirectTo, allowedRedirects }) {
     return value;
   }
   return Object.freeze({
-    google: () => unwrap(client.auth.signInWithOAuth({
-      provider: 'google', options: { redirectTo: url.href }
-    })),
+    google() {
+      if (!url) throw new Error('Login com Google aguarda a configuração do endereço de retorno.');
+      return unwrap(client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: url.href } }));
+    },
     email: email => unwrap(client.auth.signInWithOtp({
-      email: normalizeEmail(email), options: { emailRedirectTo: url.href, shouldCreateUser: true }
+      email: normalizeEmail(email), options: { ...(url ? { emailRedirectTo: url.href } : {}), shouldCreateUser: true }
     })),
     verifyCode(email, token) {
       if (!/^\d{6}$/.test(String(token))) throw new Error('Informe o código de 6 dígitos.');

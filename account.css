@@ -1,0 +1,11 @@
+/* Somente os novos controles de conta. O estilo aprovado permanece em style.css. */
+#accountPanel .account-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+#accountPanel .account-actions button{flex:1;min-width:130px}
+#accountPanel .account-check{display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.5}
+#accountPanel .account-check input{width:auto;margin-top:4px}
+#accountPanel .muted,#accountPanel #accountStatus{font-size:14px;line-height:1.5}
+#accountPanel button:disabled{opacity:.5;cursor:not-allowed}
+#accountPanel a{color:var(--cyan)}
+#accountPanel :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+#accountPanel .account-email{overflow-wrap:anywhere}
+#accountPanel .account-details{padding:12px;background:var(--bg);border-radius:12px}
