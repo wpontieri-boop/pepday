@@ -20,6 +20,17 @@
   line-height:1.45;
 }
 
+/* Ajuda contextual somente nos campos menos óbvios do formulário de frascos. */
+#vialForm .field-label-row{position:relative;display:flex;align-items:center;gap:6px;margin:13px 0;color:#a9c0ce;font-size:12px;font-weight:750}
+#vialForm .field-label-row>label{margin:0;color:inherit;font:inherit}
+#vialForm .field-help{position:static;display:inline-flex}
+#vialForm .field-info{width:20px;height:20px;padding:0;border:1px solid #2a607a;border-radius:50%;background:#0b2231;color:var(--cyan);font-size:12px;font-weight:900;line-height:18px;text-align:center}
+#vialForm .field-info:hover{transform:none;filter:brightness(1.12)}
+#vialForm .field-info:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+#vialForm .field-tooltip{position:absolute;z-index:40;left:0;right:0;top:calc(100% + 8px);padding:10px 12px;border:1px solid #2a607a;border-radius:12px;background:#071521;color:#d8edf7;box-shadow:0 12px 28px #0009;font-size:12px;font-weight:500;line-height:1.45;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px);transition:opacity .15s ease,transform .15s ease,visibility .15s}
+#vialForm .field-help:hover .field-tooltip,#vialForm .field-help[data-open="true"] .field-tooltip,#vialForm .field-info:focus-visible+.field-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
+@media(max-width:520px){#vialForm .field-info{width:24px;height:24px;line-height:22px}#vialForm .field-tooltip{font-size:13px}}
+
 .last-movement{
   margin-top:14px;padding:12px 14px;border-radius:14px;
   background:#081923;border:1px solid #153e50

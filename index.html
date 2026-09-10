@@ -157,10 +157,19 @@
         <h3 id="vialFormTitle">Novo frasco</h3>
         <label>Nome / identificação <input id="vName" placeholder="Ex.: Frasco A"></label>
         <div class="grid2 inputs">
-          <label>Quantidade inicial<div class="input-unit"><input id="vMg" type="number" min="0" step="any" placeholder="10"><span>mg</span></div></label>
-          <label>Diluente<div class="input-unit"><input id="vWater" type="number" min="0" step="any" placeholder="2"><span>mL</span></div></label>
+          <div class="field-group">
+            <div class="field-label-row"><label for="vMg">Quantidade do frasco (mg)</label><span class="field-help"><button class="field-info" type="button" aria-label="Ajuda sobre quantidade do frasco" aria-expanded="false" aria-controls="vMgHelp">i</button><span class="field-tooltip" id="vMgHelp" role="tooltip">Informe a quantidade total de peptídeo que veio no frasco, em mg, antes da reconstituição. Ex.: se o frasco é de 10 mg, informe 10.</span></span></div>
+            <div class="input-unit"><input id="vMg" type="number" min="0" step="any" placeholder="10" aria-describedby="vMgHelp"><span>mg</span></div>
+          </div>
+          <div class="field-group">
+            <div class="field-label-row"><label for="vWater">Diluente (mL)</label><span class="field-help"><button class="field-info" type="button" aria-label="Ajuda sobre diluente" aria-expanded="false" aria-controls="vWaterHelp">i</button><span class="field-tooltip" id="vWaterHelp" role="tooltip">Informe o volume total adicionado ao frasco para reconstituição.</span></span></div>
+            <div class="input-unit"><input id="vWater" type="number" min="0" step="any" placeholder="2" aria-describedby="vWaterHelp"><span>mL</span></div>
+          </div>
         </div>
-        <label>Data de reconstituição <input id="vDate" type="date"></label>
+        <div class="field-group">
+          <div class="field-label-row"><label for="vDate">Data de reconstituição</label><span class="field-help"><button class="field-info" type="button" aria-label="Ajuda sobre data de reconstituição" aria-expanded="false" aria-controls="vDateHelp">i</button><span class="field-tooltip" id="vDateHelp" role="tooltip">Informe a data em que o diluente foi adicionado ao frasco.</span></span></div>
+          <input id="vDate" type="date" aria-describedby="vDateHelp">
+        </div>
         <label>Custo (opcional)<div class="input-unit"><span>R$</span><input id="vCost" type="number" min="0" step="0.01" placeholder="0,00"></div></label>
         <div class="grid2"><button class="ghost" id="cancelVial">Cancelar</button><button class="primary" id="saveVial">Salvar frasco</button></div>
       </div>

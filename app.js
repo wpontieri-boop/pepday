@@ -172,6 +172,22 @@ function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;',
 function saveVials(){localStorage.setItem(vialKey,JSON.stringify(vials))}
 function vialPct(v){return v.initialMg>0?Math.max(0,Math.min(100,(v.remainingMg/v.initialMg)*100)):0}
 
+function closeFieldTooltips(except=null){
+ document.querySelectorAll('.field-help[data-open="true"]').forEach(help=>{
+   if(help===except)return;
+   help.dataset.open='false';
+   help.querySelector('.field-info')?.setAttribute('aria-expanded','false');
+ });
+}
+document.addEventListener('click',event=>{
+ const trigger=event.target.closest('.field-info');
+ if(!trigger){closeFieldTooltips();return}
+ event.preventDefault();event.stopPropagation();
+ const help=trigger.closest('.field-help'),willOpen=help.dataset.open!=='true';
+ closeFieldTooltips(help);help.dataset.open=String(willOpen);trigger.setAttribute('aria-expanded',String(willOpen));
+});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeFieldTooltips()});
+
 function parseLocalDate(s){
   if(!s)return null;
   let [y,m,d]=s.split('-').map(Number);
