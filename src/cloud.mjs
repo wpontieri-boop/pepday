@@ -51,6 +51,15 @@ export function accountError(error) {
   if (['otp_expired','otp_disabled'].includes(code)) return 'O código expirou ou não é válido. Solicite um novo código.';
   if (['over_email_send_rate_limit','over_request_rate_limit'].includes(code)) return 'Aguarde alguns minutos antes de solicitar outro código.';
   if (['email_provider_disabled','provider_disabled'].includes(code)) return 'Este método de login ainda não está habilitado.';
+  if (code === 'P0001') {
+    const importMessages={
+      'Conflito no legado; nenhum saldo foi sobrescrito':'Há alterações conflitantes no legado. Revise antes de mesclar. Nenhum saldo da conta foi sobrescrito.',
+      'Conflito na rotina; revisão necessária':'Há uma rotina conflitante. Revise antes de mesclar. Nenhum dado foi sobrescrito.',
+      'Conclua o cadastro antes de importar':'Conclua o cadastro e os aceites antes de importar.',
+      'Já há dados na conta. Escolha mesclar com segurança':'Foram encontrados dados na conta. Reabra o Perfil e escolha mesclar com segurança.'
+    };
+    if(importMessages[error.message]) return importMessages[error.message];
+  }
   if (code === '42501') return 'A conta ainda não tem acesso a esta operação. Nenhum dado local foi apagado.';
   if (error?.name === 'AbortError' || /fetch|network|offline/i.test(String(error?.message || ''))) return 'Sem conexão com a conta. Você pode continuar usando a calculadora.';
   return 'Não foi possível concluir esta ação. Tente novamente. Seus dados locais foram preservados.';

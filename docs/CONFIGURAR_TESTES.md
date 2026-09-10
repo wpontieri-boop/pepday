@@ -17,27 +17,31 @@ A verificação independente pela API confirmou bloqueio anônimo em profiles,
 vials e get_entitlement: HTTP 401 com código PostgreSQL 42501.
 Isso confirma os bloqueios observados, sem substituir o teste de sessão real.
 
-## 2. Preparar o código por e-mail
+## 2. Login por e-mail — validado
 
-O provedor de e-mail está habilitado. Ainda é necessário conferir no painel o
-template **Authentication → Email Templates → Magic Link** (os nomes do menu
-podem variar).
+O proprietário confirmou login, OTP de seis dígitos, sessão após recarregar e
+logout no ambiente isolado. Não repetir nem reconfigurar esse fluxo.
 
-Para o fluxo por código, incluir `{{ .Token }}` no corpo do e-mail e configurar
-OTP com seis dígitos. O aplicativo envia a solicitação e confirma com `verifyOtp`.
-Não precisamos do código aqui no chat: ele será digitado no próprio aplicativo
-quando fizermos o teste de login.
+## 2.1. Novo SQL incremental — próxima ação
 
-O remetente padrão do Supabase pode limitar destinatários/envios durante testes.
-Conferir isso no painel. A configuração de e-mails de produção com Brevo pertence
-ao Bloco C. Nenhum e-mail foi disparado nesta etapa de desenvolvimento.
+Aplicar **somente no pepday-v3-test**:
+
+1. `supabase/migrations/202609100002_complete_legacy_import.sql`
+2. `supabase/tests/complete_legacy_import.sql`
+
+O primeiro adiciona conversão e mesclagem; o segundo valida somente o delta,
+com fixtures aleatórios e rollback. A linha resultado deve indicar PASS.
+Nenhum desses arquivos deve ser executado na produção. Não repetir a instalação
+ou os testes iniciais já concluídos. Não é necessária chave elevada no frontend.
 
 ## 3. Google e endereço de retorno
 
 Google está desabilitado no projeto. Habilitar o provedor pelo painel para
-testá-lo. Quando tivermos um endereço de homologação definido, adicioná-lo à
-lista de redirects do Supabase e preencher `authRedirectUrl` e
-`allowedRedirects` em `config.js` com o endereço exato.
+testá-lo. O endereço isolado existente é
+`https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/`. Para Google, cadastrar
+esse retorno no Supabase e configurar o callback indicado pelo próprio painel
+no provedor Google. Depois atualizar authRedirectUrl/allowedRedirects no código.
+Apenas o proprietário configura credenciais OAuth no painel; não enviá-las no chat.
 
 Não usar o endereço de produção como retorno dos testes. O frontend de testes
 tem um bloqueio adicional para o caminho de produção do PepDay.
@@ -51,8 +55,10 @@ As versões devem identificar o texto efetivamente exibido ao usuário.
 
 ## Retomada
 
-O próximo passo é autenticar uma conta de testes pelo formulário seguro e
-validar sessão, Perfil e logout. Depois concluir conversão e mesclagem do legado.
+Informe somente o resultado dos dois arquivos incrementais. Login já aprovado.
+A versão online de testes ainda é a anterior; o novo checkpoint está na branch
+e não foi publicado automaticamente. Depois do delta, validar a migração no
+Perfil com cadastro completo e dados descartáveis.
 A publicação continua bloqueada até conclusão, validação e autorização final.
 
 Referências: [chaves públicas](https://supabase.com/docs/guides/getting-started/api-keys),

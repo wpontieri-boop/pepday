@@ -10,7 +10,7 @@ const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=
   '.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8',
   '.json':'application/json','.svg':'image/svg+xml'};
 const permitted=new Set(['index.html','app.js','style.css','account.css','manifest.json','icon.svg','sw.js','config.js',
-  'src/account-ui.mjs','src/account.mjs','src/cloud.mjs','src/legacy-import.mjs','vendor/supabase-2.116.0.js']);
+  'src/import-completion.mjs','src/account-ui.mjs','src/account.mjs','src/cloud.mjs','src/legacy-import.mjs','vendor/supabase-2.116.0.js']);
 http.createServer(async(req,res)=>{
   try {
     const url=new URL(req.url,'http://localhost'), path=decodeURIComponent(url.pathname).replace(/^\//,'')||'index.html';

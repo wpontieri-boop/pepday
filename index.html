@@ -210,16 +210,18 @@
           <div id="accountImport" class="hidden">
             <h3>Encontramos dados do PepDay neste aparelho</h3>
             <p class="muted" id="accountImportSummary"></p>
-            <p class="muted">Nesta etapa, você pode revisar e guardar uma cópia na conta. A conversão e a sincronização das rotinas ainda estão em preparação.</p>
+            <p class="muted">Revise os dados antes de importar. Dados já existentes na conta não serão sobrescritos.</p>
             <div class="account-actions">
               <button class="ghost" id="accountReviewImport" type="button">Revisar antes de sincronizar</button>
+              <button class="ghost" id="accountKeepCloud" type="button">Usar dados da minha conta</button>
               <button class="ghost" id="accountImportLater" type="button">Agora não</button>
             </div>
             <div id="accountImportReview" class="account-details hidden">
               <p id="accountImportIssues" class="muted"></p>
-              <label class="account-check"><input id="accountImportConsent" type="checkbox">Autorizo guardar estes dados na conta indicada acima.</label>
-              <button class="secondary" id="accountStageImport" type="button">Guardar cópia para revisão</button>
-              <p class="muted">A cópia local será preservada. Guardar a cópia não conclui a importação.</p>
+              <ul id="accountImportList"></ul>
+              <label class="account-check"><input id="accountImportConsent" type="checkbox">Autorizo importar estes dados e preservar o histórico legado na conta indicada acima.</label>
+              <button class="secondary" id="accountStageImport" type="button">Importar meus dados</button>
+              <p class="muted">A cópia local será preservada. A conclusão só será confirmada após conferir o resultado na conta.</p>
             </div>
           </div>
         </div>

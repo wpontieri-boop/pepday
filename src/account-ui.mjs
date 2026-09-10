@@ -1,9 +1,10 @@
 import { config } from '../config.js';
 import { initializeCloud, readPublicAuthSettings, loadAccountState, accountError } from './cloud.mjs';
-import { inspectLegacy, stageLegacyImport } from './legacy-import.mjs';
+import { reviewLegacy, readCloudInventory, completeLegacyImport } from './import-completion.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
+let importMode='import', importErrors=[];
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
@@ -18,16 +19,17 @@ function enableMethods() {
   el('accountGoogle').disabled = busy || !methods.google || !config.authRedirectUrl;
   el('accountSendCode').disabled = busy || !methods.email;
   el('accountSaveProfile').disabled = busy || !legalReady();
-  el('accountStageImport').disabled = busy || !el('accountImportConsent').checked;
+  el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
 }
 function clearPrivateUi() {
-  state = null;
+  state = null; importErrors=[]; importMode='import';
   el('accountIdentity').textContent = '';
   el('planLabel').textContent = 'PEPDAY FREE';
   el('accountProfileForm').reset();
   el('accountCode').value = '';
   el('accountImportConsent').checked = false;
   el('accountImportSummary').textContent = '';
+  el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
   ['accountSignedIn','accountProfileForm','accountImport','accountImportReview'].forEach(id => hide(id));
 }
@@ -65,12 +67,25 @@ async function refresh() {
     }
     // Até os aceites serem reais, não enviar conteúdo potencialmente sensível.
     if (complete && !later.has(next.user.id)) {
-      const legacy=inspectLegacy(localStorage);
+      const legacy=reviewLegacy(localStorage);
       if (legacy.hasData) {
-        el('accountImportSummary').textContent=`${legacy.routines.length} rotina(s) e ${legacy.vials.length} frasco(s) encontrados.`;
-        el('accountImportIssues').textContent=legacy.issues.length
-          ? `Há ${legacy.issues.length} ponto(s) que precisam de revisão. O histórico original será preservado sem recriar informações ausentes.`
-          : 'A cópia contém os dados locais atuais e será vinculada apenas a esta conta.';
+        const inventory=await readCloudInventory(cloud.client,next.user.id);
+        if(current!==generation) return;
+        importMode=inventory.hasData?'merge':'import'; importErrors=legacy.errors;
+        el('accountImportSummary').textContent=`Neste aparelho: ${legacy.routines.length} rotina(s) e ${legacy.vials.length} frasco(s). Na conta: ${inventory.routines} rotina(s) e ${inventory.vials} frasco(s).`;
+        el('accountStageImport').textContent=inventory.hasData?'Mesclar com segurança':'Importar meus dados';
+        el('accountImportIssues').textContent=legacy.errors.length ? legacy.errors.join(' ') :
+          'Os saldos atuais serão importados. O histórico, os dias já registrados e as alterações antigas serão preservados como legado, sem inventar informações ausentes. Registros conflitantes interrompem a operação inteira.';
+        el('accountImportList').replaceChildren();
+        for(const [type,items] of [['Frasco',legacy.vials],['Rotina',legacy.routines]]) {
+          for(const item of items) {
+            const row=document.createElement('li');
+            row.textContent=type==='Frasco'?`${type}: ${item.name} — saldo ${item.remainingMg} mg`:
+              `${type}: ${item.name} — ${item.doseValue} ${item.doseUnit}`;
+            el('accountImportList').append(row);
+          }
+        }
+        enableMethods();
         hide('accountImport',false);
       }
     }
@@ -118,14 +133,18 @@ el('accountProfileForm').addEventListener('submit',event=>{
 });
 el('accountReviewImport').addEventListener('click',()=>hide('accountImportReview',false));
 el('accountImportConsent').addEventListener('change',enableMethods);
+el('accountKeepCloud').addEventListener('click',()=>{
+  if(!state) return; later.add(state.user.id); hide('accountImport');
+  status('Dados da conta mantidos. A cópia local não foi enviada nem substituída. A sincronização das telas será disponibilizada no próximo bloco.');
+});
 el('accountImportLater').addEventListener('click',()=>{if(state)later.add(state.user.id);hide('accountImport');});
 el('accountStageImport').addEventListener('click',()=>{
   if (!state || !el('accountImportConsent').checked) return;
   const userId=state.user.id, current=generation;
   run(async()=>{
-    const result=await stageLegacyImport(cloud.client,localStorage,{consent:true,expectedUserId:userId});
+    const result=await completeLegacyImport(cloud.client,localStorage,{consent:true,expectedUserId:userId,mode:importMode});
     if (current!==generation) return;
-    status(result.status==='empty'?'Não há dados locais para guardar.':'Cópia recebida e conferida. A importação ainda precisa ser concluída.');
+    status(result.status==='empty'?'Não há dados locais para guardar.':'Importação concluída e conferida. Cópia local e histórico legado preservados. A sincronização contínua será disponibilizada no próximo bloco.');
     hide('accountImport'); later.add(userId);
   });
 });

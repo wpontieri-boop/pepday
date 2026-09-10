@@ -1,8 +1,8 @@
 // Cache exclusivo da homologação V3.0. Não remove o cache da V2.9.
-const CACHE='pepday-v3-a2-'+new URL(self.registration.scope).pathname;
+const CACHE='pepday-v3-a4-'+new URL(self.registration.scope).pathname;
 const ASSETS=['./','./index.html','./style.css','./account.css','./app.js',
   './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs',
-  './src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs',
+  './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs',
   './vendor/supabase-2.116.0.js'];
 const PUBLIC_ASSETS=new Set(ASSETS.map(path=>new URL(path,self.registration.scope).href));
 self.addEventListener('install',event=>event.waitUntil(

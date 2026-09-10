@@ -1,4 +1,4 @@
-# PepDay V3.0 — Bloco A / checkpoint A3
+# PepDay V3.0 — Bloco A / checkpoint A4
 
 **Em desenvolvimento. Não é release candidate nem versão pronta para publicar.**
 
@@ -12,9 +12,13 @@ O projeto Supabase `pepday-v3-test` está instalado. O proprietário confirmou
 execução da suite SQL completa sem erro, terminada em rollback. A API nega acesso
 anônimo a profiles, vials e get_entitlement (HTTP 401 / 42501).
 
-Continuar a validação com login real, sessão, Perfil e logout; depois concluir
-a conversão/mesclagem do legado. Não repetir os SQL já concluídos.
-As configurações pendentes estão em [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md).
+Login real por e-mail, OTP de 6 dígitos, persistência da sessão após recarregar e
+logout foram confirmados pelo proprietário. Não repetir esses testes.
+
+**Próximo passo:** aplicar apenas a migração incremental
+`supabase/migrations/202609100002_complete_legacy_import.sql` e executar
+`supabase/tests/complete_legacy_import.sql` no projeto de testes.
+O delta já passou no banco local descartável; falta confirmação no Supabase.
 
 O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
@@ -26,7 +30,7 @@ O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 - Admin tem acesso PRO próprio, sem leitura global de conteúdo privado.
 - SDK oficial Supabase 2.116.0 salvo em vendor/ com origem, hash e licença.
 - Perfil integrado a métodos de login, OTP, sessão, logout, cadastro e revisão
-  de backup. O fluxo real ainda depende das configurações no painel.
+  de dados legados. Login por e-mail validado; Google aguarda configuração.
 - Snapshot local conferido antes do envio, idempotência e verificação da conta
   esperada no servidor. Nenhum dado local é apagado automaticamente.
 - Cache V3.0 separado, somente para assets públicos; Auth/API/query strings fora.
@@ -34,14 +38,15 @@ O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
 ## Limites deste checkpoint
 
-**Bloco A ainda incompleto.** Instalação e suite SQL confirmadas pelo proprietário. Não houve
-login real, entrega de e-mail, criação de usuário ou publicação.
+**Bloco A ainda incompleto.** Instalação inicial, suite SQL inicial e login por
+e-mail confirmados pelo proprietário. Falta aplicar/validar o SQL incremental.
 O formulário não coleta aceite enquanto Termos/Privacidade não tiverem URLs e
 versões reais configuradas. Não inventar documentos aceitos.
 
-A migração recebe uma cópia para revisão, mas ainda não converte/mescla dados em
-frascos, rotinas e aplicações da nuvem. O histórico V2.9 pode ter eventos apagados
-por undo e concentração histórica ausente; não reconstruir por suposição.
+A migração agora converte frascos e rotinas, preserva o saldo de abertura e
+mescla sem sobrescrever registros existentes. O histórico V2.9 fica integralmente
+preservado como legado privado; eventos apagados por undo e concentrações ausentes
+não são reconstruídos por suposição. Importações conflitantes são interrompidas.
 
 As tabelas de domínio permitem somente leitura ao cliente nesta fundação. As
 mutações transacionais de saldo/undo, versionamento efetivo e sincronização serão
@@ -55,7 +60,7 @@ ligadas no Bloco B. Não abrir escrita direta para contornar essas pendências.
 | config.js | URL e publishable key públicas do projeto de testes |
 | account.css, src/account-ui.mjs | Controles novos do Perfil |
 | src/account.mjs, src/cloud.mjs | Integração Auth/conta e validação de configuração |
-| src/legacy-import.mjs | Backup e envio do legado para revisão |
+| src/legacy-import.mjs, src/import-completion.mjs | Backup, revisão, importação/mesclagem e conferência |
 | supabase/migrations/ | SQL para o projeto de testes |
 | supabase/tests/ | Testes de banco para executar no SQL Editor |
 | sw.js | Cache dos arquivos públicos do PWA |
@@ -73,13 +78,18 @@ Credenciais futuras de serviços permanecem no backend/painéis apropriados.
 ## Desenvolvimento e testes
 
 Com Node instalado: `node --test tests/*.test.mjs`.
+Para testar somente o delta cliente: `node --test tests/import-completion.test.mjs`.
+Para a suite SQL local, defina PGLITE_MODULE para dist/index.js de PGlite 0.5.8
+e execute `node scripts/test-import-sql.mjs`; não conecta ao Supabase.
 Para desenvolvimento local: `node scripts/dev-server.mjs`.
 O servidor é apenas uma ferramenta de teste e não publica o aplicativo.
 
 No navegador foram conferidos Perfil sem login, disponibilidade dos métodos,
 repetição do tutorial e cálculos mg/mcg nas seringas 30/50/100 UI.
-Ainda faltam autenticação real, RLS entre duas contas, mobile, offline/update,
-conversão completa da migração e demais testes do prompt mestre.
+Os oito novos testes Node e a suite SQL incremental passaram localmente.
+Ainda faltam validação remota do delta, migração pelo Perfil, Google, mobile,
+offline/update e demais testes do prompt mestre. O SQL local usa PGlite com
+fixtures; não substitui a validação no Supabase.
 
 ## Dados, backup e segurança
 

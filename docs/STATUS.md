@@ -1,68 +1,87 @@
-# Ponto de retomada — Bloco A, checkpoint A3 — validação do banco
+# Ponto de retomada — Bloco A, checkpoint A4
 
-Estado: **integração de conta preparada; Bloco A ainda incompleto**.
+Estado: **conversão/mesclagem implementadas e testadas localmente; Bloco A ainda não aprovado integralmente**.
 
-## O que mudou nesta etapa
+## Evidências já aceitas — não repetir
 
-- Projeto de testes confirmado: pepday-v3-test / fsbqpyyprtymwrmzsacp.
-- A chave publishable do proprietário responde HTTP 200 em /auth/v1/settings.
-- Provedor e-mail habilitado; Google desabilitado.
-- Instalação SQL confirmada pelo proprietário em 2026-09-10.
-- Suite SQL completa confirmada pelo proprietário: sem erro, final com rollback.
-- Verificação independente: profiles e vials retornam HTTP 401 / 42501 sem login;
-  get_entitlement também nega execução anônima (401 / 42501).
-- config.js contém somente configuração pública do projeto de testes.
-- SDK oficial 2.116.0 salvo localmente em vendor/, com origem, SHA-256 e licença.
-- index.html integra o novo Perfil sem alterar cálculo, seringas ou navegação.
-- account.css afeta somente controles novos; style.css permanece idêntico à V2.9.
-- src/account-ui.mjs integra envio/verificação de OTP, Google condicionado à
-  configuração, sessão, logout, formulário de cadastro e revisão de backup legado.
-- Consentimentos desabilitados até documentos reais e versões serem configurados.
-- src/cloud.mjs valida projeto/chave pública, impede uso no caminho de produção,
-  separa armazenamento Auth do ambiente de testes e traduz erros sem expor payloads.
-- A importação confere no servidor o UUID esperado, protegendo contra troca de
-  conta entre a criação do backup e o envio.
-- sw.js usa cache V3.0 A2; Auth, query strings e respostas privadas ficam fora.
-- Servidor de desenvolvimento sem dependências, usado somente em preview interno.
+- Instalação 202609090001 aplicada no pepday-v3-test pelo proprietário.
+- Suite supabase/tests/block_a.sql executada pelo proprietário sem erro, com rollback.
+- Acesso anônimo negado pela API em profiles, vials e get_entitlement (401 / 42501).
+- Em 2026-09-10 o proprietário confirmou login real por e-mail, OTP de 6 dígitos,
+  sessão preservada após recarregar e logout correto no ambiente V3.0 isolado.
+- 21 testes Node anteriores e QA de calculadora/tutorial permanecem aprovados.
 
-## Preservação
+## Implementado neste checkpoint
 
-- main de produção não foi alterada. Branch de trabalho: v3.0-bloco-a.
-- app.js, style.css, manifest.json e icon.svg continuam byte a byte V2.9.
-- index.html e sw.js têm alterações somente na branch de desenvolvimento.
-- Backup V2.9 original e hashes continuam disponíveis em backup/.
-- Nenhum deploy, envio de e-mail, criação de usuário ou acesso com chave elevada.
+- Migração incremental 202609100002_complete_legacy_import.sql; não altera a inicial.
+- Conversão de frascos e rotinas com vínculo por conta, versão inicial da rotina e
+  movimento de abertura com o saldo real importado, em uma transação.
+- Identidade do legado por usuário/tipo/UUID; mesma entrada reaproveita o destino.
+  Mesmo UUID em contas distintas recebe destinos distintos.
+- Mesclagem não sobrescreve dados. Conteúdo divergente para a mesma identidade
+  interrompe toda a chamada; não usa último registro como vencedor.
+- Histórico de frascos, done e doseHistory são preservados integralmente em
+  legacy_import_records.source_record e no snapshot original. Não são fabricadas
+  aplicações nem concentrações históricas que a V2.9 não registrou.
+- Conferência no servidor e releitura do recibo pelo cliente antes da confirmação
+  local; identidade e hash são checados novamente depois do envio.
+- Perfil oferece revisão com nomes/saldos, importação, mesclagem, manter dados da
+  conta e agora não. Manter a conta não substitui o armazenamento local; a ligação
+  das telas com a fonte de dados da conta continua pertencendo ao Bloco B.
+- Cópia local e backup nunca são apagados automaticamente.
+- Cache A4 inclui o módulo novo; servidor de desenvolvimento permite esse arquivo.
 
-## Testes executados
+## Testes novos executados — sem repetir os antigos
 
-- 21/21 testes Node aprovados: backup, consentimento, troca de conta,
-  verificação de snapshot, adaptador Auth, configuração pública e cache.
-- Navegador desktop: Perfil carregado com e-mail disponível e Google desabilitado,
-  tutorial de seis passos e repetição pelo Perfil funcionando.
-- Navegador: 10 mg / 2 mL / 1 mg = 20 UI na seringa de 30 UI; 1000 mcg = 20 UI
-  nas seringas de 50 e 100 UI. Exemplos apenas de teste matemático.
-- SDK carregou localmente; nenhum erro JavaScript do aplicativo observado.
-- Sintaxe JS, integridade SDK/backup e referências locais verificadas.
+- 8 testes Node do delta passaram: revisão, recibo, preservação, conta alterada,
+  edição durante envio, duplicidade de IDs, consentimento e mensagem de conflito.
+- SQL incremental executado com sucesso em PostgreSQL local via PGlite 0.5.8,
+  obtido do npm com integridade conferida, fora das dependências do aplicativo.
+- A suite incremental cobriu conversão, saldo, histórico preservado, idempotência,
+  escolha de mesclagem, conflito sem sobrescrita, rollback de inserção parcial,
+  RLS da nova tabela, acesso cruzado, IDs entre contas e bloqueio anônimo.
+- O banco local é descartável e usa somente fixtures. A definição de auth.uid e a
+  tabela auth.users foram mínimas para testar SQL; isso não prova configuração
+  real de Auth, concorrência de sessões ou aplicação do delta no Supabase.
+- Sintaxe de account-ui.mjs conferida. Nenhum novo teste real de login foi feito.
 
-## Ainda NÃO validado/concluído
+## Próxima dependência humana exata
 
-- O sucesso da suite SQL é evidência relatada pelo proprietário; os bloqueios
-  anônimos da API foram verificados diretamente nesta sessão.
-- Sem PostgreSQL/Docker/Supabase CLI local para rodar testes de banco nesta sessão.
-- Login/logout reais, entrega de OTP, Google e sessão autenticada dependem de
-  configuração do painel e teste do proprietário; não foram simulados como sucesso.
-- Cadastro aguarda documentos acessíveis; os aceites não são fictícios.
-- Migração guarda snapshot para revisão; ainda não converte e mescla registros
-  em frascos/rotinas/aplicações da nuvem. Histórico incompleto não é reconstruído.
-- Sincronização local-first e operações de saldo/undo são do Bloco B.
-- Testes mobile, offline/update reais e testes completos dos blocos B/C/D pendentes.
+No SQL Editor de **pepday-v3-test**, executar somente:
 
-## Próximo passo exato
+1. supabase/migrations/202609100002_complete_legacy_import.sql
+2. supabase/tests/complete_legacy_import.sql
 
-Continuar com login real por e-mail, persistência da sessão, Perfil e logout.
-Não repetir instalação nem suite SQL já concluídas. O resultado set_config no
-SQL Editor não é uma falha; o rollback final pertence à limpeza dos fixtures.
-Em seguida concluir a conversão/mesclagem do legado e validar duas sessões reais.
-Google e documentos de consentimento continuam pendentes de configuração.
-Somente encerrar A e iniciar B quando suas pendências estiverem resolvidas.
-Manter a mesma branch e os arquivos existentes. Não refazer V2.9 nem publicar.
+O segundo arquivo usa fixtures aleatórios e rollback, e exibe uma linha PASS.
+Não executar de novo a instalação 202609090001 nem tests/block_a.sql.
+Não compartilhar senhas, OTPs, service_role ou secret keys.
+
+## Ainda pendente para encerrar A
+
+- Confirmar instalação e testes do delta no Supabase.
+- Publicar o checkpoint novo somente no ambiente isolado quando autorizado;
+  o endereço de testes ainda serve o checkpoint anterior validado para login.
+- Validar importação pelo Perfil com dados de teste e cadastro completo.
+- Google está desabilitado: depende de configuração OAuth/redirect pelo painel;
+  nunca solicitar segredo no chat. Configuração pública não foi alterada.
+- Cadastro completo depende de Termos/Privacidade reais e versões. O preparo
+  jurídico é do Bloco D, mas o aceite é pré-requisito do envio na interface e da
+  conversão no backend. Não forjar aceites para testar com dados reais.
+- Dados locais são separados por origem: a versão de testes não pode ler o
+  localStorage do GitHub Pages de produção. Não interpretar origem vazia como
+  perda de dados; não alterar produção para contornar essa separação.
+
+## Continuação depois da aprovação de A
+
+Avançar diretamente ao Bloco B sem nova autorização: gates FREE/TRIAL/PRO,
+Rotina ↔ Frasco, mutações transacionais de aplicação/undo e sincronização.
+Ao integrar o legado, respeitar o mapeamento de UUIDs e os dias done preservados;
+não descontar novamente aplicações anteriores nem transformar histórico incompleto
+em eventos novos. A escolha de usar a conta não autoriza apagar a cópia local.
+
+## Preservação e publicação
+
+Branch: v3.0-bloco-a. Nenhuma alteração em main/GitHub Pages/V2.9 de produção.
+app.js, style.css, manifest.json e icon.svg preservados; backup V2.9 mantido.
+Nenhuma publicação nova nesta etapa, nem promoção automática para produção.
+Ambiente isolado existente: https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site
