@@ -4,7 +4,7 @@ const key='pepday_v1_routines';
 let routines=JSON.parse(localStorage.getItem(key)||'[]');
 const vialKey='pepday_v2_vials';
 let vials=JSON.parse(localStorage.getItem(vialKey)||'[]');
-let lastCalc=null, editing=null, editingVial=null;
+let lastCalc=null, editing=null, editingVial=null, vialReturnToRoutine=false;
 
 function isoToday(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function br(n,max=4){return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:max})}
@@ -104,6 +104,12 @@ function openRoutine(calc=null,r=null){
  $$('#weekdaysBox input').forEach(c=>c.checked=(r?.weekdays||[]).includes(+c.value)); toggleWeekdays(); calcRoutinePreview();
 }
 $('#newRoutine').onclick=()=>openRoutine(); $('#cancelRoutine').onclick=()=>$('#routineForm').classList.add('hidden');
+$('#routineAddVial').onclick=()=>{
+ vialReturnToRoutine=true;
+ go('vials');
+ openVial();
+ $('#vialForm').scrollIntoView({behavior:'smooth'});
+};
 $('#frequency').onchange=toggleWeekdays;
 function toggleWeekdays(){$('#weekdaysBox').classList.toggle('hidden',$('#frequency').value!=='weekdays')}
 $('#saveRoutine').onclick=()=>{
@@ -337,8 +343,22 @@ function renderVials(){
  }).join('');
 }
 function openVial(v=null){editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??''}
-$('#newVial').onclick=()=>openVial(); $('#cancelVial').onclick=()=>$('#vialForm').classList.add('hidden');
-$('#saveVial').onclick=()=>{let name=$('#vName').value.trim(),initialMg=+$('#vMg').value,waterMl=+$('#vWater').value,date=$('#vDate').value,cost=+$('#vCost').value||0;if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);vials=vials.map(x=>x.id===editingVial?{...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used)}:x)}else{vials.push({id:crypto.randomUUID(),name,initialMg,waterMl,date,cost,remainingMg:initialMg,history:[]})}saveVials();$('#vialForm').classList.add('hidden');renderVials()};
+function returnToRoutineFromVial(vialId=null){
+ if(!vialReturnToRoutine)return false;
+ vialReturnToRoutine=false;go('routines');$('#routineForm').classList.remove('hidden');
+ if(vialId)fillRoutineVials(vialId);
+ calcRoutinePreview();$('#routineForm').scrollIntoView({behavior:'smooth'});return true;
+}
+$('#newVial').onclick=()=>{vialReturnToRoutine=false;openVial()};
+$('#cancelVial').onclick=()=>{$('#vialForm').classList.add('hidden');returnToRoutineFromVial()};
+$('#saveVial').onclick=()=>{
+ let name=$('#vName').value.trim(),initialMg=+$('#vMg').value,waterMl=+$('#vWater').value,date=$('#vDate').value,cost=+$('#vCost').value||0;
+ if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}
+ let savedVialId=editingVial;
+ if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);vials=vials.map(x=>x.id===editingVial?{...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used)}:x)}
+ else{savedVialId=crypto.randomUUID();vials.push({id:savedVialId,name,initialMg,waterMl,date,cost,remainingMg:initialMg,history:[]})}
+ saveVials();$('#vialForm').classList.add('hidden');renderVials();returnToRoutineFromVial(savedVialId);
+};
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
 window.deleteVial=id=>{if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){vials=vials.filter(x=>x.id!==id);saveVials();renderVials()}};
 window.adjustVial=id=>{let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let before=v.remainingMg;v.remainingMg=n;v.history=v.history||[];v.history.unshift({date:new Date().toISOString(),type:'adjust',before,after:n});saveVials();renderVials()};

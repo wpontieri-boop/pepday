@@ -101,13 +101,16 @@
       <div id="routineForm" class="card form hidden">
         <h3 id="routineFormTitle">Nova rotina</h3>
         <label>Nome <input id="rName" placeholder="Ex.: Peptídeo A"/></label>
-        <label>Frasco
+        <div class="routine-vial-picker">
+          <label for="rVial">Frasco</label>
           <select id="rVial"><option value="">Selecione um frasco</option></select>
-        </label>
+          <button class="link routine-add-vial" id="routineAddVial" type="button">＋ Cadastrar novo frasco</button>
+        </div>
         <div class="grid2 inputs">
-          <label>Quantidade por aplicação
-            <div class="dose-row"><input id="rDose" type="number" min="0" step="any" placeholder="1"><select id="rDoseUnit"><option value="mg">mg</option><option value="mcg">mcg</option></select></div>
-          </label>
+          <div class="field-group">
+            <div class="field-label-row"><label for="rDose">Quantidade por aplicação</label><span class="field-help"><button class="field-info" type="button" aria-label="Ajuda sobre quantidade por aplicação" aria-expanded="false" aria-controls="rDoseHelp">i</button><span class="field-tooltip" id="rDoseHelp" role="tooltip">Informe a quantidade usada em cada aplicação, em mg ou mcg. Ex.: 1 mg ou 250 mcg. O PepDay apenas calcula e organiza o valor informado por você.</span></span></div>
+            <div class="dose-row"><input id="rDose" type="number" min="0" step="any" placeholder="1" aria-describedby="rDoseHelp"><select id="rDoseUnit" aria-describedby="rDoseHelp"><option value="mg">mg</option><option value="mcg">mcg</option></select></div>
+          </div>
           <label>Seringa
             <select id="rSyringe"><option value="30">U-100 • 30 UI</option><option value="50">U-100 • 50 UI</option><option value="100" selected>U-100 • 100 UI</option></select>
           </label>
