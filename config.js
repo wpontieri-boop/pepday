@@ -5,9 +5,8 @@ export const config = Object.freeze({
   supabaseUrl: 'https://fsbqpyyprtymwrmzsacp.supabase.co',
   supabasePublishableKey: 'sb_publishable_trcejtixOEgEvwYth0K_GA_ajzZyLwr',
   projectRef: 'fsbqpyyprtymwrmzsacp',
-  authRedirectUrl: null,
-  allowedRedirects: [],
-  // Definir depois de registrar um endereço de homologação no Supabase.
+  authRedirectUrl: 'https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/',
+  allowedRedirects: ['https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/'],
   allowLocalhost: false,
   // Não colher aceite para documentos que ainda não foram disponibilizados.
   termsUrl: null,
