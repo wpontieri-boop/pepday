@@ -1,4 +1,4 @@
-# Ponto de retomada — Bloco A, checkpoint A2
+# Ponto de retomada — Bloco A, checkpoint A3 — validação do banco
 
 Estado: **integração de conta preparada; Bloco A ainda incompleto**.
 
@@ -7,7 +7,10 @@ Estado: **integração de conta preparada; Bloco A ainda incompleto**.
 - Projeto de testes confirmado: pepday-v3-test / fsbqpyyprtymwrmzsacp.
 - A chave publishable do proprietário responde HTTP 200 em /auth/v1/settings.
 - Provedor e-mail habilitado; Google desabilitado.
-- /rest/v1/profiles?select=id&limit=0 respondeu 404: tabela não disponível na API.
+- Instalação SQL confirmada pelo proprietário em 2026-09-10.
+- Suite SQL completa confirmada pelo proprietário: sem erro, final com rollback.
+- Verificação independente: profiles e vials retornam HTTP 401 / 42501 sem login;
+  get_entitlement também nega execução anônima (401 / 42501).
 - config.js contém somente configuração pública do projeto de testes.
 - SDK oficial 2.116.0 salvo localmente em vendor/, com origem, SHA-256 e licença.
 - index.html integra o novo Perfil sem alterar cálculo, seringas ou navegação.
@@ -43,7 +46,8 @@ Estado: **integração de conta preparada; Bloco A ainda incompleto**.
 
 ## Ainda NÃO validado/concluído
 
-- SQL não aplicado nem executado: publishable key não administra esquema.
+- O sucesso da suite SQL é evidência relatada pelo proprietário; os bloqueios
+  anônimos da API foram verificados diretamente nesta sessão.
 - Sem PostgreSQL/Docker/Supabase CLI local para rodar testes de banco nesta sessão.
 - Login/logout reais, entrega de OTP, Google e sessão autenticada dependem de
   configuração do painel e teste do proprietário; não foram simulados como sucesso.
@@ -55,9 +59,10 @@ Estado: **integração de conta preparada; Bloco A ainda incompleto**.
 
 ## Próximo passo exato
 
-O proprietário deve seguir docs/CONFIGURAR_TESTES.md e executar no SQL Editor do
-pepday-v3-test a migração inicial e depois supabase/tests/block_a.sql.
-Nenhuma senha, service_role ou secret key deve ser enviada.
-
-Após confirmação do SQL: conferir isolamento real e continuar integração/migração.
+Continuar com login real por e-mail, persistência da sessão, Perfil e logout.
+Não repetir instalação nem suite SQL já concluídas. O resultado set_config no
+SQL Editor não é uma falha; o rollback final pertence à limpeza dos fixtures.
+Em seguida concluir a conversão/mesclagem do legado e validar duas sessões reais.
+Google e documentos de consentimento continuam pendentes de configuração.
+Somente encerrar A e iniciar B quando suas pendências estiverem resolvidas.
 Manter a mesma branch e os arquivos existentes. Não refazer V2.9 nem publicar.

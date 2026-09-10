@@ -1,5 +1,5 @@
 -- Executar depois da migração SOMENTE em banco de testes. Tudo sofre rollback.
--- Este arquivo ainda precisa ser executado em PostgreSQL/Supabase.
+-- Execução completa confirmada pelo proprietário em 2026-09-10: sem erro, rollback final.
 begin;
 insert into auth.users(id,email) values
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','pepday-test-a@example.invalid'),

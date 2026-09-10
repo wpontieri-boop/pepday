@@ -5,32 +5,17 @@ URL pública: `https://fsbqpyyprtymwrmzsacp.supabase.co`.
 A chave publishable fornecida pelo proprietário já está em `config.js`.
 Nenhuma chave elevada é necessária para configurar o frontend.
 
-## 1. Preparar o banco pelo painel
+## 1. Banco — concluído
 
-No painel Supabase, selecione **pepday-v3-test → SQL Editor → New query**.
-Confira o nome do projeto antes de executar.
+O proprietário confirmou em 2026-09-10 a instalação de
+`supabase/migrations/202609090001_block_a.sql` e a execução completa de
+`supabase/tests/block_a.sql`, sem erro e com rollback final. Não repetir.
+O rollback limpa os fixtures da suite; não desfaz a instalação anterior.
+Results mostrando set_config corresponde à configuração de identidade nos testes.
 
-Copie o conteúdo completo de:
-
-`supabase/migrations/202609090001_block_a.sql`
-
-Execute como uma consulta única. O arquivo usa transação: falhas interrompem a
-instalação sem deixar metade das tabelas criadas. Esta é a migração inicial;
-se já foi aplicada, não execute novamente. Informe o resultado para retomarmos
-pela próxima migração, sem remover tabelas existentes.
-
-Depois execute, em outra consulta:
-
-`supabase/tests/block_a.sql`
-
-Ele cria fixtures dentro da transação e executa rollback ao final. Testa acesso
-entre contas, papel admin, bloqueio de autopromoção, trial repetido e envio
-idempotente. Os fixtures têm identificadores fixos de teste; conflito com algum
-registro existente interrompe o teste, sem removê-lo.
-
-Não compartilhe senha, chave service_role ou secret key. O proprietário executa
-o SQL no próprio painel já autenticado. A publishable key não permite criar as
-tabelas nem modificar as políticas do banco.
+A verificação independente pela API confirmou bloqueio anônimo em profiles,
+vials e get_entitlement: HTTP 401 com código PostgreSQL 42501.
+Isso confirma os bloqueios observados, sem substituir o teste de sessão real.
 
 ## 2. Preparar o código por e-mail
 
@@ -66,8 +51,8 @@ As versões devem identificar o texto efetivamente exibido ao usuário.
 
 ## Retomada
 
-Após executar os dois arquivos SQL, informe o resultado de sucesso ou o erro
-mostrado, sem credenciais. Isso permitirá seguir na validação do banco.
+O próximo passo é autenticar uma conta de testes pelo formulário seguro e
+validar sessão, Perfil e logout. Depois concluir conversão e mesclagem do legado.
 A publicação continua bloqueada até conclusão, validação e autorização final.
 
 Referências: [chaves públicas](https://supabase.com/docs/guides/getting-started/api-keys),

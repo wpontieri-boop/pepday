@@ -1,4 +1,4 @@
-# PepDay V3.0 — Bloco A / checkpoint A2
+# PepDay V3.0 — Bloco A / checkpoint A3
 
 **Em desenvolvimento. Não é release candidate nem versão pronta para publicar.**
 
@@ -8,12 +8,13 @@ Base oficial: PepDay_V2.9_Final_Publicada(2).zip. Branch de trabalho:
 
 ## Próximo passo
 
-O projeto Supabase `pepday-v3-test` já responde com a configuração pública
-fornecida pelo proprietário. E-mail está habilitado; Google está desabilitado;
-profiles ainda não está disponível na API.
+O projeto Supabase `pepday-v3-test` está instalado. O proprietário confirmou
+execução da suite SQL completa sem erro, terminada em rollback. A API nega acesso
+anônimo a profiles, vials e get_entitlement (HTTP 401 / 42501).
 
-**Seguir [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md) para aplicar o SQL
-pelo painel. Não precisamos de senha, service_role ou secret key.**
+Continuar a validação com login real, sessão, Perfil e logout; depois concluir
+a conversão/mesclagem do legado. Não repetir os SQL já concluídos.
+As configurações pendentes estão em [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md).
 
 O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
@@ -33,7 +34,7 @@ O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
 ## Limites deste checkpoint
 
-**Bloco A ainda incompleto.** SQL e RLS reais não foram executados. Não houve
+**Bloco A ainda incompleto.** Instalação e suite SQL confirmadas pelo proprietário. Não houve
 login real, entrega de e-mail, criação de usuário ou publicação.
 O formulário não coleta aceite enquanto Termos/Privacidade não tiverem URLs e
 versões reais configuradas. Não inventar documentos aceitos.
