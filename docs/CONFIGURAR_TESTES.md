@@ -22,17 +22,15 @@ Isso confirma os bloqueios observados, sem substituir o teste de sessão real.
 O proprietário confirmou login, OTP de seis dígitos, sessão após recarregar e
 logout no ambiente isolado. Não repetir nem reconfigurar esse fluxo.
 
-## 2.1. Novo SQL incremental — próxima ação
+## 2.1. SQL incremental — validado
 
-Aplicar **somente no pepday-v3-test**:
+O proprietário confirmou aplicação de
+`supabase/migrations/202609100002_complete_legacy_import.sql` e aprovação de
+`supabase/tests/complete_legacy_import.sql`, com resultado exato:
 
-1. `supabase/migrations/202609100002_complete_legacy_import.sql`
-2. `supabase/tests/complete_legacy_import.sql`
+`PASS — conversão, saldo, legado, repetição, mesclagem, rollback e isolamento`
 
-O primeiro adiciona conversão e mesclagem; o segundo valida somente o delta,
-com fixtures aleatórios e rollback. A linha resultado deve indicar PASS.
-Nenhum desses arquivos deve ser executado na produção. Não repetir a instalação
-ou os testes iniciais já concluídos. Não é necessária chave elevada no frontend.
+Não repetir esses arquivos nem os SQL anteriores.
 
 ## 3. Google e endereço de retorno
 
@@ -55,7 +53,8 @@ As versões devem identificar o texto efetivamente exibido ao usuário.
 
 ## Retomada
 
-Informe somente o resultado dos dois arquivos incrementais. Login já aprovado.
+Próxima ação: configurar Google no painel e confirmar a conclusão sem enviar
+credenciais. Banco e login por e-mail já aprovados.
 A versão online de testes ainda é a anterior; o novo checkpoint está na branch
 e não foi publicado automaticamente. Depois do delta, validar a migração no
 Perfil com cadastro completo e dados descartáveis.

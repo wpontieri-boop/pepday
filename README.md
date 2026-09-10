@@ -1,4 +1,4 @@
-# PepDay V3.0 — Bloco A / checkpoint A4
+# PepDay V3.0 — Bloco A / checkpoint A5
 
 **Em desenvolvimento. Não é release candidate nem versão pronta para publicar.**
 
@@ -15,10 +15,12 @@ anônimo a profiles, vials e get_entitlement (HTTP 401 / 42501).
 Login real por e-mail, OTP de 6 dígitos, persistência da sessão após recarregar e
 logout foram confirmados pelo proprietário. Não repetir esses testes.
 
-**Próximo passo:** aplicar apenas a migração incremental
-`supabase/migrations/202609100002_complete_legacy_import.sql` e executar
-`supabase/tests/complete_legacy_import.sql` no projeto de testes.
-O delta já passou no banco local descartável; falta confirmação no Supabase.
+O SQL incremental foi aplicado no Supabase e a suite incremental retornou PASS,
+conforme confirmação do proprietário. Não repetir SQLs nem login por e-mail.
+
+**Próximo passo:** configurar Google no painel de testes e disponibilizar os
+textos/versões de Termos e Privacidade para cadastro e migração pelo Perfil.
+Confira [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md).
 
 O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 
@@ -39,7 +41,7 @@ O estado completo está em [docs/STATUS.md](docs/STATUS.md).
 ## Limites deste checkpoint
 
 **Bloco A ainda incompleto.** Instalação inicial, suite SQL inicial e login por
-e-mail confirmados pelo proprietário. Falta aplicar/validar o SQL incremental.
+e-mail confirmados pelo proprietário. O SQL incremental também foi aprovado. Google e cadastro continuam pendentes.
 O formulário não coleta aceite enquanto Termos/Privacidade não tiverem URLs e
 versões reais configuradas. Não inventar documentos aceitos.
 
@@ -87,7 +89,7 @@ O servidor é apenas uma ferramenta de teste e não publica o aplicativo.
 No navegador foram conferidos Perfil sem login, disponibilidade dos métodos,
 repetição do tutorial e cálculos mg/mcg nas seringas 30/50/100 UI.
 Os oito novos testes Node e a suite SQL incremental passaram localmente.
-Ainda faltam validação remota do delta, migração pelo Perfil, Google, mobile,
+Ainda faltam migração pelo Perfil, Google, mobile,
 offline/update e demais testes do prompt mestre. O SQL local usa PGlite com
 fixtures; não substitui a validação no Supabase.
 

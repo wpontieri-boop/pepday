@@ -1,6 +1,6 @@
-# Ponto de retomada — Bloco A, checkpoint A4
+# Ponto de retomada — Bloco A, checkpoint A5
 
-Estado: **conversão/mesclagem implementadas e testadas localmente; Bloco A ainda não aprovado integralmente**.
+Estado: **banco e migração incremental aprovados no Supabase; Google e cadastro ainda pendentes**.
 
 ## Evidências já aceitas — não repetir
 
@@ -9,6 +9,9 @@ Estado: **conversão/mesclagem implementadas e testadas localmente; Bloco A aind
 - Acesso anônimo negado pela API em profiles, vials e get_entitlement (401 / 42501).
 - Em 2026-09-10 o proprietário confirmou login real por e-mail, OTP de 6 dígitos,
   sessão preservada após recarregar e logout correto no ambiente V3.0 isolado.
+- O proprietário confirmou aplicação de 202609100002 e resultado exato da suite
+  incremental: PASS — conversão, saldo, legado, repetição, mesclagem, rollback e isolamento.
+  Evidência fornecida pelo proprietário; não repetir SQLs.
 - 21 testes Node anteriores e QA de calculadora/tutorial permanecem aprovados.
 
 ## Implementado neste checkpoint
@@ -47,18 +50,18 @@ Estado: **conversão/mesclagem implementadas e testadas localmente; Bloco A aind
 
 ## Próxima dependência humana exata
 
-No SQL Editor de **pepday-v3-test**, executar somente:
+Configurar o provedor Google no painel Supabase do pepday-v3-test, usando
+credenciais OAuth somente nos painéis Google/Supabase. Cadastrar o callback que
+Supabase exibe no cliente OAuth e o endereço do ambiente isolado na lista de
+retornos permitidos. Confirmar apenas que a configuração terminou, sem segredos.
 
-1. supabase/migrations/202609100002_complete_legacy_import.sql
-2. supabase/tests/complete_legacy_import.sql
-
-O segundo arquivo usa fixtures aleatórios e rollback, e exibe uma linha PASS.
-Não executar de novo a instalação 202609090001 nem tests/block_a.sql.
-Não compartilhar senhas, OTPs, service_role ou secret keys.
+Documentos: config.js ainda não tem URLs/versões de Termos e Privacidade.
+Se já existirem textos aprovados, fornecer links e versões. Caso não existam,
+preparar os textos de homologação e sua identificação antes de colher aceites;
+a revisão jurídica final continua no Bloco D. Não atribuir aceite automaticamente.
 
 ## Ainda pendente para encerrar A
 
-- Confirmar instalação e testes do delta no Supabase.
 - Publicar o checkpoint novo somente no ambiente isolado quando autorizado;
   o endereço de testes ainda serve o checkpoint anterior validado para login.
 - Validar importação pelo Perfil com dados de teste e cadastro completo.
@@ -85,3 +88,9 @@ Branch: v3.0-bloco-a. Nenhuma alteração em main/GitHub Pages/V2.9 de produçã
 app.js, style.css, manifest.json e icon.svg preservados; backup V2.9 mantido.
 Nenhuma publicação nova nesta etapa, nem promoção automática para produção.
 Ambiente isolado existente: https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site
+
+## Registro deste turno
+
+Apenas documentação de continuidade atualizada. Nenhum SQL, teste de login ou
+teste já aprovado foi repetido. Sem alterações de código, configuração de Auth
+ou publicação. Ainda não iniciar B como se Google/cadastro estivessem aprovados.
