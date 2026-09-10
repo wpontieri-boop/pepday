@@ -8,10 +8,9 @@ export const config = Object.freeze({
   authRedirectUrl: 'https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/',
   allowedRedirects: ['https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/'],
   allowLocalhost: false,
-  // Não colher aceite para documentos que ainda não foram disponibilizados.
-  termsUrl: null,
-  termsVersion: null,
-  privacyUrl: null,
-  privacyVersion: null,
+  termsUrl: 'https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/termos.html',
+  termsVersion: 'terms-2026-09-10',
+  privacyUrl: 'https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/privacidade.html',
+  privacyVersion: 'privacy-2026-09-10',
   blockedProductionUrl: 'https://wpontieri-boop.github.io/pepday/'
 });
