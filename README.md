@@ -3,7 +3,8 @@
 O PepDay V3 está em desenvolvimento controlado. O **Bloco A foi concluído e
 aprovado** em 11/09/2026, tendo como commit-base aprovado
 `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`. O desenvolvimento do Bloco B parte
-da branch `v3.0-bloco-b`.
+da branch `v3.0-bloco-b`. A Fase B1 (FREE/TRIAL/PRO) está implementada e testada
+localmente, aguardando revisão; ainda não foi publicada nem aplicada ao Supabase.
 
 A V2.9 continua sendo a produção estável e não deve ser alterada até a aprovação
 final da V3. Não promover esta branch para `main`, não alterar GitHub Pages e não
@@ -91,7 +92,15 @@ rotinas, histórico e sincronização pertencem ao PRO, respeitando o escopo exa
 de `REQUISITOS.txt`. As abas continuam visíveis no FREE e apresentam explicação
 de acesso. O trial de sete dias só começa por ação explícita do usuário, uma vez
 por conta, sem cartão, e não reinicia por instalação, login ou logout. Os gates e
-fluxos completos de FREE/TRIAL/PRO ainda serão implementados no Bloco B.
+fluxos de FREE/TRIAL/PRO da Fase B1 usam o entitlement calculado no backend. O
+cliente não decide acesso pelo relógio ou por `localStorage`; ele apenas consome
+os estados `free`, `trial`, `pro_active` e `pro_expired`.
+
+A interface mantém Calculadora/tutorial livres sem login, exibe Rotinas e Frascos
+no FREE e usa um gate reutilizável para explicar ações PRO. O trial só é solicitado
+após clique em “Começar 7 dias grátis”; “Agora não” mantém o FREE. O backend fixa
+início e fim com seu próprio relógio, serializa tentativas concorrentes e não
+renova um trial já usado. Bloqueio ou expiração nunca exclui dados.
 
 ### Integrações comerciais e notificações previstas
 
@@ -133,17 +142,20 @@ backend seguro dos respectivos serviços.
 
 ## Escopo imediato: Bloco B
 
-O Bloco B implementará, na ordem de retomada documentada em
-[docs/STATUS.md](docs/STATUS.md): gates FREE/TRIAL/PRO; integração completa entre
-Rotina e Frasco, incluindo os pontos aprovados da calculadora; aplicações e undo
-transacionais; sincronização local-first; integração segura do legado; e estados
-de conta/sincronização no Perfil. Não inclui implementação de Mercado Pago,
-Brevo, Firebase nem publicação em produção.
+A Fase B1 implementa a fonte única de entitlement, o início idempotente do trial,
+o status no Perfil e o gate PRO de Rotinas/Frascos. As fases seguintes do Bloco B
+continuam responsáveis pela integração completa Rotina ↔ Frasco/Calculadora,
+aplicações e undo transacionais, sincronização local-first e estados de
+sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção
+continuam fora desta fase.
 
 ## Desenvolvimento e testes
 
 - Suite Node: `node --test tests/*.test.mjs`.
+- Testes Node somente da B1: `node --test tests/block-b1.test.mjs`.
 - Servidor local: `node scripts/dev-server.mjs`.
+- SQL B1 em banco efêmero: definir `PGLITE_MODULE` para o `dist/index.js` do
+  PGlite 0.5.8 e executar `node scripts/test-b1-sql.mjs`.
 - Suite SQL local: `node scripts/test-import-sql.mjs`, com o módulo PGlite
   indicado por `PGLITE_MODULE`; ela usa fixtures descartáveis e não conecta ao
   projeto Supabase.

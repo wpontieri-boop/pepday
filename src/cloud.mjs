@@ -55,6 +55,7 @@ export function accountError(error) {
     const importMessages={
       'Conflito no legado; nenhum saldo foi sobrescrito':'Há alterações conflitantes no legado. Revise antes de mesclar. Nenhum saldo da conta foi sobrescrito.',
       'Conflito na rotina; revisão necessária':'Há uma rotina conflitante. Revise antes de mesclar. Nenhum dado foi sobrescrito.',
+      'Conclua o cadastro antes do teste':'Conclua o cadastro e os aceites antes de começar o teste PRO.',
       'Conclua o cadastro antes de importar':'Conclua o cadastro e os aceites antes de importar.',
       'Já há dados na conta. Escolha mesclar com segurança':'Foram encontrados dados na conta. Reabra o Perfil e escolha mesclar com segurança.'
     };

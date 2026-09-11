@@ -29,12 +29,13 @@
         <p id="todayLabel"></p>
       </div>
       <div class="card">
-        <div class="card-title"><span>ROTINAS DE HOJE</span><button class="link" data-go="routines">Gerenciar</button></div>
-        <div id="todayRoutines" class="stack"></div>
+        <div class="card-title"><span>ROTINAS DE HOJE</span><button class="link" data-go="routines" data-pro-action>Gerenciar</button></div>
+        <div id="todayRoutines" class="stack" data-pro-content></div>
+        <div class="empty hidden" data-pro-placeholder><p>Rotinas são um recurso PRO. Seus dados permanecem salvos mesmo quando o acesso está bloqueado.</p><button class="link" type="button" data-pro-action>Conhecer o PRO</button></div>
       </div>
       <div class="grid2">
         <button class="action" data-go="calculator"><strong>＋</strong><span>Calcular</span><small>mg, mcg, mL e UI</small></button>
-        <button class="action" data-go="routines"><strong>◷</strong><span>Nova rotina</span><small>Organize sua frequência</small></button>
+        <button class="action" data-go="routines" data-pro-action><strong>◷</strong><span>Nova rotina</span><small>Organize sua frequência</small></button>
       </div>
       <div class="card disclaimer"><b>Ferramenta de cálculo e organização</b><p>O PepDay não recomenda doses, tratamentos ou protocolos. Use apenas valores e frequências definidos por você com orientação profissional.</p></div>
     </section>
@@ -91,11 +92,11 @@
           </div>
           <small id="syringeNote"></small>
         </div>
-        <button class="secondary" id="saveRoutineFromCalc">SALVAR COMO ROTINA</button>
+        <button class="secondary" id="saveRoutineFromCalc" data-pro-action>SALVAR COMO ROTINA</button>
       </div>
     </section>
 
-    <section id="routines" class="screen">
+    <section id="routines" class="screen" data-pro-screen>
       <div class="section-head"><div><small>ROTINAS</small><h2>Minha agenda</h2></div><button class="primary compact" id="newRoutine">＋ Nova</button></div>
       <div id="routineList" class="stack"></div>
       <div id="routineForm" class="card form hidden">
@@ -153,7 +154,7 @@
       </div>
     </section>
 
-    <section id="vials" class="screen">
+    <section id="vials" class="screen" data-pro-screen>
       <div class="section-head"><div><small>FRASCOS</small><h2>Meus frascos</h2></div><button class="primary compact" id="newVial">＋ Novo</button></div>
       <div id="vialList" class="stack"></div>
       <div id="vialForm" class="card form hidden">
@@ -184,7 +185,14 @@
 
     <section id="profile" class="screen">
       <div class="section-head"><div><small>PERFIL</small><h2>PepDay</h2></div></div>
-      <div class="card"><h3 id="planLabel">PEPDAY FREE</h3><p>Calculadora e dados locais disponíveis neste aparelho.</p></div>
+      <div class="card" id="planCard">
+        <h3 id="planLabel">PEPDAY FREE</h3>
+        <p id="planDescription">Calculadora e tutorial disponíveis sem login neste aparelho.</p>
+        <div id="trialActions" class="account-actions hidden">
+          <button class="primary" id="accountStartTrial" type="button">Começar 7 dias grátis</button>
+          <button class="ghost" id="accountDeclineTrial" type="button">Agora não</button>
+        </div>
+      </div>
       <section class="card form" id="accountPanel" aria-labelledby="accountTitle">
         <h3 id="accountTitle">Minha conta</h3>
         <p id="accountStatus" role="status" aria-live="polite">Preparando acesso à conta…</p>
@@ -248,8 +256,8 @@
   <nav>
     <button data-go="home" class="active"><b>⌂</b><span>Início</span></button>
     <button data-go="calculator"><b>＋</b><span>Calcular</span></button>
-    <button data-go="routines"><b>◷</b><span>Rotinas</span></button>
-    <button data-go="vials"><b>◉</b><span>Frascos</span></button>
+    <button data-go="routines" data-pro-action><b>◷</b><span>Rotinas</span></button>
+    <button data-go="vials" data-pro-action><b>◉</b><span>Frascos</span></button>
     <button data-go="profile"><b>●</b><span>Perfil</span></button>
   </nav>
 
@@ -272,9 +280,20 @@
     </div>
   </div>
 
+  <dialog id="proGateDialog" class="pro-gate" aria-labelledby="proGateTitle" aria-describedby="proGateMessage">
+    <h3 id="proGateTitle">Este é um recurso PepDay PRO</h3>
+    <p id="proGateMessage"></p>
+    <div class="account-actions">
+      <button class="primary" id="proGateStart" type="button">Começar 7 dias grátis</button>
+      <button class="ghost" id="proGateClose" type="button">Agora não</button>
+    </div>
+    <small>Nenhum cartão é exigido. Seus dados não são apagados ao encerrar o acesso PRO.</small>
+  </dialog>
+
 </div>
 <script src="app.js"></script>
 <script defer src="vendor/supabase-2.116.0.js"></script>
+<script type="module" src="src/pro-gate.mjs"></script>
 <script type="module" src="src/account-ui.mjs"></script>
 </body>
 </html>

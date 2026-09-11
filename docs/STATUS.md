@@ -68,12 +68,44 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   código/repositório. Somente configuração pública pode ir ao frontend.
 - Não repetir testes aprovados quando não forem afetados pelo delta.
 
+## Fase B1 implementada localmente — aguardando revisão
+
+- Fonte única de entitlement permanece no Supabase e agora retorna de forma
+  uniforme `free`, `trial`, `pro_active` ou `pro_expired`, origem, elegibilidade
+  do trial, datas e horário do servidor.
+- Nova migration incremental `202609110003_block_b1_entitlements.sql`; nenhuma
+  migration aplicada do Bloco A foi modificada.
+- Início do trial somente por clique explícito, com sete dias calculados no
+  backend, lock por conta e idempotência para clique/reenvio concorrente.
+- O cliente não usa relógio ou `localStorage` para conceder/renovar PRO.
+- Perfil exibe o estado atual e, quando elegível, “Começar 7 dias grátis” e
+  “Agora não”, sem cartão, compra, Mercado Pago ou simulação de pagamento.
+- Gate PRO reutilizável aplicado às entradas e ações de Rotinas/Frascos; abas
+  continuam visíveis e a Calculadora permanece FREE sem login.
+- Ao bloquear/expirar, a interface oculta o conteúdo PRO e mantém os dados locais
+  e da conta intactos.
+- Service Worker versionado para incluir os dois módulos B1 novos, sem publicar
+  ou alterar o ambiente de produção.
+
+### Validação local da B1
+
+- 11 testes Node B1: PASS.
+- 29 testes locais de regressão dos módulos/telas diretamente tocados: PASS;
+  somente mocks/fixtures, sem autenticação ou importação real.
+- Sintaxe de `app.js`, `account-ui.mjs`, `cloud.mjs`, `entitlement.mjs` e
+  `pro-gate.mjs`: PASS.
+- Suite SQL B1 em PGlite 0.5.8 efêmero: PASS para FREE/TRIAL/PRO, sete dias,
+  idempotência, nova sessão e preservação de dados.
+- QA local em navegador, sem login real: Calculadora disponível no FREE; Rotinas
+  visível com convite PRO; “Agora não” mantém o FREE; Perfil anônimo correto.
+- Nenhum teste real de OTP, Google, importação ou SQL do Bloco A foi repetido.
+
 ## Pendências
 
 ### Bloco B
 
-- Consolidar o contrato de dados local/nuvem e de entitlement.
-- Implementar gates e fluxos de FREE/TRIAL/PRO conforme `REQUISITOS.txt`.
+- Revisar a Fase B1 e, somente após autorização, aplicar a migration incremental
+  no Supabase de testes e validar o delta no ambiente isolado.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
 - Implementar aplicações, movimentos de estoque e undo de forma transacional,
@@ -137,14 +169,13 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Após aprovação e autorização explícita deste checkpoint, iniciar o item 1 da
-ordem acima: inspecionar o esquema, as funções e os módulos existentes e definir
-o contrato unificado de dados/entitlement do Bloco B, com testes locais do delta.
-Não criar SQL, modificar código funcional, publicar ou fazer push antes dessa
-autorização.
+Revisar o commit local da Fase B1. Após aprovação explícita e em etapa separada,
+fazer push da B1, aplicar somente a migration incremental no Supabase de testes e
+validar o delta no ambiente isolado. Não publicar, aplicar SQL remoto ou avançar
+para sincronização antes dessa autorização.
 
 ## Registro deste checkpoint
 
-Somente `README.md` e `docs/STATUS.md` foram atualizados. Nenhum arquivo funcional,
-SQL, configuração, cache, Service Worker ou ambiente remoto foi alterado. Nenhum
-teste já aprovado foi repetido e nenhuma funcionalidade do Bloco B foi iniciada.
+O checkpoint documental `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d` foi
+enviado somente para `origin/v3.0-bloco-b`. A implementação B1 posterior permanece
+local, sem push, sem publicação e sem alteração em `main`, GitHub Pages ou V2.9.

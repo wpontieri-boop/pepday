@@ -1,14 +1,25 @@
 import { config } from '../config.js';
 import { initializeCloud, readPublicAuthSettings, loadAccountState, accountError } from './cloud.mjs';
 import { reviewLegacy, readCloudInventory, completeLegacyImport } from './import-completion.mjs';
+import { normalizeEntitlement, entitlementPresentation } from './entitlement.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
+let access=normalizeEntitlement(null), declinedTrial=false;
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
 function status(text) { el('accountStatus').textContent = text; }
+function publishAccess(raw, profileComplete=false) {
+  access=normalizeEntitlement(raw,{signedIn:raw?.signedIn===true});
+  const presentation=entitlementPresentation(access);
+  el('planLabel').textContent=presentation.label;
+  el('planDescription').textContent=presentation.description;
+  const canOffer=access.signedIn && profileComplete && access.status==='free' && access.trialAvailable && !declinedTrial;
+  hide('trialActions',!canOffer);
+  document.dispatchEvent(new CustomEvent('pepday:entitlement',{detail:{...access,profileComplete}}));
+}
 function legalReady() {
   return Boolean(config.termsVersion && config.privacyVersion && config.termsUrl && config.privacyUrl &&
     [config.termsUrl,config.privacyUrl].every(value => {
@@ -24,7 +35,7 @@ function enableMethods() {
 function clearPrivateUi() {
   state = null; importErrors=[]; importMode='import';
   el('accountIdentity').textContent = '';
-  el('planLabel').textContent = 'PEPDAY FREE';
+  publishAccess(null);
   el('accountProfileForm').reset();
   el('accountCode').value = '';
   el('accountImportConsent').checked = false;
@@ -55,10 +66,9 @@ async function refresh() {
     if (next.status !== 'signed_in') { hide('accountSignedIn'); hide('accountSignedOut',false); return; }
     state=next;
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
-    const labels = { free:'PEPDAY FREE',trial:'PEPDAY PRO — TESTE GRÁTIS',pro_active:'PEPDAY PRO ATIVO',pro_expired:'PEPDAY PRO EXPIRADO' };
-    el('planLabel').textContent = labels[next.entitlement.status] || 'PEPDAY FREE';
-    status('Conta conectada. Os dados locais ainda não estão sincronizados.');
     const complete = next.profile.is_adult_confirmed && next.profile.terms_accepted_at && next.profile.privacy_accepted_at;
+    publishAccess({...next.entitlement,signedIn:true},Boolean(complete));
+    status('Conta conectada. Os dados locais ainda não estão sincronizados.');
     hide('accountProfileForm',Boolean(complete));
     if (!complete) {
       el('accountName').value=next.profile.name || '';
@@ -131,6 +141,27 @@ el('accountProfileForm').addEventListener('submit',event=>{
     await refresh();
   });
 });
+async function requestTrial() {
+  if(!state){
+    document.querySelector('nav [data-go="profile"]')?.click();
+    status('Entre ou crie sua conta para começar o teste PRO gratuito.');
+    return;
+  }
+  const complete=state.profile.is_adult_confirmed && state.profile.terms_accepted_at && state.profile.privacy_accepted_at;
+  if(!complete){
+    document.querySelector('nav [data-go="profile"]')?.click();
+    status('Conclua o cadastro e os aceites antes de começar o teste PRO.');
+    return;
+  }
+  declinedTrial=false;
+  await run(async()=>{await cloud.account.startTrial();await refresh();});
+}
+el('accountStartTrial').addEventListener('click',requestTrial);
+el('accountDeclineTrial').addEventListener('click',()=>{
+  declinedTrial=true;hide('trialActions');
+  status('Você continua no PepDay FREE. O teste só começará quando você escolher iniciar.');
+});
+document.addEventListener('pepday:start-trial',requestTrial);
 el('accountReviewImport').addEventListener('click',()=>hide('accountImportReview',false));
 el('accountImportConsent').addEventListener('change',enableMethods);
 el('accountKeepCloud').addEventListener('click',()=>{

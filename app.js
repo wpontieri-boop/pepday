@@ -30,7 +30,7 @@ function renderToday(){
   let d=new Date(); $('#todayLabel').textContent=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
   let box=$('#todayRoutines'), list=routines.filter(r=>activeOn(r,d));
   if(!list.length){box.innerHTML='<div class="empty"><p>Nenhuma rotina programada para hoje.</p></div>';return}
-  box.innerHTML=list.map(r=>{let done=(r.done||[]).includes(isoToday()),v=vials.find(x=>x.id===r.vialId); return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button onclick="toggleDone('${r.id}')">${done?'Desfazer':'Registrar'}</button></div></div>`}).join('');
+  box.innerHTML=list.map(r=>{let done=(r.done||[]).includes(isoToday()),v=vials.find(x=>x.id===r.vialId); return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button data-pro-action onclick="toggleDone('${r.id}')">${done?'Desfazer':'Registrar'}</button></div></div>`}).join('');
 }
 function toggleDone(id){
  let r=routines.find(x=>x.id===id); if(!r)return; r.done=r.done||[]; let day=isoToday(), done=r.done.includes(day), v=vials.find(x=>x.id===r.vialId);
