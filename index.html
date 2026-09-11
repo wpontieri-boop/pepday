@@ -98,7 +98,6 @@
 
     <section id="routines" class="screen" data-pro-screen>
       <div class="section-head"><div><small>ROTINAS</small><h2>Minha agenda</h2></div><button class="primary compact" id="newRoutine">＋ Nova</button></div>
-      <div id="routineList" class="stack"></div>
       <div id="routineForm" class="card form hidden">
         <h3 id="routineFormTitle">Nova rotina</h3>
         <label>Nome <input id="rName" placeholder="Ex.: Peptídeo A"/></label>
@@ -152,11 +151,11 @@
           <button class="primary" id="saveRoutine">Salvar</button>
         </div>
       </div>
+      <div id="routineList" class="stack"></div>
     </section>
 
     <section id="vials" class="screen" data-pro-screen>
       <div class="section-head"><div><small>FRASCOS</small><h2>Meus frascos</h2></div><button class="primary compact" id="newVial">＋ Novo</button></div>
-      <div id="vialList" class="stack"></div>
       <div id="vialForm" class="card form hidden">
         <h3 id="vialFormTitle">Novo frasco</h3>
         <label>Nome / identificação <input id="vName" placeholder="Ex.: Frasco A"></label>
@@ -177,6 +176,7 @@
         <label>Custo (opcional)<div class="input-unit"><span>R$</span><input id="vCost" type="number" min="0" step="0.01" placeholder="0,00"></div></label>
         <div class="grid2"><button class="ghost" id="cancelVial">Cancelar</button><button class="primary" id="saveVial">Salvar frasco</button></div>
       </div>
+      <div id="vialList" class="stack"></div>
       <div id="historyCard" class="card hidden">
         <div class="card-title"><span>HISTÓRICO DO FRASCO</span><button class="link" id="closeHistory">Fechar</button></div>
         <div id="vialHistory" class="stack"></div>

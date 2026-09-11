@@ -4,6 +4,26 @@ import { readFile } from 'node:fs/promises';
 
 const read=name=>readFile(new URL(`../${name}`,import.meta.url),'utf8');
 
+test('formulários de nova Rotina e novo Frasco ficam antes das listas',async()=>{
+  const html=await read('index.html');
+  const routines=html.slice(html.indexOf('<section id="routines"'),html.indexOf('<section id="vials"'));
+  const vials=html.slice(html.indexOf('<section id="vials"'),html.indexOf('<section id="profile"'));
+  assert.ok(routines.indexOf('id="routineForm"')<routines.indexOf('id="routineList"'));
+  assert.ok(vials.indexOf('id="vialForm"')<vials.indexOf('id="vialList"'));
+});
+
+test('abrir, cancelar e editar continuam usando os formulários existentes',async()=>{
+  const js=await read('app.js');
+  assert.match(js,/newRoutine'\)\.onclick=\(\)=>openRoutine\(\)/);
+  assert.match(js,/cancelRoutine'\)\.onclick=\(\)=>\$\('#routineForm'\)\.classList\.add\('hidden'\)/);
+  assert.match(js,/window\.editR=id=>openRoutine/);
+  assert.match(js,/newVial'\)\.onclick=\(\)=>\{vialReturnToRoutine=false;openVial\(\)\}/);
+  assert.match(js,/cancelVial'\)\.onclick=.*classList\.add\('hidden'\).*returnToRoutineFromVial\(\)/);
+  assert.match(js,/window\.editVial=id=>openVial/);
+  assert.match(js,/function openRoutine[^]*requirePro/);
+  assert.match(js,/function openVial[^]*requirePro/);
+});
+
 test('Rotina oferece cadastro de frasco sem substituir o seletor',async()=>{
   const html=await read('index.html');
   assert.match(html,/select id="rVial"/);
