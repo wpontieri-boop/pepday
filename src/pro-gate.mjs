@@ -1,14 +1,15 @@
-import { normalizeEntitlement, proGateDecision } from './entitlement.mjs';
+import { proGateDecision } from './entitlement.mjs';
 
 const dialog = document.getElementById('proGateDialog');
 const title = document.getElementById('proGateTitle');
 const message = document.getElementById('proGateMessage');
 const start = document.getElementById('proGateStart');
 const close = document.getElementById('proGateClose');
-let access = normalizeEntitlement(null);
+const accessControl=globalThis.PepDayAccess;
+const currentAccess=()=>accessControl?.snapshot?.()||Object.freeze({status:'free',pro:false,signedIn:false});
 
 function setProtectedVisibility() {
-  const allowed = proGateDecision(access).allowed;
+  const allowed = proGateDecision(currentAccess()).allowed;
   document.querySelectorAll('[data-pro-content]').forEach(node => node.classList.toggle('hidden',!allowed));
   document.querySelectorAll('[data-pro-placeholder]').forEach(node => node.classList.toggle('hidden',allowed));
   if (!allowed && document.querySelector('.screen.active[data-pro-screen]')) {
@@ -21,7 +22,7 @@ function closeDialog() {
 }
 
 function openDialog() {
-  const decision = proGateDecision(access);
+  const decision = proGateDecision(currentAccess());
   title.textContent = decision.reason === 'expired' ? 'Seu acesso PRO terminou' : 'Este é um recurso PepDay PRO';
   message.textContent = decision.reason === 'login'
     ? 'Entre ou crie sua conta para começar seu teste PRO gratuito. A calculadora continua disponível sem login.'
@@ -34,22 +35,22 @@ function openDialog() {
   else dialog.setAttribute('open','');
 }
 
-document.addEventListener('pepday:entitlement',event=>{
-  access=normalizeEntitlement(event.detail,{signedIn:event.detail?.signedIn===true});
-  setProtectedVisibility();
-});
+accessControl?.subscribe?.(setProtectedVisibility);
+// Eventos DOM são somente notificações; o conteúdo de detail é deliberadamente ignorado.
+document.addEventListener('pepday:entitlement',setProtectedVisibility);
+document.addEventListener('pepday:pro-required',openDialog);
 
 document.addEventListener('click',event=>{
   const action=event.target.closest?.('[data-pro-action]');
-  if(!action || proGateDecision(access).allowed)return;
-  event.preventDefault();event.stopImmediatePropagation();openDialog();
+  if(!action || accessControl?.requirePro?.(action.dataset.proAction||'interface'))return;
+  event.preventDefault();event.stopImmediatePropagation();
 },true);
 
 start?.addEventListener('click',()=>{
-  const decision=proGateDecision(access);
+  const decision=proGateDecision(currentAccess());
   closeDialog();
   if(decision.needsLogin) document.querySelector('nav [data-go="profile"]')?.click();
-  else if(decision.canStartTrial) document.dispatchEvent(new CustomEvent('pepday:start-trial'));
+  // O início real é tratado pelo módulo de conta e exige um clique confiável do navegador.
 });
 close?.addEventListener('click',closeDialog);
 dialog?.addEventListener('click',event=>{if(event.target===dialog)closeDialog()});

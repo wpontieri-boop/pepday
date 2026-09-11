@@ -7,7 +7,8 @@ insert into auth.users(id,email) values
  ('44444444-4444-4444-8444-444444444444','b1-expired@example.invalid');
 
 update public.profiles set is_adult_confirmed=true,terms_accepted_at=now(),terms_version='test',
-  privacy_accepted_at=now(),privacy_version='test' where id='22222222-2222-4222-8222-222222222222';
+  privacy_accepted_at=now(),privacy_version='test' where id in
+  ('22222222-2222-4222-8222-222222222222','44444444-4444-4444-8444-444444444444');
 update public.subscriptions set status='pro_active',plan='monthly',started_at=now()-interval '2 days',
   current_period_end=now()+interval '5 days' where user_id='33333333-3333-4333-8333-333333333333';
 update public.subscriptions set status='pro_expired',plan='monthly',started_at=now()-interval '32 days',
@@ -70,6 +71,10 @@ do $$ declare before_count integer; after_count integer; e jsonb; begin
   e:=public.get_entitlement();
   select count(*) into after_count from public.vials where user_id=auth.uid();
   if e->>'status'<>'pro_expired' or (e->>'pro')::boolean then raise exception 'FAIL expired PRO'; end if;
+  e:=public.start_trial();
+  if e->>'status'<>'pro_expired' or (e->>'trial_available')::boolean
+    or exists(select 1 from public.trials where user_id=auth.uid() and trial_used)
+    then raise exception 'FAIL expired subscriber trial'; end if;
   if before_count<>1 or after_count<>before_count then raise exception 'FAIL data preservation'; end if;
 end $$;
 rollback;

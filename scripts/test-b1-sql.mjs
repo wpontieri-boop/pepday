@@ -17,7 +17,7 @@ try {
     'supabase/migrations/202609110003_block_b1_entitlements.sql'
   ]) await db.exec(await readFile(new URL('../'+file,import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/tests/block_b1_entitlements.sql',import.meta.url),'utf8'));
-  console.log('PASS: FREE/TRIAL/PRO, sete dias, idempotência, nova sessão e preservação.');
+  console.log('PASS: FREE/TRIAL/PRO, sete dias, idempotência, ex-assinante, nova sessão e preservação.');
 } catch(error) {
   console.error(error.message);process.exitCode=1;
 } finally {await db.close();}

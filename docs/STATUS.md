@@ -78,24 +78,29 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 - Início do trial somente por clique explícito, com sete dias calculados no
   backend, lock por conta e idempotência para clique/reenvio concorrente.
 - O cliente não usa relógio ou `localStorage` para conceder/renovar PRO.
+- Hardening local mantém a autoridade gravável em closure privada alimentada pela
+  resposta autenticada de `get_entitlement()`; eventos DOM não alteram acesso.
+- Navegação programática, tutorial e mutadores atuais de Rotinas, Frascos, saldo,
+  aplicação e undo passam pela mesma guarda antes de alterar dados locais.
+- Ex-assinante expirado não pode iniciar trial depois, mesmo com `trial_used=false`.
 - Perfil exibe o estado atual e, quando elegível, “Começar 7 dias grátis” e
   “Agora não”, sem cartão, compra, Mercado Pago ou simulação de pagamento.
 - Gate PRO reutilizável aplicado às entradas e ações de Rotinas/Frascos; abas
   continuam visíveis e a Calculadora permanece FREE sem login.
 - Ao bloquear/expirar, a interface oculta o conteúdo PRO e mantém os dados locais
   e da conta intactos.
-- Service Worker versionado para incluir os dois módulos B1 novos, sem publicar
+- Service Worker versionado para incluir os módulos B1, sem publicar
   ou alterar o ambiente de produção.
 
 ### Validação local da B1
 
-- 11 testes Node B1: PASS.
-- 29 testes locais de regressão dos módulos/telas diretamente tocados: PASS;
+- 17 testes Node B1, incluindo hardening de evento, navegação, tutorial e mutadores: PASS.
+- 58 testes locais da suíte de regressão: PASS;
   somente mocks/fixtures, sem autenticação ou importação real.
-- Sintaxe de `app.js`, `account-ui.mjs`, `cloud.mjs`, `entitlement.mjs` e
+- Sintaxe de `app.js`, `access-control.mjs`, `account-ui.mjs`, `cloud.mjs`, `entitlement.mjs` e
   `pro-gate.mjs`: PASS.
 - Suite SQL B1 em PGlite 0.5.8 efêmero: PASS para FREE/TRIAL/PRO, sete dias,
-  idempotência, nova sessão e preservação de dados.
+  idempotência, ex-assinante expirado, nova sessão e preservação de dados.
 - QA local em navegador, sem login real: Calculadora disponível no FREE; Rotinas
   visível com convite PRO; “Agora não” mantém o FREE; Perfil anônimo correto.
 - Nenhum teste real de OTP, Google, importação ou SQL do Bloco A foi repetido.
@@ -112,6 +117,11 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   atômica e idempotente.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
   versão/timestamps e tratamento explícito de conflitos.
+- Definir entitlement PRO offline/local-first sem substituir a autoridade de
+  `get_entitlement()` e das datas do servidor.
+- Implementar avisos de três dias e um dia antes do fim do trial.
+- Atualizar automaticamente campos apenas informativos como `completed_at` somente
+  se isso se mostrar necessário; eles não participam da autorização atual.
 - Integrar os dados locais/importados à fonte usada pelas telas, preservando os
   registros legados e sem criar eventos históricos por suposição.
 - Exibir no Perfil o estado da conta, entitlement, trial e sincronização.
@@ -169,7 +179,7 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Revisar o commit local da Fase B1. Após aprovação explícita e em etapa separada,
+Revisar o commit local separado de hardening da Fase B1. Após aprovação explícita e em etapa separada,
 fazer push da B1, aplicar somente a migration incremental no Supabase de testes e
 validar o delta no ambiente isolado. Não publicar, aplicar SQL remoto ou avançar
 para sincronização antes dessa autorização.

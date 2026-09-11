@@ -94,13 +94,18 @@ de acesso. O trial de sete dias só começa por ação explícita do usuário, u
 por conta, sem cartão, e não reinicia por instalação, login ou logout. Os gates e
 fluxos de FREE/TRIAL/PRO da Fase B1 usam o entitlement calculado no backend. O
 cliente não decide acesso pelo relógio ou por `localStorage`; ele apenas consome
-os estados `free`, `trial`, `pro_active` e `pro_expired`.
+os estados `free`, `trial`, `pro_active` e `pro_expired`. No frontend, o estado
+gravável fica privado ao módulo autenticado que recebe `get_entitlement()`; eventos
+DOM são apenas notificações e não concedem acesso. Navegação e mutações PRO usam
+a mesma guarda central, inclusive quando chamadas programaticamente.
 
 A interface mantém Calculadora/tutorial livres sem login, exibe Rotinas e Frascos
 no FREE e usa um gate reutilizável para explicar ações PRO. O trial só é solicitado
 após clique em “Começar 7 dias grátis”; “Agora não” mantém o FREE. O backend fixa
 início e fim com seu próprio relógio, serializa tentativas concorrentes e não
 renova um trial já usado. Bloqueio ou expiração nunca exclui dados.
+Uma conta que já teve acesso pago e está expirada não recebe trial posteriormente,
+mesmo que seu registro ainda indique `trial_used=false`.
 
 ### Integrações comerciais e notificações previstas
 
@@ -143,11 +148,16 @@ backend seguro dos respectivos serviços.
 ## Escopo imediato: Bloco B
 
 A Fase B1 implementa a fonte única de entitlement, o início idempotente do trial,
-o status no Perfil e o gate PRO de Rotinas/Frascos. As fases seguintes do Bloco B
+o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. As fases seguintes do Bloco B
 continuam responsáveis pela integração completa Rotina ↔ Frasco/Calculadora,
 aplicações e undo transacionais, sincronização local-first e estados de
 sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção
 continuam fora desta fase.
+
+Permanecem deliberadamente para fases futuras: entitlement PRO offline/local-first,
+sincronização contínua, avisos de três e um dia para o fim do trial e atualização
+automática de campos apenas informativos, como `completed_at`, quando não forem
+necessários à autorização.
 
 ## Desenvolvimento e testes
 

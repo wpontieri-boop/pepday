@@ -2,23 +2,27 @@ import { config } from '../config.js';
 import { initializeCloud, readPublicAuthSettings, loadAccountState, accountError } from './cloud.mjs';
 import { reviewLegacy, readCloudInventory, completeLegacyImport } from './import-completion.mjs';
 import { normalizeEntitlement, entitlementPresentation } from './entitlement.mjs';
+import { createAccessController } from './access-control.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
 let access=normalizeEntitlement(null), declinedTrial=false;
+const {view:accessView,authority:accessAuthority}=createAccessController(document);
+Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
 function status(text) { el('accountStatus').textContent = text; }
 function publishAccess(raw, profileComplete=false) {
-  access=normalizeEntitlement(raw,{signedIn:raw?.signedIn===true});
+  if(raw?.signedIn===true)accessAuthority.authenticated(raw);
+  else accessAuthority.signedOut();
+  access=accessView.snapshot();
   const presentation=entitlementPresentation(access);
   el('planLabel').textContent=presentation.label;
   el('planDescription').textContent=presentation.description;
   const canOffer=access.signedIn && profileComplete && access.status==='free' && access.trialAvailable && !declinedTrial;
   hide('trialActions',!canOffer);
-  document.dispatchEvent(new CustomEvent('pepday:entitlement',{detail:{...access,profileComplete}}));
 }
 function legalReady() {
   return Boolean(config.termsVersion && config.privacyVersion && config.termsUrl && config.privacyUrl &&
@@ -156,12 +160,13 @@ async function requestTrial() {
   declinedTrial=false;
   await run(async()=>{await cloud.account.startTrial();await refresh();});
 }
-el('accountStartTrial').addEventListener('click',requestTrial);
+function startTrialFromTrustedClick(event){if(event.isTrusted)requestTrial()}
+el('accountStartTrial').addEventListener('click',startTrialFromTrustedClick);
+el('proGateStart').addEventListener('click',startTrialFromTrustedClick);
 el('accountDeclineTrial').addEventListener('click',()=>{
   declinedTrial=true;hide('trialActions');
   status('Você continua no PepDay FREE. O teste só começará quando você escolher iniciar.');
 });
-document.addEventListener('pepday:start-trial',requestTrial);
 el('accountReviewImport').addEventListener('click',()=>hide('accountImportReview',false));
 el('accountImportConsent').addEventListener('change',enableMethods);
 el('accountKeepCloud').addEventListener('click',()=>{

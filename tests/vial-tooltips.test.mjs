@@ -31,7 +31,7 @@ test('interação cobre hover, clique, toque e fechamento por Escape',async()=>{
   assert.match(js,/closest\('\.field-info'\)/);
   assert.match(js,/event\.key==='Escape'/);
   assert.match(js,/aria-expanded/);
-  assert.match(sw,/pepday-v3-a6-routine-vial-flow/);
+  assert.match(sw,/pepday-v3-b1-gate-hardening/);
 });
 
 test('IDs e tipos usados pela lógica do formulário permanecem intactos',async()=>{

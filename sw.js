@@ -1,8 +1,8 @@
 // Cache exclusivo da homologação V3.0. Não remove o cache da V2.9.
 const SCOPE_PATH=new URL(self.registration.scope).pathname;
-const CACHE='pepday-v3-b1-entitlement-gate-'+SCOPE_PATH;
+const CACHE='pepday-v3-b1-gate-hardening-'+SCOPE_PATH;
 const ASSETS=['./','./index.html','./style.css','./account.css','./app.js',
-  './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/entitlement.mjs','./src/pro-gate.mjs',
+  './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
   './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs',
   './vendor/supabase-2.116.0.js'];
 const PUBLIC_ASSETS=new Set(ASSETS.map(path=>new URL(path,self.registration.scope).href));

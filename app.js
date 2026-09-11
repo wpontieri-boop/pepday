@@ -8,7 +8,10 @@ let lastCalc=null, editing=null, editingVial=null, vialReturnToRoutine=false;
 
 function isoToday(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function br(n,max=4){return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:max})}
-function go(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials()}
+const proScreens=new Set(['routines','vials']);
+function requirePro(context){return globalThis.PepDayAccess?.requirePro?.(context)===true}
+function go(id){if(proScreens.has(id)&&!requirePro(`navigate:${id}`))return false;$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials();return true}
+Object.defineProperty(window,'PepDayNavigation',{value:Object.freeze({go}),writable:false,configurable:false});
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 
 function activeOn(r,date=new Date()){
@@ -33,6 +36,7 @@ function renderToday(){
   box.innerHTML=list.map(r=>{let done=(r.done||[]).includes(isoToday()),v=vials.find(x=>x.id===r.vialId); return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button data-pro-action onclick="toggleDone('${r.id}')">${done?'Desfazer':'Registrar'}</button></div></div>`}).join('');
 }
 function toggleDone(id){
+ if(!requirePro('application:toggle'))return false;
  let r=routines.find(x=>x.id===id); if(!r)return; r.done=r.done||[]; let day=isoToday(), done=r.done.includes(day), v=vials.find(x=>x.id===r.vialId);
  if(!done){
    if(v){
@@ -93,6 +97,7 @@ function calcRoutinePreview(){
 ['rVial','rDose','rDoseUnit','rSyringe'].forEach(id=>document.addEventListener('input',e=>{if(e.target.id===id)calcRoutinePreview()}));
 
 function openRoutine(calc=null,r=null){
+ if(!requirePro(r?'routine:edit':'routine:create'))return false;
  $('#routineForm').classList.remove('hidden'); editing=r?r.id:null; $('#routineFormTitle').textContent=r?'Editar rotina':'Nova rotina';
  $('#rName').value=r?.name||calc?.name||'';
  fillRoutineVials(r?.vialId||'');
@@ -105,6 +110,7 @@ function openRoutine(calc=null,r=null){
 }
 $('#newRoutine').onclick=()=>openRoutine(); $('#cancelRoutine').onclick=()=>$('#routineForm').classList.add('hidden');
 $('#routineAddVial').onclick=()=>{
+ if(!requirePro('routine:create-vial'))return false;
  vialReturnToRoutine=true;
  go('vials');
  openVial();
@@ -113,6 +119,7 @@ $('#routineAddVial').onclick=()=>{
 $('#frequency').onchange=toggleWeekdays;
 function toggleWeekdays(){$('#weekdaysBox').classList.toggle('hidden',$('#frequency').value!=='weekdays')}
 $('#saveRoutine').onclick=()=>{
+ if(!requirePro(editing?'routine:save-edit':'routine:save-create'))return false;
  let name=$('#rName').value.trim(), frequency=$('#frequency').value, start=$('#startDate').value, vialId=$('#rVial').value;
  let preview=calcRoutinePreview(), doseValue=+$('#rDose').value, doseUnit=$('#rDoseUnit').value, syringeCapacity=+$('#rSyringe').value, refillAt=+$('#rRefillAt').value;
  if(!name||!start||!vialId||!preview){alert('Confira nome, frasco, quantidade por aplicação e data.');return}
@@ -171,7 +178,7 @@ function renderRoutines(){
  box.innerHTML=routines.map(r=>{let v=vials.find(x=>x.id===r.vialId);return `<div class="routine"><div><h4>${esc(r.name)}</h4><p>${br(r.doseValue,3)} ${r.doseUnit} por aplicação • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button onclick="editR('${r.id}')">Editar</button> <button onclick="delR('${r.id}')">Excluir</button></div></div>`}).join('');
 }
 window.editR=id=>openRoutine(null,routines.find(x=>x.id===id));
-window.delR=id=>{if(confirm('Excluir esta rotina?')){routines=routines.filter(x=>x.id!==id);save();renderRoutines()}};
+window.delR=id=>{if(!requirePro('routine:delete'))return false;if(confirm('Excluir esta rotina?')){routines=routines.filter(x=>x.id!==id);save();renderRoutines()}};
 function save(){localStorage.setItem(key,JSON.stringify(routines))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
@@ -342,7 +349,7 @@ function renderVials(){
    </div>`;
  }).join('');
 }
-function openVial(v=null){editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??''}
+function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create'))return false;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
 function returnToRoutineFromVial(vialId=null){
  if(!vialReturnToRoutine)return false;
  vialReturnToRoutine=false;go('routines');$('#routineForm').classList.remove('hidden');
@@ -352,6 +359,7 @@ function returnToRoutineFromVial(vialId=null){
 $('#newVial').onclick=()=>{vialReturnToRoutine=false;openVial()};
 $('#cancelVial').onclick=()=>{$('#vialForm').classList.add('hidden');returnToRoutineFromVial()};
 $('#saveVial').onclick=()=>{
+ if(!requirePro(editingVial?'vial:save-edit':'vial:save-create'))return false;
  let name=$('#vName').value.trim(),initialMg=+$('#vMg').value,waterMl=+$('#vWater').value,date=$('#vDate').value,cost=+$('#vCost').value||0;
  if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}
  let savedVialId=editingVial;
@@ -360,9 +368,10 @@ $('#saveVial').onclick=()=>{
  saveVials();$('#vialForm').classList.add('hidden');renderVials();returnToRoutineFromVial(savedVialId);
 };
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
-window.deleteVial=id=>{if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){vials=vials.filter(x=>x.id!==id);saveVials();renderVials()}};
-window.adjustVial=id=>{let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let before=v.remainingMg;v.remainingMg=n;v.history=v.history||[];v.history.unshift({date:new Date().toISOString(),type:'adjust',before,after:n});saveVials();renderVials()};
+window.deleteVial=id=>{if(!requirePro('vial:delete'))return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){vials=vials.filter(x=>x.id!==id);saveVials();renderVials()}};
+window.adjustVial=id=>{if(!requirePro('vial:adjust-balance'))return false;let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let before=v.remainingMg;v.remainingMg=n;v.history=v.history||[];v.history.unshift({date:new Date().toISOString(),type:'adjust',before,after:n});saveVials();renderVials()};
 window.showVialHistory=id=>{
+ if(!requirePro('vial:view-history'))return false;
  let v=vials.find(x=>x.id===id),h=v.history||[];
  $('#historyCard').classList.remove('hidden');
  $('#vialHistory').innerHTML=h.length?h.map(x=>{
@@ -519,7 +528,7 @@ function tutorialPosition(target){
 function renderTutorialStep(){
   if(!tutorialActive) return;
   const step = tutorialSteps[tutorialIndex];
-  go(step.screen);
+  const entered=go(step.screen);
 
   setTimeout(()=>{
     tutorialEl('tutorialStep').textContent = `${tutorialIndex+1} de ${tutorialSteps.length}`;
@@ -529,7 +538,7 @@ function renderTutorialStep(){
     tutorialEl('tutorialBack').disabled = tutorialIndex===0;
     tutorialEl('tutorialNext').textContent = tutorialIndex===tutorialSteps.length-1 ? 'Concluir' : 'Próximo';
 
-    const target = document.querySelector(step.target);
+    const target = document.querySelector(entered?step.target:`nav [data-go="${step.screen}"]`);
     if(target){
       target.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
       setTimeout(()=>tutorialPosition(target),220);
