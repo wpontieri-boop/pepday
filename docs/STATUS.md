@@ -68,7 +68,7 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   código/repositório. Somente configuração pública pode ir ao frontend.
 - Não repetir testes aprovados quando não forem afetados pelo delta.
 
-## Fase B1 implementada localmente — aguardando revisão
+## Fase B1 FREE/TRIAL/PRO — concluída e aprovada
 
 - Fonte única de entitlement permanece no Supabase e agora retorna de forma
   uniforme `free`, `trial`, `pro_active` ou `pro_expired`, origem, elegibilidade
@@ -91,6 +91,26 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   e da conta intactos.
 - Service Worker versionado para incluir os módulos B1, sem publicar
   ou alterar o ambiente de produção.
+- Backend B1 aplicado com sucesso no Supabase `pepday-v3-test`.
+- Hardening do gate aprovado.
+
+### Validação real e humana aprovada da B1
+
+- Teste SQL real: PASS; rollback confirmado com
+  `usuarios_teste_restantes = 0`.
+- Teste humano FREE: PASS.
+- Gate PRO em Rotinas: PASS.
+- “Agora não” manteve a conta no FREE: PASS.
+- Calculadora permaneceu disponível no FREE: PASS.
+- Trial iniciado por ação explícita, sem cartão: PASS.
+- Duração confirmada de sete dias, de 11/09/2026 18:08 até
+  18/09/2026 18:08.
+- Rotinas e Frascos liberados durante o TRIAL: PASS.
+- Trial persistiu após Ctrl+F5: PASS.
+- Duas rotinas e dois frascos permaneceram preservados localmente e na conta.
+- Ajuste de UX de `+ Nova` Rotina e `+ Novo` Frasco concluído no commit
+  `9c30f1296d4fc4e5c6c870ec8a1f3042499069f3`. Não exige nova publicação Astra
+  isolada; será incluído na próxima publicação de testes para economizar créditos.
 
 ### Validação local da B1
 
@@ -109,8 +129,8 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 
 ### Bloco B
 
-- Revisar a Fase B1 e, somente após autorização, aplicar a migration incremental
-  no Supabase de testes e validar o delta no ambiente isolado.
+- B1 encerrada e aprovada; não repetir seus testes sem necessidade causada por
+  alteração posterior.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
 - Implementar aplicações, movimentos de estoque e undo de forma transacional,
@@ -179,13 +199,15 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Revisar o commit local separado de hardening da Fase B1. Após aprovação explícita e em etapa separada,
-fazer push da B1, aplicar somente a migration incremental no Supabase de testes e
-validar o delta no ambiente isolado. Não publicar, aplicar SQL remoto ou avançar
-para sincronização antes dessa autorização.
+Iniciar, somente após aprovação específica, a próxima fase do Bloco B: projetar e
+implementar no backend de testes as operações transacionais e idempotentes de
+aplicação, movimento de estoque, saldo e undo, preservando o contrato aprovado
+Rotina ↔ Frasco. Entitlement offline/local-first, sincronização contínua, avisos
+de trial, Mercado Pago e as demais fases permanecem pendentes conforme este documento.
 
 ## Registro deste checkpoint
 
-O checkpoint documental `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d` foi
-enviado somente para `origin/v3.0-bloco-b`. A implementação B1 posterior permanece
-local, sem push, sem publicação e sem alteração em `main`, GitHub Pages ou V2.9.
+O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
+a implementação B1 e seu hardening foram enviados somente para
+`origin/v3.0-bloco-b`. A B1 está encerrada e aprovada, sem alteração em `main`,
+GitHub Pages ou V2.9.

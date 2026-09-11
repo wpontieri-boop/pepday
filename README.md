@@ -4,7 +4,8 @@ O PepDay V3 está em desenvolvimento controlado. O **Bloco A foi concluído e
 aprovado** em 11/09/2026, tendo como commit-base aprovado
 `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`. O desenvolvimento do Bloco B parte
 da branch `v3.0-bloco-b`. A Fase B1 (FREE/TRIAL/PRO) está implementada e testada
-localmente, aguardando revisão; ainda não foi publicada nem aplicada ao Supabase.
+e foi concluída e aprovada. O backend B1 foi aplicado com sucesso no Supabase de
+testes `pepday-v3-test`.
 
 A V2.9 continua sendo a produção estável e não deve ser alterada até a aprovação
 final da V3. Não promover esta branch para `main`, não alterar GitHub Pages e não
@@ -107,6 +108,23 @@ renova um trial já usado. Bloqueio ou expiração nunca exclui dados.
 Uma conta que já teve acesso pago e está expirada não recebe trial posteriormente,
 mesmo que seu registro ainda indique `trial_used=false`.
 
+### Checkpoint aprovado da B1
+
+- O teste SQL real passou, com rollback confirmado por
+  `usuarios_teste_restantes = 0`.
+- O teste humano confirmou o estado FREE, o gate PRO em Rotinas, “Agora não”
+  mantendo FREE e a Calculadora disponível no FREE.
+- O trial foi iniciado explicitamente, sem cartão, e confirmado por sete dias:
+  de 11/09/2026 18:08 até 18/09/2026 18:08.
+- Rotinas e Frascos foram liberados durante o TRIAL, que persistiu após Ctrl+F5.
+- As duas rotinas e os dois frascos permaneceram preservados tanto localmente
+  quanto na conta.
+- O hardening do gate foi aprovado.
+- O ajuste de UX de `+ Nova` Rotina e `+ Novo` Frasco foi concluído no commit
+  `9c30f1296d4fc4e5c6c870ec8a1f3042499069f3`. Essa alteração visual será incluída
+  na próxima publicação de testes, sem nova publicação Astra isolada, para
+  economizar créditos.
+
 ### Integrações comerciais e notificações previstas
 
 - **Mercado Pago — não implementado:** arquitetura prevista para pagamento e
@@ -147,7 +165,7 @@ backend seguro dos respectivos serviços.
 
 ## Escopo imediato: Bloco B
 
-A Fase B1 implementa a fonte única de entitlement, o início idempotente do trial,
+A Fase B1, concluída e aprovada, implementa a fonte única de entitlement, o início idempotente do trial,
 o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. As fases seguintes do Bloco B
 continuam responsáveis pela integração completa Rotina ↔ Frasco/Calculadora,
 aplicações e undo transacionais, sincronização local-first e estados de
