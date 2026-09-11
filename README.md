@@ -1,137 +1,160 @@
-# PepDay V3.0 — Bloco A / checkpoint A5
+# PepDay V3.0
 
-**Em desenvolvimento. Não é release candidate nem versão pronta para publicar.**
+O PepDay V3 está em desenvolvimento controlado. O **Bloco A foi concluído e
+aprovado** em 11/09/2026, tendo como commit-base aprovado
+`724ba23f0a11c77eff1e9637fd26a9ad21ca026c`. O desenvolvimento do Bloco B parte
+da branch `v3.0-bloco-b`.
 
-Base oficial: PepDay_V2.9_Final_Publicada(2).zip. Branch de trabalho:
-`v3.0-bloco-a`. A main de produção continua no commit
-`25f1d48d34b395be285d35391b6a5b7ebe6d848c`.
+A V2.9 continua sendo a produção estável e não deve ser alterada até a aprovação
+final da V3. Não promover esta branch para `main`, não alterar GitHub Pages e não
+publicar em produção sem autorização expressa.
 
-## Próximo passo
+Ambiente atual de testes do Bloco A:
+`https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/`
 
-O projeto Supabase `pepday-v3-test` está instalado. O proprietário confirmou
-execução da suite SQL completa sem erro, terminada em rollback. A API nega acesso
-anônimo a profiles, vials e get_entitlement (HTTP 401 / 42501).
+O registro detalhado da retomada está em [docs/STATUS.md](docs/STATUS.md). As
+decisões funcionais aprovadas permanecem documentadas em
+[REQUISITOS.txt](REQUISITOS.txt), que é a fonte de verdade do produto.
 
-Login real por e-mail, OTP de 6 dígitos, persistência da sessão após recarregar e
-logout foram confirmados pelo proprietário. Não repetir esses testes.
+## Estado aprovado do Bloco A
 
-O SQL incremental foi aplicado no Supabase e a suite incremental retornou PASS,
-conforme confirmação do proprietário. Não repetir SQLs nem login por e-mail.
+- Login por e-mail validado, incluindo OTP, persistência de sessão e logout.
+- Login com Google validado no ambiente V3 de testes.
+- Cadastro, confirmação de maioridade, Termos de Uso, Política de Privacidade e
+  respectivos consentimentos validados.
+- Importação inicial do legado validada em teste humano.
+- O teste humano confirmou **2 rotinas e 2 frascos no aparelho** e **2 rotinas e
+  2 frascos na conta**.
+- A cópia local foi preservada após a importação; usar a conta nunca autoriza a
+  exclusão automática dos dados locais.
+- Fluxo Rotina → cadastrar novo frasco → retornar à rotina com o novo frasco
+  selecionado, além dos tooltips de Frascos e Rotinas, concluído e aprovado.
+- Correção e versionamento do cache do Service Worker concluídos no commit
+  `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`, garantindo a atualização do
+  `style.css` da V3 sem interferir na V2.9.
+- SQL inicial e incremental, RLS, autenticação, OTP e demais testes já aprovados
+  não devem ser repetidos sem necessidade objetiva.
 
-**Próximo passo:** configurar Google no painel de testes e disponibilizar os
-textos/versões de Termos e Privacidade para cadastro e migração pelo Perfil.
-Confira [docs/CONFIGURAR_TESTES.md](docs/CONFIGURAR_TESTES.md).
+## Arquitetura e operação
 
-O estado completo está em [docs/STATUS.md](docs/STATUS.md).
+### Frontend e PWA
 
-## Implementado e preparado
+O aplicativo é um frontend estático/PWA em HTML, CSS e JavaScript modular, sem
+Next.js e sem backend embutido no navegador. `index.html`, `app.js` e
+`style.css` mantêm a interface principal; os módulos em `src/` concentram conta,
+acesso à nuvem e importação. `manifest.json`, `icon.svg` e `sw.js` compõem a PWA.
+O servidor em `scripts/dev-server.mjs` existe somente para desenvolvimento local
+e não publica o aplicativo.
 
-- Backup íntegro do ZIP V2.9 e hashes em backup/.
-- Estrutura SQL das 11 tabelas aprovadas, UUIDs, vínculos por dono, RLS e grants.
-- Inicialização FREE, cadastro, consulta de acesso e trial explícito de sete dias.
-- Admin tem acesso PRO próprio, sem leitura global de conteúdo privado.
-- SDK oficial Supabase 2.116.0 salvo em vendor/ com origem, hash e licença.
-- Perfil integrado a métodos de login, OTP, sessão, logout, cadastro e revisão
-  de dados legados. Login por e-mail validado; Google aguarda configuração.
-- Snapshot local conferido antes do envio, idempotência e verificação da conta
-  esperada no servidor. Nenhum dado local é apagado automaticamente.
-- Cache V3.0 separado, somente para assets públicos; Auth/API/query strings fora.
-- 21 testes locais passaram; calculadora e tutorial conferidos no navegador.
+### GitHub e GitHub Pages
 
-## Limites deste checkpoint
+O GitHub preserva o histórico, as branches de desenvolvimento e os checkpoints.
+GitHub Pages hospeda a V2.9 estável em produção. A V3 deve permanecer isolada
+durante os Blocos B, C e D; publicar uma branch de testes não equivale a promover
+a V3 para produção. `main` e a configuração do GitHub Pages só podem mudar após
+validação integral e aprovação final.
 
-**Bloco A ainda incompleto.** Instalação inicial, suite SQL inicial e login por
-e-mail confirmados pelo proprietário. O SQL incremental também foi aprovado. Google e cadastro continuam pendentes.
-O formulário não coleta aceite enquanto Termos/Privacidade não tiverem URLs e
-versões reais configuradas. Não inventar documentos aceitos.
+### Supabase, Auth e RLS
 
-A migração agora converte frascos e rotinas, preserva o saldo de abertura e
-mescla sem sobrescrever registros existentes. O histórico V2.9 fica integralmente
-preservado como legado privado; eventos apagados por undo e concentrações ausentes
-não são reconstruídos por suposição. Importações conflitantes são interrompidas.
+O projeto isolado `pepday-v3-test` fornece PostgreSQL, autenticação e políticas
+Row Level Security. As tabelas vinculam registros ao proprietário e o cliente só
+pode acessar o que as políticas e funções aprovadas permitirem. O frontend não é
+autoridade para conceder PRO. Mutações de aplicação, movimento, saldo e undo
+devem ser transacionais e idempotentes no Bloco B, nunca liberadas por escrita
+direta para contornar RLS.
 
-As tabelas de domínio permitem somente leitura ao cliente nesta fundação. As
-mutações transacionais de saldo/undo, versionamento efetivo e sincronização serão
-ligadas no Bloco B. Não abrir escrita direta para contornar essas pendências.
+### Login e contas
 
-## Onde fica cada parte
+E-mail/OTP e Google estão validados no ambiente de testes. Redirecionamentos são
+limitados ao endereço público aprovado da V3 de testes. Segredos OAuth pertencem
+exclusivamente aos painéis dos provedores. O cadastro exige maioridade e aceite
+versionado dos Termos de Uso e da Política de Privacidade; nenhum aceite pode ser
+presumido ou fabricado.
 
-| Arquivo/serviço | Função |
-| --- | --- |
-| index.html, app.js, style.css | Interface existente e calculadora |
-| config.js | URL e publishable key públicas do projeto de testes |
-| account.css, src/account-ui.mjs | Controles novos do Perfil |
-| src/account.mjs, src/cloud.mjs | Integração Auth/conta e validação de configuração |
-| src/legacy-import.mjs, src/import-completion.mjs | Backup, revisão, importação/mesclagem e conferência |
-| supabase/migrations/ | SQL para o projeto de testes |
-| supabase/tests/ | Testes de banco para executar no SQL Editor |
-| sw.js | Cache dos arquivos públicos do PWA |
-| GitHub Pages | Frontend/PWA, produção V2.9 preservada |
-| Supabase | Auth, PostgreSQL, RLS, acesso PRO e futura sincronização |
-| Mercado Pago | Pagamentos/webhooks verificados pelo backend, Bloco C |
-| Brevo | E-mails transacionais; não decide acesso PRO, Bloco C |
-| Firebase/FCM | Push opcional sem substância/dose na tela bloqueada, Bloco C |
+### Dados locais, importação e futura sincronização
 
-Este é um aplicativo estático, não Next.js. Os nomes NEXT_PUBLIC_* enviados
-pelo proprietário foram mapeados para config.js; o navegador não lê variáveis
-de ambiente do servidor em runtime. Somente configuração pública vai ao frontend.
-Credenciais futuras de serviços permanecem no backend/painéis apropriados.
+A V2.9 mantém dados no navegador. A importação da V3 cria e confere um snapshot,
+preserva identidades/UUIDs, saldos, `done`, `doseHistory` e o registro legado sem
+inventar aplicações ou concentrações ausentes. Registros existentes não são
+sobrescritos silenciosamente, e a cópia local não é apagada automaticamente.
+
+No Bloco B, a operação será local-first: salvar localmente, registrar operações
+pendentes quando offline e sincronizar ao reconectar. Registros editáveis usarão
+versão/timestamps para conflitos. Aplicações e movimentos são eventos imutáveis e
+não podem adotar uma regra simples de “última escrita vence”. O Perfil deverá
+mostrar o estado da sincronização.
+
+### FREE, TRIAL e PRO
+
+A calculadora e o tutorial pertencem ao nível FREE. Recursos como frascos,
+rotinas, histórico e sincronização pertencem ao PRO, respeitando o escopo exato
+de `REQUISITOS.txt`. As abas continuam visíveis no FREE e apresentam explicação
+de acesso. O trial de sete dias só começa por ação explícita do usuário, uma vez
+por conta, sem cartão, e não reinicia por instalação, login ou logout. Os gates e
+fluxos completos de FREE/TRIAL/PRO ainda serão implementados no Bloco B.
+
+### Integrações comerciais e notificações previstas
+
+- **Mercado Pago — não implementado:** arquitetura prevista para pagamento e
+  webhooks verificados no backend; somente o backend poderá alterar entitlement.
+- **Brevo — não implementado:** arquitetura prevista para e-mails transacionais;
+  o serviço não decidirá nem concederá acesso PRO.
+- **Firebase/FCM — não implementado:** arquitetura prevista para notificações
+  push opcionais, sem expor substância ou dose na tela bloqueada.
+
+Essas integrações pertencem a etapa posterior, conforme `REQUISITOS.txt`. Nenhuma
+delas deve ser simulada como pronta ou receber credenciais no frontend.
+
+### Publicação, cache, backup e recuperação
+
+Cada ambiente da PWA deve usar cache versionado e isolado por escopo. O Service
+Worker atual invalida o cache anterior da própria V3 e força a carga do CSS atual,
+sem remover caches da V2.9 ou de outros escopos. Auth, chamadas de API e URLs com
+query string não devem ser armazenadas como assets públicos.
+
+Antes de qualquer promoção, é obrigatório confirmar branch/commit, executar os
+testes direcionados ao delta, verificar o ambiente de destino e manter um ponto
+de recuperação. O backup íntegro da V2.9 e seus hashes estão em `backup/`; ele
+recupera o código estável, não os dados de usuários. Banco e configurações dos
+serviços exigem estratégia própria de backup e recuperação antes do lançamento.
+
+### Segurança e LGPD
+
+O PepDay coleta somente dados necessários aos fluxos aprovados e deve aplicar
+isolamento por conta, RLS, consentimentos versionados, minimização de dados e
+meios adequados de acesso, exportação e exclusão. A revisão jurídica final, o
+canal de privacidade e a operação comercial completa continuam pendentes para os
+blocos posteriores.
+
+**Nunca armazenar Client Secret, senhas, service-role keys, chaves privadas ou
+qualquer credencial confidencial no repositório.** `config.js` contém somente
+configuração pública apropriada ao navegador. Segredos ficam nos painéis ou no
+backend seguro dos respectivos serviços.
+
+## Escopo imediato: Bloco B
+
+O Bloco B implementará, na ordem de retomada documentada em
+[docs/STATUS.md](docs/STATUS.md): gates FREE/TRIAL/PRO; integração completa entre
+Rotina e Frasco, incluindo os pontos aprovados da calculadora; aplicações e undo
+transacionais; sincronização local-first; integração segura do legado; e estados
+de conta/sincronização no Perfil. Não inclui implementação de Mercado Pago,
+Brevo, Firebase nem publicação em produção.
 
 ## Desenvolvimento e testes
 
-Com Node instalado: `node --test tests/*.test.mjs`.
-Para testar somente o delta cliente: `node --test tests/import-completion.test.mjs`.
-Para a suite SQL local, defina PGLITE_MODULE para dist/index.js de PGlite 0.5.8
-e execute `node scripts/test-import-sql.mjs`; não conecta ao Supabase.
-Para desenvolvimento local: `node scripts/dev-server.mjs`.
-O servidor é apenas uma ferramenta de teste e não publica o aplicativo.
+- Suite Node: `node --test tests/*.test.mjs`.
+- Servidor local: `node scripts/dev-server.mjs`.
+- Suite SQL local: `node scripts/test-import-sql.mjs`, com o módulo PGlite
+  indicado por `PGLITE_MODULE`; ela usa fixtures descartáveis e não conecta ao
+  projeto Supabase.
 
-No navegador foram conferidos Perfil sem login, disponibilidade dos métodos,
-repetição do tutorial e cálculos mg/mcg nas seringas 30/50/100 UI.
-Os oito novos testes Node e a suite SQL incremental passaram localmente.
-Ainda faltam migração pelo Perfil, Google, mobile,
-offline/update e demais testes do prompt mestre. O SQL local usa PGlite com
-fixtures; não substitui a validação no Supabase.
+Executar somente os testes proporcionais à alteração. Não repetir SQL,
+autenticação, OTP, sessão, logout ou testes humanos já aprovados sem uma razão
+técnica concreta.
 
-## Dados, backup e segurança
+## Aviso de uso
 
-app.js, style.css, manifest.json e icon.svg permanecem idênticos à V2.9.
-index.html e sw.js foram alterados somente na branch de desenvolvimento.
-O ZIP em backup/ permite recuperar o código estável; não contém dados dos usuários.
-Os dados V2.9 ficam no navegador; o importador mantém uma cópia adicional antes
-que o usuário autorize envio. Isso não substitui backup externo do banco.
-
-Não alterar sem revisão: RLS/grants, funções security definer, saldos/histórico,
-UUIDs, chaves locais, 5on2off, trial/assinaturas, cache e configuração de projetos.
-O frontend nunca é autoridade para liberar PRO. Pagamentos só liberarão acesso
-após verificação no backend. Trial nunca começa ao abrir, instalar ou entrar.
-
-## Publicação futura e custos
-
-Não publicar este checkpoint. Primeiro concluir A/B/C/D, validar os testes
-obrigatórios, gerar release candidate e receber a aprovação final do proprietário.
-Manter backup/commit estável e conferir configuração GitHub Pages antes de promover.
-
-O plano inicial aprovado é Supabase FREE. Conferir limites vigentes no painel;
-não foi contratado nenhum recurso pago nesta etapa. Banco, tráfego, envio de
-mensagens e exigências de backup podem exigir upgrade conforme o uso. Mercado
-Pago, Brevo e Firebase serão configurados no Bloco C, com seus custos conferidos
-nessa etapa. Não presumir operação gratuita ilimitada.
-
-## Privacidade e disclaimer aprovado
-
-A revisão jurídica, exportação/exclusão de conta, canal de privacidade e gestão
-completa de consentimentos permanecem pendentes antes do lançamento comercial.
-
-“O PepDay é uma ferramenta de cálculo e organização de informações inseridas pelo
-próprio usuário. O PepDay não prescreve, indica ou recomenda substâncias, doses,
+O PepDay é uma ferramenta de cálculo e organização de informações inseridas pelo
+próprio usuário. Não prescreve, indica ou recomenda substâncias, doses,
 tratamentos ou protocolos e não substitui avaliação ou orientação de profissional
-habilitado. Utilize apenas valores e frequências definidos por você com orientação
-profissional adequada.”
-
-## Referências técnicas
-
-- [Chaves públicas](https://supabase.com/docs/guides/getting-started/api-keys)
-- [RLS e grants](https://supabase.com/docs/guides/database/postgres/row-level-security)
-- [Login sem senha](https://supabase.com/docs/guides/auth/auth-email-passwordless)
-- [SDK oficial](https://supabase.com/docs/reference/javascript/installing)
+habilitado.

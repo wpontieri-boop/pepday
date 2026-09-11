@@ -1,96 +1,150 @@
-# Ponto de retomada — Bloco A, checkpoint A5
+# Status do projeto — fechamento do Bloco A
 
-Estado: **banco e migração incremental aprovados no Supabase; Google e cadastro ainda pendentes**.
+## Checkpoint aprovado
 
-## Evidências já aceitas — não repetir
+- **Data de fechamento do Bloco A:** 11/09/2026.
+- **Situação:** Bloco A concluído e aprovado.
+- **Commit-base aprovado:**
+  `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`.
+- **Branch de continuidade:** `v3.0-bloco-b`, criada localmente diretamente do
+  commit-base aprovado.
+- **Ambiente atual de testes do Bloco A:**
+  `https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/`.
+- **Produção:** V2.9 permanece estável. Não alterar `main`, GitHub Pages nem a
+  V2.9 até a aprovação final da V3.
 
-- Instalação 202609090001 aplicada no pepday-v3-test pelo proprietário.
-- Suite supabase/tests/block_a.sql executada pelo proprietário sem erro, com rollback.
-- Acesso anônimo negado pela API em profiles, vials e get_entitlement (401 / 42501).
-- Em 2026-09-10 o proprietário confirmou login real por e-mail, OTP de 6 dígitos,
-  sessão preservada após recarregar e logout correto no ambiente V3.0 isolado.
-- O proprietário confirmou aplicação de 202609100002 e resultado exato da suite
-  incremental: PASS — conversão, saldo, legado, repetição, mesclagem, rollback e isolamento.
-  Evidência fornecida pelo proprietário; não repetir SQLs.
-- 21 testes Node anteriores e QA de calculadora/tutorial permanecem aprovados.
+`REQUISITOS.txt` continua sendo a fonte das decisões de produto já aprovadas.
+Este checkpoint atualiza apenas a documentação de continuidade; não altera nem
+reinterpreta essas decisões.
 
-## Implementado neste checkpoint
+## Testes humanos aprovados
 
-- Migração incremental 202609100002_complete_legacy_import.sql; não altera a inicial.
-- Conversão de frascos e rotinas com vínculo por conta, versão inicial da rotina e
-  movimento de abertura com o saldo real importado, em uma transação.
-- Identidade do legado por usuário/tipo/UUID; mesma entrada reaproveita o destino.
-  Mesmo UUID em contas distintas recebe destinos distintos.
-- Mesclagem não sobrescreve dados. Conteúdo divergente para a mesma identidade
-  interrompe toda a chamada; não usa último registro como vencedor.
-- Histórico de frascos, done e doseHistory são preservados integralmente em
-  legacy_import_records.source_record e no snapshot original. Não são fabricadas
-  aplicações nem concentrações históricas que a V2.9 não registrou.
-- Conferência no servidor e releitura do recibo pelo cliente antes da confirmação
-  local; identidade e hash são checados novamente depois do envio.
-- Perfil oferece revisão com nomes/saldos, importação, mesclagem, manter dados da
-  conta e agora não. Manter a conta não substitui o armazenamento local; a ligação
-  das telas com a fonte de dados da conta continua pertencendo ao Bloco B.
-- Cópia local e backup nunca são apagados automaticamente.
-- Cache A4 inclui o módulo novo; servidor de desenvolvimento permite esse arquivo.
+- Login por e-mail validado, incluindo OTP de seis dígitos, sessão preservada
+  após recarregar e logout.
+- Login com Google validado no ambiente V3 de testes.
+- Cadastro completo, maioridade, Termos de Uso, Política de Privacidade e
+  consentimentos validados.
+- Importação inicial do legado validada por teste humano.
+- O aparelho continha **2 rotinas e 2 frascos**; após a importação, a conta
+  continha **2 rotinas e 2 frascos**.
+- A cópia local permaneceu preservada após a importação.
+- Os fluxos e ajustes aprovados de Frascos/Rotinas foram validados, inclusive o
+  retorno da criação de frasco com seleção automática e os tooltips responsivos.
 
-## Testes novos executados — sem repetir os antigos
+Essas evidências estão aceitas. Não repetir SQL, autenticação, OTP, sessão,
+logout ou outros testes já aprovados sem necessidade objetiva para um novo delta.
 
-- 8 testes Node do delta passaram: revisão, recibo, preservação, conta alterada,
-  edição durante envio, duplicidade de IDs, consentimento e mensagem de conflito.
-- SQL incremental executado com sucesso em PostgreSQL local via PGlite 0.5.8,
-  obtido do npm com integridade conferida, fora das dependências do aplicativo.
-- A suite incremental cobriu conversão, saldo, histórico preservado, idempotência,
-  escolha de mesclagem, conflito sem sobrescrita, rollback de inserção parcial,
-  RLS da nova tabela, acesso cruzado, IDs entre contas e bloqueio anônimo.
-- O banco local é descartável e usa somente fixtures. A definição de auth.uid e a
-  tabela auth.users foram mínimas para testar SQL; isso não prova configuração
-  real de Auth, concorrência de sessões ou aplicação do delta no Supabase.
-- Sintaxe de account-ui.mjs conferida. Nenhum novo teste real de login foi feito.
+## Fundação técnica concluída no Bloco A
 
-## Próxima dependência humana exata
+- Estrutura inicial das tabelas aprovadas, UUIDs, vínculos por proprietário, RLS
+  e grants no projeto isolado `pepday-v3-test`.
+- Inicialização de conta FREE, consulta de entitlement e início explícito de trial
+  preparados na fundação de backend.
+- Auth por e-mail/OTP e Google integrado e validado sem expor credenciais.
+- Cadastro com confirmação de maioridade e consentimentos jurídicos versionados.
+- Termos de Uso e Política de Privacidade disponíveis no cadastro e no Perfil.
+- Importação/mesclagem do legado com snapshot, conferência de identidade/hash,
+  preservação de saldos, histórico privado e cópia local.
+- Conversão validada sem sobrescrever registros existentes, sem rebaixar saldo,
+  sem fabricar aplicações e sem reinterpretar histórico incompleto.
+- Fluxo Rotina → cadastrar novo frasco → salvar/cancelar → retornar à rotina sem
+  perda do rascunho; novo frasco selecionado uma única vez após salvar.
+- Tooltips acessíveis e responsivos nos campos aprovados de Frascos e Rotinas.
+- Cache público da V3 isolado dos dados de Auth/API e de outros ambientes.
+- Correção/versionamento final do Service Worker no commit
+  `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`, invalidando o CSS antigo em cache
+  e carregando o `style.css` atual sem interferir na V2.9.
 
-Configurar o provedor Google no painel Supabase do pepday-v3-test, usando
-credenciais OAuth somente nos painéis Google/Supabase. Cadastrar o callback que
-Supabase exibe no cliente OAuth e o endereço do ambiente isolado na lista de
-retornos permitidos. Confirmar apenas que a configuração terminou, sem segredos.
+## Regras de preservação
 
-Documentos: config.js ainda não tem URLs/versões de Termos e Privacidade.
-Se já existirem textos aprovados, fornecer links e versões. Caso não existam,
-preparar os textos de homologação e sua identificação antes de colher aceites;
-a revisão jurídica final continua no Bloco D. Não atribuir aceite automaticamente.
+- A V2.9 é a produção estável até aprovação final da V3.
+- Não alterar `main`, GitHub Pages ou a V2.9 durante o Bloco B.
+- Não apagar automaticamente dados ou backups locais após importação ou opção de
+  usar a conta.
+- Respeitar os mapeamentos de UUID, `done`, `doseHistory` e saldo já importados;
+  não descontar novamente aplicações anteriores.
+- Não abrir escrita direta nas tabelas para contornar transações ou RLS.
+- Não armazenar Client Secret, senhas, service-role keys ou chaves privadas no
+  código/repositório. Somente configuração pública pode ir ao frontend.
+- Não repetir testes aprovados quando não forem afetados pelo delta.
 
-## Ainda pendente para encerrar A
+## Pendências
 
-- Publicar o checkpoint novo somente no ambiente isolado quando autorizado;
-  o endereço de testes ainda serve o checkpoint anterior validado para login.
-- Validar importação pelo Perfil com dados de teste e cadastro completo.
-- Google está desabilitado: depende de configuração OAuth/redirect pelo painel;
-  nunca solicitar segredo no chat. Configuração pública não foi alterada.
-- Cadastro completo depende de Termos/Privacidade reais e versões. O preparo
-  jurídico é do Bloco D, mas o aceite é pré-requisito do envio na interface e da
-  conversão no backend. Não forjar aceites para testar com dados reais.
-- Dados locais são separados por origem: a versão de testes não pode ler o
-  localStorage do GitHub Pages de produção. Não interpretar origem vazia como
-  perda de dados; não alterar produção para contornar essa separação.
+### Bloco B
 
-## Continuação depois da aprovação de A
+- Consolidar o contrato de dados local/nuvem e de entitlement.
+- Implementar gates e fluxos de FREE/TRIAL/PRO conforme `REQUISITOS.txt`.
+- Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
+  calculadora, sem duplicar frascos ou alterar saldos indevidamente.
+- Implementar aplicações, movimentos de estoque e undo de forma transacional,
+  atômica e idempotente.
+- Implementar sincronização local-first, fila offline, reconexão, controle de
+  versão/timestamps e tratamento explícito de conflitos.
+- Integrar os dados locais/importados à fonte usada pelas telas, preservando os
+  registros legados e sem criar eventos históricos por suposição.
+- Exibir no Perfil o estado da conta, entitlement, trial e sincronização.
+- Executar testes locais direcionados e validação humana somente dos fluxos novos.
 
-Avançar diretamente ao Bloco B sem nova autorização: gates FREE/TRIAL/PRO,
-Rotina ↔ Frasco, mutações transacionais de aplicação/undo e sincronização.
-Ao integrar o legado, respeitar o mapeamento de UUIDs e os dias done preservados;
-não descontar novamente aplicações anteriores nem transformar histórico incompleto
-em eventos novos. A escolha de usar a conta não autoriza apagar a cópia local.
+### Blocos posteriores e pré-lançamento
 
-## Preservação e publicação
+- Mercado Pago: pagamentos e webhooks verificados pelo backend — não implementado.
+- Brevo: e-mails transacionais — não implementado.
+- Firebase/FCM: push opcional e privado — não implementado.
+- Gestão completa de privacidade, exportação/exclusão, revisão jurídica final,
+  observabilidade, backup/recuperação do banco e validação de release candidate.
+- Publicação da V3 em produção somente após conclusão dos blocos, testes finais e
+  aprovação expressa.
 
-Branch: v3.0-bloco-a. Nenhuma alteração em main/GitHub Pages/V2.9 de produção.
-app.js, style.css, manifest.json e icon.svg preservados; backup V2.9 mantido.
-Nenhuma publicação nova nesta etapa, nem promoção automática para produção.
-Ambiente isolado existente: https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site
+## Escopo exato do Bloco B
 
-## Registro deste turno
+1. **FREE/TRIAL/PRO:** aplicar os gates aprovados; calculadora e tutorial no
+   FREE; recursos PRO visíveis, porém protegidos com explicação; trial de sete
+   dias somente por clique explícito, uma vez por conta e sem reinício artificial.
+2. **Rotina ↔ Frasco:** usar o frasco como fonte de estoque, manter referência da
+   rotina e integrar os atalhos aprovados da calculadora (salvar/acompanhar,
+   salvar como rotina e cadastrar frasco e continuar com preenchimento seguro).
+3. **Aplicação e undo:** registrar aplicações como eventos imutáveis; criar
+   movimento e atualizar saldo atomicamente; desfazer por reversão e movimento
+   inverso; usar UUID/idempotência.
+4. **Sincronização:** salvar primeiro localmente, operar offline, enfileirar
+   pendências e sincronizar ao reconectar. Usar versão/timestamps em editáveis e
+   resolução explícita de conflitos. Aplicações/movimentos não usam simples
+   “última escrita vence”.
+5. **Legado:** respeitar mapeamentos e histórico preservado, sem nova dedução de
+   saldo, fabricação de eventos, sobrescrita silenciosa ou exclusão da cópia local.
+6. **Perfil e fluxos funcionais:** mostrar conta, entitlement/trial e estado da
+   sincronização; ligar as telas à fonte local/nuvem coerente.
 
-Apenas documentação de continuidade atualizada. Nenhum SQL, teste de login ou
-teste já aprovado foi repetido. Sem alterações de código, configuração de Auth
-ou publicação. Ainda não iniciar B como se Google/cadastro estivessem aprovados.
+Ficam fora do Bloco B: Mercado Pago, Brevo, Firebase/FCM, telas comerciais
+completas, mudanças em produção e qualquer decisão nova de produto não registrada
+em `REQUISITOS.txt`.
+
+## Ordem recomendada de implementação
+
+1. Definir e testar o contrato unificado de dados e entitlement.
+2. Criar as operações transacionais de aplicação, movimento, saldo e undo no
+   backend de testes.
+3. Aplicar idempotência, versionamento e regras de conflito.
+4. Implementar o repositório local-first, fila offline e retomada de sincronização.
+5. Integrar com segurança dados locais e importados, sem reprocessar histórico.
+6. Conectar Frascos, Rotinas, Histórico e pontos aprovados da Calculadora.
+7. Aplicar gates e fluxos FREE/TRIAL/PRO.
+8. Exibir estados de conta, trial e sincronização no Perfil.
+9. Executar testes automatizados direcionados e, depois, a validação humana dos
+   novos fluxos.
+10. Atualizar documentação e versionar cache apenas quando o delta funcional do
+    Bloco B exigir.
+
+## Próximo passo exato
+
+Após aprovação e autorização explícita deste checkpoint, iniciar o item 1 da
+ordem acima: inspecionar o esquema, as funções e os módulos existentes e definir
+o contrato unificado de dados/entitlement do Bloco B, com testes locais do delta.
+Não criar SQL, modificar código funcional, publicar ou fazer push antes dessa
+autorização.
+
+## Registro deste checkpoint
+
+Somente `README.md` e `docs/STATUS.md` foram atualizados. Nenhum arquivo funcional,
+SQL, configuração, cache, Service Worker ou ambiente remoto foi alterado. Nenhum
+teste já aprovado foi repetido e nenhuma funcionalidade do Bloco B foi iniciada.
