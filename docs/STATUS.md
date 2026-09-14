@@ -141,6 +141,13 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   cruzado.
 - Constraints garantem `application_id` e direção do delta em movimentos de
   aplicação/Undo, além de no máximo um movimento de cada tipo por aplicação.
+- Hardening final persiste `requested_applied_at` e `requested_undone_at`
+  separadamente dos horários efetivos. Assim, `NULL` identifica de forma estável
+  a intenção de usar o horário do servidor, enquanto uma intenção com horário
+  explícito só aceita replay com exatamente o mesmo valor.
+- `register_application(...)` exige rotina atual ativa e valida
+  `scheduled_date` exclusivamente pelo snapshot da `routine_version` indicada:
+  data inicial, `daily`, `alternate`, `5on2off` e `weekdays`.
 - Frontend, `localStorage`, navegação, UX, Service Worker e B1 não foram integrados
   nem alterados nesta fase.
 
@@ -148,7 +155,8 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 
 - Suite SQL B2.1 em PGlite 0.5.8 efêmero: PASS para mg/mcg, cálculos, saldos,
   movimentos, idempotência, conflitos, TRIAL/PRO, bloqueio FREE/expirado,
-  isolamento, rollback total e Undo.
+  isolamento, rollback total, Undo, identidade temporal rigorosa, rotina ativa e
+  calendários de todas as frequências aprovadas.
 - Regressão da importação executada após a migration B2.1: PASS; saldo consolidado
   importado permaneceu como ponto de partida, sem aplicações fabricadas ou nova
   dedução do legado.
@@ -156,6 +164,10 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   lógico em uma conexão, mas não comprova concorrência real entre sessões,
   comportamento de `FOR UPDATE` sob disputa nem a integração Auth/RLS do Supabase.
   Esses pontos aguardam teste posterior autorizado no `pepday-v3-test`.
+- Riscos baixos deliberadamente pendentes para o PostgreSQL real: conflito
+  concorrente por UUID pode retornar a violação genérica do índice único, e uma
+  leitura de replay simultânea a Undo pode observar o estado imediatamente
+  anterior à reversão. Nenhum deles permite gravação parcial ou saldo divergente.
 
 ## Pendências
 
@@ -230,7 +242,7 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Revisar o commit local da B2.1. Após aprovação explícita e em etapa separada,
+Revisar o commit local do hardening final da B2.1. Após aprovação explícita e em etapa separada,
 aplicar somente a migration incremental no `pepday-v3-test` e validar concorrência,
 `FOR UPDATE`, Auth/RLS e rollback no PostgreSQL real. A integração do frontend e
 do `localStorage` permanece bloqueada até o contrato posterior de fila e

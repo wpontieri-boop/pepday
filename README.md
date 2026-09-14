@@ -166,11 +166,14 @@ backend seguro dos respectivos serviços.
 ## Escopo imediato: Bloco B
 
 A Fase B1, concluída e aprovada, implementa a fonte única de entitlement, o início idempotente do trial,
-o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. As fases seguintes do Bloco B
-continuam responsáveis pela integração completa Rotina ↔ Frasco/Calculadora,
-aplicações e undo transacionais, sincronização local-first e estados de
-sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção
-continuam fora desta fase.
+o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. A B2.1 está implementada
+localmente e aguardando revisão/aplicação controlada: aplicação, movimento, saldo e Undo
+são transacionais e idempotentes. A intenção temporal original fica persistida separadamente
+do horário efetivo gerado pelo servidor, e a data da aplicação é validada pelo calendário do
+snapshot imutável de `routine_versions`. As fases seguintes do Bloco B continuam responsáveis
+pela integração completa Rotina ↔ Frasco/Calculadora, sincronização local-first e estados de
+sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção continuam fora
+desta fase.
 
 Permanecem deliberadamente para fases futuras: entitlement PRO offline/local-first,
 sincronização contínua, avisos de três e um dia para o fim do trial e atualização

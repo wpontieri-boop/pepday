@@ -2,6 +2,19 @@
 -- Operações históricas: aplicação, movimento, saldo e undo atômicos/idempotentes.
 begin;
 
+-- A intenção temporal original fica separada do horário efetivo. NULL significa
+-- que o cliente pediu ao servidor para definir o horário uma única vez.
+alter table public.applications
+  add column requested_applied_at timestamptz,
+  add column requested_undone_at timestamptz,
+  add constraint applications_requested_applied_time check (
+    requested_applied_at is null or requested_applied_at=applied_at
+  ),
+  add constraint applications_requested_undone_time check (
+    requested_undone_at is null
+    or (undone_at is not null and requested_undone_at=undone_at)
+  );
+
 alter table public.vial_movements
   add constraint vial_movements_application_link check (
     (kind in ('application','undo') and application_id is not null)
@@ -35,6 +48,8 @@ declare
   original_value numeric; original_unit text; normalized_mg numeric;
   used_concentration numeric; used_volume numeric; used_ui numeric; capacity integer;
   before_balance numeric; after_balance numeric;
+  snapshot_frequency text; snapshot_start date; snapshot_weekdays integer[];
+  calendar_offset integer; calendar_valid boolean:=false;
 begin
   if u is null then raise exception 'Autenticação necessária' using errcode='42501'; end if;
   if p_expected_user is distinct from u then raise exception 'Conta alterada durante a operação'; end if;
@@ -52,7 +67,7 @@ begin
       or a.routine_version_id is distinct from p_routine_version_id
       or a.vial_id is distinct from p_vial_id
       or a.scheduled_date is distinct from p_scheduled_date
-      or (p_applied_at is not null and a.applied_at is distinct from p_applied_at) then
+      or a.requested_applied_at is distinct from p_applied_at then
       raise exception 'UUID de operação reutilizado com intenção diferente';
     end if;
     select * into m from public.vial_movements
@@ -70,6 +85,7 @@ begin
   select * into r from public.routines
     where user_id=u and id=p_routine_id and deleted_at is null;
   if not found then raise exception 'Rotina não encontrada'; end if;
+  if r.status is distinct from 'active' then raise exception 'Rotina não está ativa'; end if;
   select * into rv from public.routine_versions
     where user_id=u and id=p_routine_version_id and routine_id=p_routine_id;
   if not found or jsonb_typeof(rv.snapshot) is distinct from 'object' then
@@ -78,8 +94,34 @@ begin
   if coalesce(rv.snapshot->>'vial_id','') is distinct from p_vial_id::text
     or jsonb_typeof(rv.snapshot->'dose_value') is distinct from 'number'
     or rv.snapshot->>'dose_unit' not in ('mg','mcg')
-    or jsonb_typeof(rv.snapshot->'syringe_capacity') is distinct from 'number' then
+    or jsonb_typeof(rv.snapshot->'syringe_capacity') is distinct from 'number'
+    or rv.snapshot->>'frequency' not in ('daily','alternate','5on2off','weekdays')
+    or jsonb_typeof(rv.snapshot->'start_date') is distinct from 'string'
+    or coalesce(rv.snapshot->>'start_date','') !~ '^\d{4}-\d{2}-\d{2}$'
+    or jsonb_typeof(rv.snapshot->'weekdays') is distinct from 'array' then
     raise exception 'Snapshot da rotina inválido';
+  end if;
+
+  snapshot_frequency:=rv.snapshot->>'frequency';
+  snapshot_start:=(rv.snapshot->>'start_date')::date;
+  select coalesce(array_agg(value::integer),'{}'::integer[]) into snapshot_weekdays
+    from jsonb_array_elements_text(rv.snapshot->'weekdays');
+  if exists(select 1 from unnest(snapshot_weekdays) day where day<0 or day>6)
+    or (snapshot_frequency='weekdays' and cardinality(snapshot_weekdays)=0) then
+    raise exception 'Snapshot da rotina inválido';
+  end if;
+  if p_scheduled_date>=snapshot_start then
+    calendar_offset:=p_scheduled_date-snapshot_start;
+    calendar_valid:=case snapshot_frequency
+      when 'daily' then true
+      when 'alternate' then mod(calendar_offset,2)=0
+      when '5on2off' then mod(calendar_offset,7)<5
+      when 'weekdays' then extract(dow from p_scheduled_date)::integer=any(snapshot_weekdays)
+      else false
+    end;
+  end if;
+  if not calendar_valid then
+    raise exception 'Data não pertence ao calendário desta versão da rotina';
   end if;
 
   original_value:=(rv.snapshot->>'dose_value')::numeric;
@@ -102,7 +144,7 @@ begin
       or a.routine_version_id is distinct from p_routine_version_id
       or a.vial_id is distinct from p_vial_id
       or a.scheduled_date is distinct from p_scheduled_date
-      or (p_applied_at is not null and a.applied_at is distinct from p_applied_at) then
+      or a.requested_applied_at is distinct from p_applied_at then
       raise exception 'UUID de operação reutilizado com intenção diferente';
     end if;
     select * into m from public.vial_movements
@@ -128,10 +170,10 @@ begin
   after_balance:=before_balance-normalized_mg;
 
   insert into public.applications(user_id,operation_id,routine_id,routine_version_id,vial_id,
-    scheduled_date,applied_at,dose_value,dose_unit,dose_mg,volume_ml,ui,concentration,
+    scheduled_date,applied_at,requested_applied_at,dose_value,dose_unit,dose_mg,volume_ml,ui,concentration,
     balance_before,balance_after)
   values(u,p_operation_id,p_routine_id,p_routine_version_id,p_vial_id,p_scheduled_date,
-    coalesce(p_applied_at,stamp),original_value,original_unit,normalized_mg,used_volume,used_ui,
+    coalesce(p_applied_at,stamp),p_applied_at,original_value,original_unit,normalized_mg,used_volume,used_ui,
     used_concentration,before_balance,after_balance) returning * into a;
   insert into public.vial_movements(user_id,operation_id,vial_id,application_id,kind,delta_mg,
     balance_before,balance_after)
@@ -173,7 +215,7 @@ begin
     where user_id=u and undo_operation_id=p_undo_operation_id;
   if found then
     if a.id is distinct from p_application_id
-      or (p_undone_at is not null and a.undone_at is distinct from p_undone_at) then
+      or a.requested_undone_at is distinct from p_undone_at then
       raise exception 'UUID de Undo reutilizado com intenção diferente';
     end if;
     select * into inverse from public.vial_movements
@@ -191,6 +233,9 @@ begin
   if not found then raise exception 'Aplicação não encontrada'; end if;
   if a.undone_at is not null then
     if a.undo_operation_id=p_undo_operation_id then
+      if a.requested_undone_at is distinct from p_undone_at then
+        raise exception 'UUID de Undo reutilizado com intenção diferente';
+      end if;
       select * into inverse from public.vial_movements
         where user_id=u and application_id=a.id and kind='undo';
       if not found then raise exception 'Integridade do Undo inválida'; end if;
@@ -215,6 +260,7 @@ begin
   if after_balance>v.initial_mg then raise exception 'Undo excederia a quantidade inicial do frasco'; end if;
 
   update public.applications set undone_at=coalesce(p_undone_at,stamp),
+    requested_undone_at=p_undone_at,
     undo_operation_id=p_undo_operation_id where user_id=u and id=a.id returning * into a;
   insert into public.vial_movements(user_id,operation_id,vial_id,application_id,kind,delta_mg,
     balance_before,balance_after)

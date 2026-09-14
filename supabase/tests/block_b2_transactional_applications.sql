@@ -25,16 +25,36 @@ insert into public.vials(id,user_id,name,initial_mg,remaining_mg,water_ml,prepar
  ('aaaaaaaa-aaaa-4aaa-8aaa-000000000003','22222222-2222-4222-8222-222222222222','Rollback',10,10,2,current_date),
  ('aaaaaaaa-aaaa-4aaa-8aaa-000000000004','22222222-2222-4222-8222-222222222222','Undo limite',10,10,2,current_date),
  ('aaaaaaaa-aaaa-4aaa-8aaa-000000000005','22222222-2222-4222-8222-222222222222','Legado',10,6,2,current_date),
- ('aaaaaaaa-aaaa-4aaa-8aaa-000000000006','33333333-3333-4333-8333-333333333333','PRO mcg',10,10,2,current_date);
+ ('aaaaaaaa-aaaa-4aaa-8aaa-000000000006','33333333-3333-4333-8333-333333333333','PRO mcg',10,10,2,current_date),
+ ('aaaaaaaa-aaaa-4aaa-8aaa-000000000007','22222222-2222-4222-8222-222222222222','Horário explícito',10,10,2,current_date),
+ ('aaaaaaaa-aaaa-4aaa-8aaa-000000000008','22222222-2222-4222-8222-222222222222','Rotina inativa',10,10,2,current_date),
+ ('aaaaaaaa-aaaa-4aaa-8aaa-000000000009','22222222-2222-4222-8222-222222222222','Rotina excluída',10,10,2,current_date),
+ ('aaaaaaaa-aaaa-4aaa-8aaa-000000000010','22222222-2222-4222-8222-222222222222','Calendários',20,20,4,current_date);
 
 insert into public.routines(id,user_id,vial_id,name,dose_value,dose_unit,syringe_capacity,
   frequency,start_date) values
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000001','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000001','Trial mg',1,'mg',100,'daily',current_date),
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000002','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000002','Insuficiente',1,'mg',100,'daily',current_date),
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000003','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000003','Rollback',1,'mg',100,'daily',current_date),
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000004','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000004','Undo limite',1,'mg',100,'daily',current_date),
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000005','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000005','Legado',1,'mg',100,'daily',current_date),
- ('bbbbbbbb-bbbb-4bbb-8bbb-000000000006','33333333-3333-4333-8333-333333333333','aaaaaaaa-aaaa-4aaa-8aaa-000000000006','PRO mcg',250,'mcg',100,'daily',current_date);
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000001','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000001','Trial mg',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000002','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000002','Insuficiente',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000003','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000003','Rollback',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000004','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000004','Undo limite',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000005','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000005','Legado',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000006','33333333-3333-4333-8333-333333333333','aaaaaaaa-aaaa-4aaa-8aaa-000000000006','PRO mcg',250,'mcg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000007','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000007','Horário explícito',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000008','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000008','Rotina inativa',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000009','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000009','Rotina excluída',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000010','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000010','Diária',1,'mg',100,'daily',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000011','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000010','Alternados',1,'mg',100,'alternate',date '2026-09-14'),
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000012','22222222-2222-4222-8222-222222222222','aaaaaaaa-aaaa-4aaa-8aaa-000000000010','5 ON 2 OFF',1,'mg',100,'5on2off',date '2026-09-14');
+
+insert into public.routines(id,user_id,vial_id,name,dose_value,dose_unit,syringe_capacity,
+  frequency,weekdays,start_date) values
+ ('bbbbbbbb-bbbb-4bbb-8bbb-000000000013','22222222-2222-4222-8222-222222222222',
+  'aaaaaaaa-aaaa-4aaa-8aaa-000000000010','Dias específicos',1,'mg',100,'weekdays',array[1,3],date '2026-09-13');
+
+update public.routines set status='inactive'
+  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000008';
+update public.routines set deleted_at=now()
+  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000009';
 
 insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
 select ('cccccccc-cccc-4ccc-8ccc-'||right('000000000000'||row_number() over(order by r.id)::text,12))::uuid,
@@ -103,11 +123,19 @@ do $$ declare first jsonb; replay jsonb; applied timestamptz; before_count integ
     'bbbbbbbb-bbbb-4bbb-8bbb-000000000001','cccccccc-cccc-4ccc-8ccc-000000000001',
     'aaaaaaaa-aaaa-4aaa-8aaa-000000000001',date '2026-09-14',null);
   if not (replay->>'replay')::boolean or (replay->'application'->>'applied_at')::timestamptz<>applied
+    or replay->'application'->'requested_applied_at'<>'null'::jsonb
     or replay->'application'<>first->'application' or replay->'movement'<>first->'movement'
     or replay->'vial'<>first->'vial'
     or (select count(*) from public.applications where user_id=auth.uid())<>before_count
     or (select remaining_mg from public.vials where user_id=auth.uid() and id='aaaaaaaa-aaaa-4aaa-8aaa-000000000001')<>9
     then raise exception 'FAIL application replay'; end if;
+  conflict:=false;
+  begin
+    perform public.register_application('20000000-0000-4000-8000-000000000001',auth.uid(),
+      'bbbbbbbb-bbbb-4bbb-8bbb-000000000001','cccccccc-cccc-4ccc-8ccc-000000000001',
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000001',date '2026-09-14',applied);
+  exception when others then conflict:=sqlerrm like 'UUID de operação reutilizado%'; end;
+  if not conflict then raise exception 'FAIL server-time intent changed to explicit'; end if;
   conflict:=false;
   begin
     perform public.register_application('20000000-0000-4000-8000-000000000001',auth.uid(),
@@ -124,6 +152,162 @@ do $$ declare first jsonb; replay jsonb; applied timestamptz; before_count integ
   if not conflict or (select count(*) from public.applications where user_id=auth.uid()
     and routine_id='bbbbbbbb-bbbb-4bbb-8bbb-000000000001' and scheduled_date='2026-09-14')<>1
     then raise exception 'FAIL active day conflict'; end if;
+end $$;
+
+-- Intenção temporal explícita: mesmo valor é replay; omissão ou troca conflitam.
+do $$ declare first jsonb; replay jsonb; app_id uuid; conflict boolean; before_count integer;
+  explicit_applied constant timestamptz:='2026-09-14 12:34:56+00';
+  explicit_undone constant timestamptz:='2026-09-14 12:40:00+00'; begin
+  first:=public.register_application('21000000-0000-4000-8000-000000000001',auth.uid(),
+    'bbbbbbbb-bbbb-4bbb-8bbb-000000000007','cccccccc-cccc-4ccc-8ccc-000000000007',
+    'aaaaaaaa-aaaa-4aaa-8aaa-000000000007',date '2026-09-14',explicit_applied);
+  app_id:=(first->'application'->>'id')::uuid;
+  if (first->'application'->>'applied_at')::timestamptz<>explicit_applied
+    or (first->'application'->>'requested_applied_at')::timestamptz<>explicit_applied then
+    raise exception 'FAIL explicit application time persisted';
+  end if;
+  replay:=public.register_application('21000000-0000-4000-8000-000000000001',auth.uid(),
+    'bbbbbbbb-bbbb-4bbb-8bbb-000000000007','cccccccc-cccc-4ccc-8ccc-000000000007',
+    'aaaaaaaa-aaaa-4aaa-8aaa-000000000007',date '2026-09-14',explicit_applied);
+  if not (replay->>'replay')::boolean or replay->'application'<>first->'application' then
+    raise exception 'FAIL equal explicit application replay';
+  end if;
+  select count(*) into before_count from public.applications where user_id=auth.uid();
+  conflict:=false;
+  begin
+    perform public.register_application('21000000-0000-4000-8000-000000000001',auth.uid(),
+      'bbbbbbbb-bbbb-4bbb-8bbb-000000000007','cccccccc-cccc-4ccc-8ccc-000000000007',
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000007',date '2026-09-14',null);
+  exception when others then conflict:=sqlerrm like 'UUID de operação reutilizado%'; end;
+  if not conflict then raise exception 'FAIL omitted explicit application time accepted'; end if;
+  conflict:=false;
+  begin
+    perform public.register_application('21000000-0000-4000-8000-000000000001',auth.uid(),
+      'bbbbbbbb-bbbb-4bbb-8bbb-000000000007','cccccccc-cccc-4ccc-8ccc-000000000007',
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000007',date '2026-09-14',explicit_applied+interval '1 second');
+  exception when others then conflict:=sqlerrm like 'UUID de operação reutilizado%'; end;
+  if not conflict or (select count(*) from public.applications where user_id=auth.uid())<>before_count
+    or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000007')<>9 then
+    raise exception 'FAIL changed explicit application time rollback';
+  end if;
+
+  first:=public.undo_application('21000000-0000-4000-8000-000000000002',auth.uid(),app_id,explicit_undone);
+  if (first->'application'->>'undone_at')::timestamptz<>explicit_undone
+    or (first->'application'->>'requested_undone_at')::timestamptz<>explicit_undone then
+    raise exception 'FAIL explicit undo time persisted';
+  end if;
+  replay:=public.undo_application('21000000-0000-4000-8000-000000000002',auth.uid(),app_id,explicit_undone);
+  if not (replay->>'replay')::boolean or replay->'application'<>first->'application' then
+    raise exception 'FAIL equal explicit undo replay';
+  end if;
+  select count(*) into before_count from public.vial_movements where user_id=auth.uid();
+  conflict:=false;
+  begin
+    perform public.undo_application('21000000-0000-4000-8000-000000000002',auth.uid(),app_id,null);
+  exception when others then conflict:=sqlerrm like 'UUID de Undo reutilizado%'; end;
+  if not conflict then raise exception 'FAIL omitted explicit undo time accepted'; end if;
+  conflict:=false;
+  begin
+    perform public.undo_application('21000000-0000-4000-8000-000000000002',auth.uid(),app_id,
+      explicit_undone+interval '1 second');
+  exception when others then conflict:=sqlerrm like 'UUID de Undo reutilizado%'; end;
+  if not conflict or (select count(*) from public.vial_movements where user_id=auth.uid())<>before_count
+    or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000007')<>10 then
+    raise exception 'FAIL changed explicit undo time rollback';
+  end if;
+end $$;
+
+-- Rotina atual precisa existir e estar ativa; rejeições não alteram histórico/saldo.
+do $$ declare blocked boolean; before_apps integer; before_moves integer; begin
+  select count(*) into before_apps from public.applications where user_id=auth.uid();
+  select count(*) into before_moves from public.vial_movements where user_id=auth.uid();
+  blocked:=false;
+  begin
+    perform public.register_application('22000000-0000-4000-8000-000000000001',auth.uid(),
+      'bbbbbbbb-bbbb-4bbb-8bbb-000000000008','cccccccc-cccc-4ccc-8ccc-000000000008',
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000008',date '2026-09-14',null);
+  exception when others then blocked:=sqlerrm='Rotina não está ativa'; end;
+  if not blocked then raise exception 'FAIL inactive routine allowed'; end if;
+  blocked:=false;
+  begin
+    perform public.register_application('22000000-0000-4000-8000-000000000002',auth.uid(),
+      'bbbbbbbb-bbbb-4bbb-8bbb-000000000009','cccccccc-cccc-4ccc-8ccc-000000000009',
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000009',date '2026-09-14',null);
+  exception when others then blocked:=sqlerrm='Rotina não encontrada'; end;
+  if not blocked or (select count(*) from public.applications where user_id=auth.uid())<>before_apps
+    or (select count(*) from public.vial_movements where user_id=auth.uid())<>before_moves
+    or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000008')<>10
+    or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000009')<>10 then
+    raise exception 'FAIL inactive/deleted routine rollback';
+  end if;
+end $$;
+
+-- Calendário é calculado exclusivamente pelo snapshot da versão indicada.
+do $$ declare cases record; accepted boolean; before_balance numeric; result jsonb; begin
+  for cases in select * from (values
+    ('daily','bbbbbbbb-bbbb-4bbb-8bbb-000000000010'::uuid,'cccccccc-cccc-4ccc-8ccc-000000000010'::uuid,
+      '23000000-0000-4000-8000-000000000001'::uuid,'23000000-0000-4000-8000-000000000011'::uuid,
+      date '2026-09-14',date '2026-09-13'),
+    ('alternate','bbbbbbbb-bbbb-4bbb-8bbb-000000000011'::uuid,'cccccccc-cccc-4ccc-8ccc-000000000011'::uuid,
+      '23000000-0000-4000-8000-000000000002'::uuid,'23000000-0000-4000-8000-000000000012'::uuid,
+      date '2026-09-16',date '2026-09-15'),
+    ('5on2off','bbbbbbbb-bbbb-4bbb-8bbb-000000000012'::uuid,'cccccccc-cccc-4ccc-8ccc-000000000012'::uuid,
+      '23000000-0000-4000-8000-000000000003'::uuid,'23000000-0000-4000-8000-000000000013'::uuid,
+      date '2026-09-18',date '2026-09-19'),
+    ('weekdays','bbbbbbbb-bbbb-4bbb-8bbb-000000000013'::uuid,'cccccccc-cccc-4ccc-8ccc-000000000013'::uuid,
+      '23000000-0000-4000-8000-000000000004'::uuid,'23000000-0000-4000-8000-000000000014'::uuid,
+      date '2026-09-14',date '2026-09-15')
+  ) x(frequency,routine_id,version_id,operation_id,invalid_operation_id,valid_date,invalid_date)
+  loop
+    select remaining_mg into before_balance from public.vials
+      where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000010';
+    result:=public.register_application(cases.operation_id,auth.uid(),cases.routine_id,cases.version_id,
+      'aaaaaaaa-aaaa-4aaa-8aaa-000000000010',cases.valid_date,null);
+    if (result->>'replay')::boolean or (result->'application'->>'scheduled_date')::date<>cases.valid_date
+      or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000010')<>before_balance-1 then
+      raise exception 'FAIL valid calendar %',cases.frequency;
+    end if;
+    select remaining_mg into before_balance from public.vials
+      where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000010';
+    accepted:=true;
+    begin
+      perform public.register_application(cases.invalid_operation_id,
+        auth.uid(),cases.routine_id,cases.version_id,'aaaaaaaa-aaaa-4aaa-8aaa-000000000010',
+        cases.invalid_date,null);
+    exception when others then
+      accepted:=sqlerrm not like 'Data não pertence ao calendário%';
+    end;
+    if accepted
+      or exists(select 1 from public.applications where user_id=auth.uid()
+        and operation_id=cases.invalid_operation_id)
+      or exists(select 1 from public.vial_movements where user_id=auth.uid()
+        and operation_id=cases.invalid_operation_id)
+      or (select remaining_mg from public.vials where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000010')<>before_balance then
+      raise exception 'FAIL invalid calendar rollback %',cases.frequency;
+    end if;
+  end loop;
+end $$;
+
+-- Uma edição posterior não reinterpreta a aplicação nem seu snapshot histórico.
+reset role;
+update public.routines set frequency='alternate',version=2,updated_at=now()
+  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
+insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
+select 'cccccccc-cccc-4ccc-8ccc-000000000020',user_id,id,2,to_jsonb(r)
+  from public.routines r where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+do $$ declare replay jsonb; begin
+  replay:=public.register_application('23000000-0000-4000-8000-000000000001',auth.uid(),
+    'bbbbbbbb-bbbb-4bbb-8bbb-000000000010','cccccccc-cccc-4ccc-8ccc-000000000010',
+    'aaaaaaaa-aaaa-4aaa-8aaa-000000000010',date '2026-09-14',null);
+  if not (replay->>'replay')::boolean
+    or replay->'application'->>'routine_version_id'<>'cccccccc-cccc-4ccc-8ccc-000000000010'
+    or (select snapshot->>'frequency' from public.routine_versions
+      where id='cccccccc-cccc-4ccc-8ccc-000000000010')<>'daily'
+    or (select frequency from public.routines where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010')<>'alternate'
+    then raise exception 'FAIL later frequency changed historical application';
+  end if;
 end $$;
 
 -- Saldo insuficiente: aplicação, movimento e saldo permanecem intactos.
@@ -196,7 +380,8 @@ end $$;
 
 -- Undo normal, preservação do original, replay e segundo UUID conflitante.
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
-do $$ declare app_id uuid; first jsonb; replay jsonb; conflict boolean:=false; before_count integer; begin
+do $$ declare app_id uuid; first jsonb; replay jsonb; undone timestamptz;
+  conflict boolean:=false; before_count integer; begin
   select id into app_id from public.applications where user_id=auth.uid()
     and operation_id='20000000-0000-4000-8000-000000000001';
   first:=public.undo_application('20000000-0000-4000-8000-000000000010',auth.uid(),app_id,null);
@@ -210,14 +395,22 @@ do $$ declare app_id uuid; first jsonb; replay jsonb; conflict boolean:=false; b
     or (select count(*) from public.applications where user_id=auth.uid() and id=app_id)<>1
     or (select count(*) from public.vial_movements where user_id=auth.uid() and application_id=app_id and kind='application')<>1
     then raise exception 'FAIL normal undo'; end if;
+  undone:=(first->'application'->>'undone_at')::timestamptz;
   select count(*) into before_count from public.vial_movements where user_id=auth.uid() and application_id=app_id;
   replay:=public.undo_application('20000000-0000-4000-8000-000000000010',auth.uid(),app_id,null);
   if not (replay->>'replay')::boolean
+    or replay->'application'->'requested_undone_at'<>'null'::jsonb
     or replay->'application'<>first->'application' or replay->'movement'<>first->'movement'
     or replay->'vial'<>first->'vial'
     or (select count(*) from public.vial_movements where user_id=auth.uid() and application_id=app_id)<>before_count
     or (select remaining_mg from public.vials where user_id=auth.uid() and id='aaaaaaaa-aaaa-4aaa-8aaa-000000000001')<>10
     then raise exception 'FAIL undo replay'; end if;
+  conflict:=false;
+  begin
+    perform public.undo_application('20000000-0000-4000-8000-000000000010',auth.uid(),app_id,undone);
+  exception when others then conflict:=sqlerrm like 'UUID de Undo reutilizado%'; end;
+  if not conflict then raise exception 'FAIL server-time undo intent changed to explicit'; end if;
+  conflict:=false;
   begin
     perform public.undo_application('20000000-0000-4000-8000-000000000011',auth.uid(),app_id,null);
   exception when others then conflict:=sqlerrm like 'Aplicação já desfeita%'; end;
