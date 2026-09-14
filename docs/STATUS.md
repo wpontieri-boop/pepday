@@ -125,6 +125,38 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   visível com convite PRO; “Agora não” mantém o FREE; Perfil anônimo correto.
 - Nenhum teste real de OTP, Google, importação ou SQL do Bloco A foi repetido.
 
+## Fase B2.1 — backend transacional implementado localmente, aguardando revisão
+
+- Nova migration incremental
+  `202609140004_block_b2_transactional_applications.sql`; migrations anteriores
+  permanecem intactas.
+- RPC `register_application(...)` criada para persistir aplicação, movimento
+  negativo e atualização de saldo na mesma transação, usando o snapshot indicado
+  de `routine_versions` e cálculos PostgreSQL `numeric`.
+- RPC `undo_application(...)` criada para marcar a aplicação como desfeita,
+  preservar o histórico original, criar movimento inverso e devolver exatamente
+  o `dose_mg` persistido.
+- UUIDs de operação, locks de frasco, unicidade por intenção e por rotina/data,
+  validação de proprietário e entitlement no backend protegem reenvios e acesso
+  cruzado.
+- Constraints garantem `application_id` e direção do delta em movimentos de
+  aplicação/Undo, além de no máximo um movimento de cada tipo por aplicação.
+- Frontend, `localStorage`, navegação, UX, Service Worker e B1 não foram integrados
+  nem alterados nesta fase.
+
+### Validação local da B2.1
+
+- Suite SQL B2.1 em PGlite 0.5.8 efêmero: PASS para mg/mcg, cálculos, saldos,
+  movimentos, idempotência, conflitos, TRIAL/PRO, bloqueio FREE/expirado,
+  isolamento, rollback total e Undo.
+- Regressão da importação executada após a migration B2.1: PASS; saldo consolidado
+  importado permaneceu como ponto de partida, sem aplicações fabricadas ou nova
+  dedução do legado.
+- Limitação conhecida: PGlite validou SQL, constraints, transações e isolamento
+  lógico em uma conexão, mas não comprova concorrência real entre sessões,
+  comportamento de `FOR UPDATE` sob disputa nem a integração Auth/RLS do Supabase.
+  Esses pontos aguardam teste posterior autorizado no `pepday-v3-test`.
+
 ## Pendências
 
 ### Bloco B
@@ -133,8 +165,7 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   alteração posterior.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
-- Implementar aplicações, movimentos de estoque e undo de forma transacional,
-  atômica e idempotente.
+- Revisar e, somente após autorização, validar/aplicar a B2.1 no Supabase de testes.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
   versão/timestamps e tratamento explícito de conflitos.
 - Definir entitlement PRO offline/local-first sem substituir a autoridade de
@@ -199,11 +230,11 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Iniciar, somente após aprovação específica, a próxima fase do Bloco B: projetar e
-implementar no backend de testes as operações transacionais e idempotentes de
-aplicação, movimento de estoque, saldo e undo, preservando o contrato aprovado
-Rotina ↔ Frasco. Entitlement offline/local-first, sincronização contínua, avisos
-de trial, Mercado Pago e as demais fases permanecem pendentes conforme este documento.
+Revisar o commit local da B2.1. Após aprovação explícita e em etapa separada,
+aplicar somente a migration incremental no `pepday-v3-test` e validar concorrência,
+`FOR UPDATE`, Auth/RLS e rollback no PostgreSQL real. A integração do frontend e
+do `localStorage` permanece bloqueada até o contrato posterior de fila e
+reconciliação local-first.
 
 ## Registro deste checkpoint
 
