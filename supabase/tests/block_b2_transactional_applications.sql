@@ -9,7 +9,14 @@ insert into auth.users(id,email) values
  ('55555555-5555-4555-8555-555555555555','b2-other@example.invalid');
 
 update public.profiles set is_adult_confirmed=true,terms_accepted_at=now(),terms_version='test',
-  privacy_accepted_at=now(),privacy_version='test';
+  privacy_accepted_at=now(),privacy_version='test'
+  where id in (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-333333333333',
+    '44444444-4444-4444-8444-444444444444',
+    '55555555-5555-4555-8555-555555555555'
+  );
 update public.trials set trial_used=true,started_at=now()-interval '1 day',ends_at=now()+interval '6 days'
   where user_id='22222222-2222-4222-8222-222222222222';
 update public.subscriptions set status='trial' where user_id='22222222-2222-4222-8222-222222222222';
@@ -52,13 +59,22 @@ insert into public.routines(id,user_id,vial_id,name,dose_value,dose_unit,syringe
   'aaaaaaaa-aaaa-4aaa-8aaa-000000000010','Dias específicos',1,'mg',100,'weekdays',array[1,3],date '2026-09-13');
 
 update public.routines set status='inactive'
-  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000008';
+  where user_id='22222222-2222-4222-8222-222222222222'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000008';
 update public.routines set deleted_at=now()
-  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000009';
+  where user_id='22222222-2222-4222-8222-222222222222'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000009';
 
 insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
 select ('cccccccc-cccc-4ccc-8ccc-'||right('000000000000'||row_number() over(order by r.id)::text,12))::uuid,
-  r.user_id,r.id,1,to_jsonb(r) from public.routines r;
+  r.user_id,r.id,1,to_jsonb(r) from public.routines r
+  where r.user_id in (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-333333333333',
+    '44444444-4444-4444-8444-444444444444',
+    '55555555-5555-4555-8555-555555555555'
+  );
 
 -- Âncora consolidada do legado: não cria aplicação nem reconstrói histórico antigo.
 insert into public.local_data_imports(id,user_id,source_hash,source_version,status,source_snapshot,
@@ -291,10 +307,12 @@ end $$;
 -- Uma edição posterior não reinterpreta a aplicação nem seu snapshot histórico.
 reset role;
 update public.routines set frequency='alternate',version=2,updated_at=now()
-  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
+  where user_id='22222222-2222-4222-8222-222222222222'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
 insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
 select 'cccccccc-cccc-4ccc-8ccc-000000000020',user_id,id,2,to_jsonb(r)
-  from public.routines r where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
+  from public.routines r where user_id='22222222-2222-4222-8222-222222222222'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000010';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 do $$ declare replay jsonb; begin
@@ -360,10 +378,12 @@ end $$;
 
 reset role;
 update public.routines set dose_value=500,dose_unit='mcg',version=2,updated_at=now()
-  where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000006';
+  where user_id='33333333-3333-4333-8333-333333333333'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000006';
 insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
 select 'cccccccc-cccc-4ccc-8ccc-000000000016',user_id,id,2,to_jsonb(r)
-  from public.routines r where id='bbbbbbbb-bbbb-4bbb-8bbb-000000000006';
+  from public.routines r where user_id='33333333-3333-4333-8333-333333333333'
+    and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000006';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 do $$ declare app_id uuid; result jsonb; begin
@@ -443,7 +463,9 @@ do $$ declare result jsonb; begin
     'aaaaaaaa-aaaa-4aaa-8aaa-000000000004',date '2026-09-14',null);
 end $$;
 reset role;
-update public.vials set remaining_mg=initial_mg where id='aaaaaaaa-aaaa-4aaa-8aaa-000000000004';
+update public.vials set remaining_mg=initial_mg
+  where user_id='22222222-2222-4222-8222-222222222222'
+    and id='aaaaaaaa-aaaa-4aaa-8aaa-000000000004';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 do $$ declare app_id uuid; failed boolean:=false; begin
@@ -463,7 +485,10 @@ end $$;
 reset role;
 create function public.b2_test_fail_vial_update() returns trigger language plpgsql as $$
 begin
-  if new.id='aaaaaaaa-aaaa-4aaa-8aaa-000000000003' then raise exception 'falha intermediária de teste'; end if;
+  if new.user_id='22222222-2222-4222-8222-222222222222'
+    and new.id='aaaaaaaa-aaaa-4aaa-8aaa-000000000003' then
+    raise exception 'falha intermediária de teste';
+  end if;
   return new;
 end $$;
 create trigger b2_test_fail_vial_update before update of remaining_mg on public.vials
