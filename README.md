@@ -166,14 +166,19 @@ backend seguro dos respectivos serviços.
 ## Escopo imediato: Bloco B
 
 A Fase B1, concluída e aprovada, implementa a fonte única de entitlement, o início idempotente do trial,
-o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. A B2.1 está implementada
-localmente e aguardando revisão/aplicação controlada: aplicação, movimento, saldo e Undo
-são transacionais e idempotentes. A intenção temporal original fica persistida separadamente
-do horário efetivo gerado pelo servidor, e a data da aplicação é validada pelo calendário do
-snapshot imutável de `routine_versions`. As fases seguintes do Bloco B continuam responsáveis
-pela integração completa Rotina ↔ Frasco/Calculadora, sincronização local-first e estados de
+o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. A B2.1 está aplicada no
+`pepday-v3-test`: aplicação, movimento, saldo e Undo são transacionais e idempotentes. O smoke
+real foi aprovado com status funcional `PASS`, rollback confirmado, zero fixtures remanescentes
+e veredito `PASS FINAL`. A intenção temporal original fica persistida separadamente do horário
+efetivo gerado pelo servidor, e a data da aplicação é validada pelo calendário do snapshot
+imutável de `routine_versions`. As fases seguintes do Bloco B continuam responsáveis pela
+integração completa Rotina ↔ Frasco/Calculadora, sincronização local-first e estados de
 sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção continuam fora
 desta fase.
+
+Ainda exigem validação real separada: concorrência entre sessões, contenção simultânea de
+`FOR UPDATE`, corrida na mesma rotina/data, transporte JWT/Auth real entre contas e replay
+concorrente com Undo.
 
 Permanecem deliberadamente para fases futuras: entitlement PRO offline/local-first,
 sincronização contínua, avisos de três e um dia para o fim do trial e atualização

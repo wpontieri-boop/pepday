@@ -125,7 +125,7 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   visível com convite PRO; “Agora não” mantém o FREE; Perfil anônimo correto.
 - Nenhum teste real de OTP, Google, importação ou SQL do Bloco A foi repetido.
 
-## Fase B2.1 — backend transacional implementado localmente, aguardando revisão
+## Fase B2.1 — backend transacional aplicado e smoke real aprovado
 
 - Nova migration incremental
   `202609140004_block_b2_transactional_applications.sql`; migrations anteriores
@@ -169,6 +169,18 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   leitura de replay simultânea a Undo pode observar o estado imediatamente
   anterior à reversão. Nenhum deles permite gravação parcial ou saldo divergente.
 
+### Validação real da B2.1 — checkpoint de 15/09/2026
+
+- A migration B2.1 está aplicada no Supabase de testes `pepday-v3-test`.
+- O smoke funcional real terminou com `PASS`.
+- O rollback foi confirmado, com `0` fixture remanescente nas 13 tabelas
+  verificadas.
+- Veredito consolidado do smoke: `PASS FINAL`.
+- Permanecem pendentes somente os testes reais que exigem sessões ou transporte
+  distintos: concorrência entre sessões; contenção simultânea de `FOR UPDATE`;
+  corrida na mesma rotina/data; transporte JWT/Auth real entre contas; e replay
+  concorrente com Undo.
+
 ## Pendências
 
 ### Bloco B
@@ -177,7 +189,8 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   alteração posterior.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
-- Revisar e, somente após autorização, validar/aplicar a B2.1 no Supabase de testes.
+- Concluir os cinco cenários concorrentes/Auth ainda pendentes da validação real
+  da B2.1, seguindo `docs/B2_REAL_VALIDATION.md`.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
   versão/timestamps e tratamento explícito de conflitos.
 - Definir entitlement PRO offline/local-first sem substituir a autoridade de
@@ -242,11 +255,12 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Revisar o commit local do hardening final da B2.1. Após aprovação explícita e em etapa separada,
-aplicar somente a migration incremental no `pepday-v3-test` e validar concorrência,
-`FOR UPDATE`, Auth/RLS e rollback no PostgreSQL real. A integração do frontend e
-do `localStorage` permanece bloqueada até o contrato posterior de fila e
-reconciliação local-first.
+Executar, em etapa separada e controlada no `pepday-v3-test`, os cinco testes que
+o smoke de uma única sessão não cobre: concorrência real entre sessões, contenção
+simultânea de `FOR UPDATE`, corrida na mesma rotina/data, transporte JWT/Auth real
+entre contas e replay concorrente com Undo. Seguir `docs/B2_REAL_VALIDATION.md`,
+sem iniciar ainda a integração do frontend ou do `localStorage` antes do contrato
+posterior de fila e reconciliação local-first.
 
 ## Registro deste checkpoint
 
