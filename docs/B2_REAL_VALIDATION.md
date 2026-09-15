@@ -10,6 +10,21 @@ Este documento separa dois tipos de validação:
 Nada deste plano deve ser executado em produção. O único destino permitido é o
 projeto isolado `pepday-v3-test`, depois de revisão e autorização explícitas.
 
+## Fechamento aprovado — 15/09/2026
+
+- Migration `202609150005_block_b2_validation_service_role.sql` aplicada com
+  sucesso no `pepday-v3-test`.
+- Verificação: `PASS — privilégios mínimos do service_role confirmados`.
+- Concorrência SQL real: mesmo frasco `PASS`; `FOR UPDATE` `PASS`; mesma
+  rotina/data `PASS`.
+- Cleanup SQL: `PASS`, zero fixtures.
+- Runner real: `PASS FINAL — AUTH/RLS + REPLAY/UNDO`.
+- Auth/RLS, replay concorrente, Undo/idempotência e cleanup final Auth/domínio:
+  `PASS`.
+- Segredos removidos da sessão do PowerShell após a execução.
+- **B2.1 encerrada e aprovada.** O restante deste documento preserva o contrato e
+  o roteiro utilizados como evidência; não representa pendência de nova execução.
+
 O pacote executável dos cinco cenários finais está em
 `supabase/tests/block_b2_real_concurrency/README.md`. Ele contém setup, scripts
 separados para Sessão A/B, verificações e limpeza; o transporte JWT usa
@@ -139,17 +154,20 @@ sessão.
 5. Conferir que existe somente uma aplicação ativa, um movimento de aplicação e
    um único desconto.
 
-## 5. Auth/RLS real entre duas contas
+## 5. Auth/RLS real entre duas contas — aprovado
 
-O SQL Editor simula o claim no banco; para provar Auth real, usar dois access
-tokens legítimos de contas fixtures e chamadas REST/Supabase JS.
+O SQL Editor simula o claim no banco; a prova real aprovada usou duas contas
+fixtures criadas pelo runner e dois access tokens legítimos obtidos pelo fluxo
+normal do Supabase Auth.
 
-Regras para o script local:
+Regras aplicadas pelo script local versionado
+`scripts/test-b2-real-transport.mjs`:
 
-- mantê-lo fora do repositório, preferencialmente em `%TEMP%`;
-- receber `SUPABASE_URL`, chave pública anon e os dois access tokens somente por
-  variáveis de ambiente da sessão;
-- nunca usar nem solicitar `service_role` no cliente;
+- receber somente `SUPABASE_URL`, `SUPABASE_ANON_KEY` e
+  `SUPABASE_SERVICE_ROLE_KEY` por variáveis de ambiente da sessão;
+- usar `service_role` somente para criar/verificar fixtures e fazer cleanup;
+- usar exclusivamente os JWTs reais das contas A/B nas leituras e RPCs que
+  comprovam RLS;
 - não imprimir tokens e limpá-los ao final;
 - não armazenar senha, refresh token ou arquivo `.env` no projeto.
 
@@ -160,10 +178,11 @@ Com token A, consultar os frascos/aplicações de A e chamar suas RPCs. Com toke
 - `undo_application()` com uma aplicação de A deve ser recusada;
 - nenhuma contagem ou saldo de A pode mudar.
 
-## 6. Concorrência por script local
+## 6. Concorrência por script local — aprovada
 
-Para disparo realmente simultâneo, o script temporário pode executar duas chamadas
-HTTP com `Promise.all`, usando o mesmo token fixture:
+Para disparo coordenado, o runner libera as duas chamadas pela mesma barreira,
+mede o `dispatch skew` e usa espera completa das duas operações antes de permitir
+cleanup, inclusive quando uma delas falha.
 
 - duas aplicações no mesmo frasco e rotinas diferentes;
 - duas operações diferentes para a mesma rotina/data;
@@ -173,7 +192,7 @@ HTTP com `Promise.all`, usando o mesmo token fixture:
 O script deve registrar somente status HTTP, duração, `replay`, IDs de operação e
 saldos; nunca headers ou tokens.
 
-## 7. Replay concorrente com Undo
+## 7. Replay concorrente com Undo — aprovado
 
 1. Criar e confirmar uma aplicação fixture.
 2. Disparar simultaneamente um replay com o mesmo `operation_id` e um Undo com UUID

@@ -125,11 +125,15 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
   visível com convite PRO; “Agora não” mantém o FREE; Perfil anônimo correto.
 - Nenhum teste real de OTP, Google, importação ou SQL do Bloco A foi repetido.
 
-## Fase B2.1 — backend transacional aplicado e smoke real aprovado
+## Fase B2.1 — encerrada e aprovada
 
 - Nova migration incremental
   `202609140004_block_b2_transactional_applications.sql`; migrations anteriores
   permanecem intactas.
+- Migration incremental de privilégios mínimos do runner
+  `202609150005_block_b2_validation_service_role.sql` aplicada com sucesso no
+  `pepday-v3-test`, sem liberar escrita para `anon` ou `authenticated` e sem
+  alterar RLS.
 - RPC `register_application(...)` criada para persistir aplicação, movimento
   negativo e atualização de saldo na mesma transação, usando o snapshot indicado
   de `routine_versions` e cálculos PostgreSQL `numeric`.
@@ -160,14 +164,9 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 - Regressão da importação executada após a migration B2.1: PASS; saldo consolidado
   importado permaneceu como ponto de partida, sem aplicações fabricadas ou nova
   dedução do legado.
-- Limitação conhecida: PGlite validou SQL, constraints, transações e isolamento
-  lógico em uma conexão, mas não comprova concorrência real entre sessões,
-  comportamento de `FOR UPDATE` sob disputa nem a integração Auth/RLS do Supabase.
-  Esses pontos aguardam teste posterior autorizado no `pepday-v3-test`.
-- Riscos baixos deliberadamente pendentes para o PostgreSQL real: conflito
-  concorrente por UUID pode retornar a violação genérica do índice único, e uma
-  leitura de replay simultânea a Undo pode observar o estado imediatamente
-  anterior à reversão. Nenhum deles permite gravação parcial ou saldo divergente.
+- PGlite validou SQL, constraints, transações e isolamento lógico em uma conexão;
+  os pontos de concorrência entre sessões e transporte Auth/RLS foram posteriormente
+  confirmados no `pepday-v3-test`, conforme o checkpoint abaixo.
 
 ### Validação real da B2.1 — checkpoint de 15/09/2026
 
@@ -176,10 +175,20 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 - O rollback foi confirmado, com `0` fixture remanescente nas 13 tabelas
   verificadas.
 - Veredito consolidado do smoke: `PASS FINAL`.
-- Permanecem pendentes somente os testes reais que exigem sessões ou transporte
-  distintos: concorrência entre sessões; contenção simultânea de `FOR UPDATE`;
-  corrida na mesma rotina/data; transporte JWT/Auth real entre contas; e replay
-  concorrente com Undo.
+- Migration `202609150005_block_b2_validation_service_role.sql`: aplicada com
+  sucesso no `pepday-v3-test`.
+- Verificação de privilégios:
+  `PASS — privilégios mínimos do service_role confirmados`.
+- Concorrência SQL real: mesmo frasco `PASS`; contenção real de `FOR UPDATE`
+  `PASS`; mesma rotina/data `PASS`.
+- Cleanup SQL: `PASS`, com zero fixtures remanescentes.
+- Runner real final: `PASS FINAL — AUTH/RLS + REPLAY/UNDO`.
+- Auth/RLS real entre duas contas: `PASS`.
+- Replay concorrente: `PASS`.
+- Undo e idempotência, incluindo recusa do segundo Undo: `PASS`.
+- Cleanup final Auth/domínio: `PASS`.
+- Segredos e variáveis sensíveis removidos da sessão do PowerShell após o teste.
+- **B2.1 encerrada e aprovada.**
 
 ## Pendências
 
@@ -187,10 +196,10 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 
 - B1 encerrada e aprovada; não repetir seus testes sem necessidade causada por
   alteração posterior.
+- B2.1 encerrada e aprovada; não repetir smoke, concorrência ou transporte Auth
+  sem necessidade causada por alteração posterior nas RPCs ou no schema envolvido.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
-- Concluir os cinco cenários concorrentes/Auth ainda pendentes da validação real
-  da B2.1, seguindo `docs/B2_REAL_VALIDATION.md`.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
   versão/timestamps e tratamento explícito de conflitos.
 - Definir entitlement PRO offline/local-first sem substituir a autoridade de
@@ -255,12 +264,11 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Executar, em etapa separada e controlada no `pepday-v3-test`, os cinco testes que
-o smoke de uma única sessão não cobre: concorrência real entre sessões, contenção
-simultânea de `FOR UPDATE`, corrida na mesma rotina/data, transporte JWT/Auth real
-entre contas e replay concorrente com Undo. Seguir `docs/B2_REAL_VALIDATION.md`,
-sem iniciar ainda a integração do frontend ou do `localStorage` antes do contrato
-posterior de fila e reconciliação local-first.
+Iniciar a fase B2.2 pela definição e implementação testável do repositório
+local-first e da fila offline: gravação local, operações pendentes idempotentes,
+reconexão, versionamento/timestamps e tratamento explícito de conflitos. Preservar
+as RPCs transacionais aprovadas da B2.1 como autoridade para aplicação, movimento,
+saldo e Undo, sem reprocessar o legado nem alterar FREE/TRIAL/PRO.
 
 ## Registro deste checkpoint
 
