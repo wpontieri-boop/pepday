@@ -3,6 +3,15 @@
 -- Cria somente fixtures com UUIDs reservados nesta transação e termina em ROLLBACK.
 -- Não contém DELETE, não altera objetos globais e não modifica linhas preexistentes.
 
+-- Estado exclusivo desta sessão. Remove somente o resultado preparado por uma
+-- execução anterior deste mesmo smoke; nunca usa DEALLOCATE ALL.
+do $$ begin
+  if exists(select 1 from pg_catalog.pg_prepared_statements
+    where name='pepday_b2_1_real_smoke_final') then
+    execute 'deallocate pepday_b2_1_real_smoke_final';
+  end if;
+end $$;
+
 begin;
 
 -- Primeiro erro controlado da suíte. Blocos seguintes não escrevem depois dele.
@@ -415,50 +424,65 @@ exception when others then
   perform set_config('pepday.b2_real_failure',format('GRANTS/RLS [%s]: %s',sqlstate,sqlerrm),true);
 end $$;
 
-select case when current_setting('pepday.b2_real_failure',true)=''
-  then 'PASS — B2.1 real smoke; a próxima instrução é ROLLBACK'
-  else 'FAIL CONTROLADO — '||current_setting('pepday.b2_real_failure',true)
-  end as resultado;
+-- PREPARE é estado desta sessão, não objeto persistente nem dado real. O texto
+-- funcional é inserido como literal por format(%L), nunca concatenado como SQL.
+do $$ declare functional_status text; begin
+  functional_status:=case when current_setting('pepday.b2_real_failure',true)=''
+    then 'PASS'
+    else 'FAIL CONTROLADO — '||current_setting('pepday.b2_real_failure',true)
+  end;
+  execute format($prepared$
+    prepare pepday_b2_1_real_smoke_final as
+    with fixture_users(id) as (
+      values
+        ('f2100000-0000-4000-8000-000000000001'::uuid),
+        ('f2200000-0000-4000-8000-000000000002'::uuid),
+        ('f2300000-0000-4000-8000-000000000003'::uuid),
+        ('f2400000-0000-4000-8000-000000000004'::uuid)
+    ), remaining as (
+      select count(*)::bigint as linhas from auth.users where id in (select id from fixture_users)
+      union all select count(*) from public.profiles where id in (select id from fixture_users)
+      union all select count(*) from public.subscriptions where user_id in (select id from fixture_users)
+      union all select count(*) from public.trials where user_id in (select id from fixture_users)
+      union all select count(*) from public.settings where user_id in (select id from fixture_users)
+      union all select count(*) from public.vials where user_id in (select id from fixture_users)
+      union all select count(*) from public.routines where user_id in (select id from fixture_users)
+      union all select count(*) from public.routine_versions where user_id in (select id from fixture_users)
+      union all select count(*) from public.applications where user_id in (select id from fixture_users)
+      union all select count(*) from public.vial_movements where user_id in (select id from fixture_users)
+      union all select count(*) from public.local_data_imports where user_id in (select id from fixture_users)
+      union all select count(*) from public.legacy_import_records where user_id in (select id from fixture_users)
+      union all select count(*) from public.audit_logs where user_id in (select id from fixture_users)
+    ), total as (
+      select coalesce(sum(linhas),0)::bigint as fixtures from remaining
+    )
+    select %1$L::text as status_funcional,
+      case when fixtures=0 then 'ROLLBACK CONFIRMADO'
+        else 'FALHA NA LIMPEZA' end::text as status_limpeza,
+      fixtures as total_fixtures,
+      case when %1$L::text='PASS' and fixtures=0
+        then 'PASS FINAL' else 'FAIL FINAL' end::text as veredito_final
+    from total
+  $prepared$,functional_status);
+exception when others then
+  -- Falha técnica ao preparar o resultado é residual: nenhuma tentativa de
+  -- persistir status em tabela real é permitida.
+  perform set_config('pepday.b2_real_failure',
+    format('FINAL RESULT [%s]: %s',sqlstate,sqlerrm),true);
+end $$;
 
 rollback;
 
--- Esta é deliberadamente a última consulta. Todos os totais devem ser zero.
-with fixture_users(id) as (
-  values
-    ('f2100000-0000-4000-8000-000000000001'::uuid),
-    ('f2200000-0000-4000-8000-000000000002'::uuid),
-    ('f2300000-0000-4000-8000-000000000003'::uuid),
-    ('f2400000-0000-4000-8000-000000000004'::uuid)
-), remaining as (
-  select 'auth.users'::text as objeto,count(*)::bigint as linhas
-    from auth.users where id in (select id from fixture_users)
-  union all select 'profiles',count(*) from public.profiles where id in (select id from fixture_users)
-  union all select 'subscriptions',count(*) from public.subscriptions where user_id in (select id from fixture_users)
-  union all select 'trials',count(*) from public.trials where user_id in (select id from fixture_users)
-  union all select 'settings',count(*) from public.settings where user_id in (select id from fixture_users)
-  union all select 'vials',count(*) from public.vials where user_id in (select id from fixture_users)
-  union all select 'routines',count(*) from public.routines where user_id in (select id from fixture_users)
-  union all select 'routine_versions',count(*) from public.routine_versions where user_id in (select id from fixture_users)
-  union all select 'applications',count(*) from public.applications where user_id in (select id from fixture_users)
-  union all select 'vial_movements',count(*) from public.vial_movements where user_id in (select id from fixture_users)
-  union all select 'local_data_imports',count(*) from public.local_data_imports where user_id in (select id from fixture_users)
-  union all select 'legacy_import_records',count(*) from public.legacy_import_records where user_id in (select id from fixture_users)
-  union all select 'audit_logs',count(*) from public.audit_logs where user_id in (select id from fixture_users)
-)
-select objeto,linhas,
-  case when linhas=0 then 'OK — rollback confirmado' else 'ATENÇÃO — fixture remanescente' end as verificacao
-from remaining
-union all
-select 'TOTAL',sum(linhas),
-  case when sum(linhas)=0 then 'PASS — nenhum UUID de fixture permaneceu'
-    else 'FAIL — revisar antes de qualquer novo teste' end
-from remaining
-order by objeto;
+-- Último result set: combina o resultado funcional preservado na sessão com a
+-- contagem executada somente depois do ROLLBACK.
+execute pepday_b2_1_real_smoke_final;
 
 -- RECUPERAÇÃO RESIDUAL — somente se o SQL Editor interromper o lote antes do
 -- ROLLBACK acima por erro de parser/protocolo, perda de conexão ou falha da
 -- própria ferramenta:
 --   1. Na mesma sessão ainda aberta, execute isoladamente: ROLLBACK;
---   2. Execute novamente, isoladamente, a consulta iniciada por WITH fixture_users.
+--   2. Se PREPARE foi concluído, execute: EXECUTE pepday_b2_1_real_smoke_final;
+--      Caso contrário, use a consulta de limpeza documentada em
+--      docs/B2_REAL_VALIDATION.md.
 --   3. Não use DELETE/UPDATE de limpeza. Se a conexão tiver sido encerrada, o
 --      PostgreSQL já reverteu a transação; a consulta deve confirmar TOTAL = 0.
