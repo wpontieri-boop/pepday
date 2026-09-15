@@ -10,6 +10,12 @@ Este documento separa dois tipos de validação:
 Nada deste plano deve ser executado em produção. O único destino permitido é o
 projeto isolado `pepday-v3-test`, depois de revisão e autorização explícitas.
 
+O pacote executável dos cinco cenários finais está em
+`supabase/tests/block_b2_real_concurrency/README.md`. Ele contém setup, scripts
+separados para Sessão A/B, verificações e limpeza; o transporte JWT usa
+`scripts/test-b2-real-transport.mjs`. Esta seção continua sendo o contrato de
+segurança e contexto, enquanto o README do pacote define a ordem operacional.
+
 ## 1. Smoke transacional
 
 Executar o arquivo inteiro em uma única aba do SQL Editor. Não selecionar apenas
