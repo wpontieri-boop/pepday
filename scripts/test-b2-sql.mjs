@@ -6,7 +6,7 @@ const {PGlite}=await import(pathToFileURL(process.env.PGLITE_MODULE).href);
 const db=new PGlite();
 let currentFile='bootstrap';
 try {
-  await db.exec(`create role anon; create role authenticated;
+  await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create schema auth; create table auth.users(id uuid primary key,email text);
     create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
@@ -16,8 +16,11 @@ try {
     'supabase/migrations/202609090001_block_a.sql',
     'supabase/migrations/202609100002_complete_legacy_import.sql',
     'supabase/migrations/202609110003_block_b1_entitlements.sql',
-    'supabase/migrations/202609140004_block_b2_transactional_applications.sql'
+    'supabase/migrations/202609140004_block_b2_transactional_applications.sql',
+    'supabase/migrations/202609150005_block_b2_validation_service_role.sql'
   ]) {currentFile=file;await db.exec(await readFile(new URL('../'+file,import.meta.url),'utf8'));}
+  currentFile='supabase/tests/block_b2_service_role_privileges.sql';
+  await db.exec(await readFile(new URL('../'+currentFile,import.meta.url),'utf8'));
   currentFile='supabase/tests/complete_legacy_import.sql';
   await db.exec(await readFile(new URL('../'+currentFile,import.meta.url),'utf8'));
   currentFile='supabase/tests/block_b2_transactional_applications.sql';

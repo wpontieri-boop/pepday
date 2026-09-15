@@ -277,6 +277,13 @@ test('runner não depende de JWT, senha ou marker fornecidos por ambiente', asyn
   assert.match(source, /SUPABASE_SERVICE_ROLE_KEY/);
 });
 
+test('runner usa escrita service_role somente nas quatro tabelas administrativas', async () => {
+  const source = await readFile(new URL('../scripts/test-b2-real-transport.mjs', import.meta.url), 'utf8');
+  const directInserts = [...source.matchAll(/serviceInsert\('([^']+)'/g)].map(match => match[1]).sort();
+  assert.deepEqual(directInserts, ['local_data_imports', 'routine_versions', 'routines', 'vials']);
+  assert.doesNotMatch(source, /service(?:Rows|Insert)[\s\S]{0,160}method:\s*'(?:PATCH|PUT|DELETE)'/);
+});
+
 test('saída final única sanitiza chaves de ambiente', async () => {
   const output = [];
   const original = console.log;
