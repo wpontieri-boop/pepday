@@ -17,8 +17,9 @@ parte do arquivo.
 
 O smoke:
 
-- faz preflight antes da primeira escrita e aborta se algum UUID reservado já
-  existir;
+- faz preflight antes da primeira escrita em todos os 20 UUIDs literais
+  reservados: usuários, entidades, importação, legado e operações; IDs gerados
+  automaticamente pelas RPCs não aparecem como literal e não entram no preflight;
 - cria quatro usuários `.invalid`: FREE, TRIAL, PRO e outro PRO para isolamento;
 - usa o trigger já instalado de bootstrap de conta;
 - inicia o TRIAL pela RPC oficial;
@@ -27,7 +28,10 @@ O smoke:
 - cria dois frascos, duas rotinas, duas versões e uma âncora de importação;
 - chama `register_application()` e `undo_application()` como `authenticated`;
 - valida saldos, movimentos, replay, segundo Undo, entitlement, RLS e grants;
-- executa `ROLLBACK`;
+- captura reprovações funcionais e erros das etapas em blocos controlados, grava
+  o primeiro resultado em estado local, pula mutações posteriores e alcança o
+  `ROLLBACK` sem deixar deliberadamente uma transação abortada;
+- executa `ROLLBACK` tanto após `PASS` quanto após `FAIL CONTROLADO`;
 - consulta todas as tabelas envolvidas depois do rollback. A linha `TOTAL` deve
   mostrar zero e `PASS — nenhum UUID de fixture permaneceu`.
 
@@ -36,8 +40,8 @@ O smoke:
 - Ele insere linhas temporárias em `auth.users`; isso aciona apenas o bootstrap
   já instalado e não envia e-mail, pois os endereços são `.invalid` e a inserção
   é SQL direta.
-- Todas as escritas ficam na mesma transação. Se a conexão cair antes do
-  `ROLLBACK`, o PostgreSQL desfaz automaticamente a transação aberta.
+- Todas as escritas ficam na mesma transação. Reprovações funcionais e erros
+  capturados são mostrados como `FAIL CONTROLADO` e o lote segue até `ROLLBACK`.
 - Não há `DELETE`, alteração de migration, criação de função ou trigger.
 - O `UPDATE` existente alcança somente as assinaturas dos dois UUIDs PRO criados
   depois do preflight.
@@ -45,6 +49,24 @@ O smoke:
   PostgreSQL real, mas não comprovam o caminho HTTP completo nem um JWT emitido
   pelo Supabase Auth.
 - Uma única conexão não prova contenção, ordem de locks ou resultados sob disputa.
+
+### Erro técnico residual e recuperação
+
+Não existe garantia SQL de executar as instruções restantes quando o cliente
+interrompe o lote antes que o PostgreSQL possa tratá-lo. Permanecem residuais:
+
+- erro de parser fora dos blocos executáveis;
+- falha em `BEGIN`, `SET LOCAL ROLE`, `RESET ROLE` ou no protocolo do cliente;
+- perda de rede, encerramento da aba ou falha do SQL Editor.
+
+Se a conexão for encerrada, o PostgreSQL reverte automaticamente a transação. Se
+a aba mantiver a mesma sessão em estado abortado, executar isoladamente
+`ROLLBACK;` nessa aba. Em seguida, executar isoladamente a consulta pós-rollback
+que encerra `block_b2_real_smoke.sql`; a linha `TOTAL` deve ser zero. Não executar
+`DELETE` ou `UPDATE` de limpeza.
+
+Um resultado `FAIL CONTROLADO` não exige rollback manual: o próprio lote já chega
+ao `ROLLBACK`. Não repetir o smoke até registrar e revisar a mensagem retornada.
 
 ## 2. Preparação exclusiva para concorrência
 
