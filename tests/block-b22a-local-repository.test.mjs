@@ -57,9 +57,9 @@ const routine={id:'22222222-2222-4222-8222-222222222222',vialId:vial.id,name:'Ro
 
 function schemaFactory(){
   const stores=new Map();
-  const database={name:LOCAL_DB_NAME,version:1,objectStoreNames:{contains:name=>stores.has(name)},
+  const database={name:LOCAL_DB_NAME,version:2,objectStoreNames:{contains:name=>stores.has(name)},
     createObjectStore(name,options){
-      const indexes=[];const store={name,options,indexes,createIndex(indexName,keyPath,indexOptions){indexes.push({indexName,keyPath,indexOptions})}};
+      const indexes=[];const store={name,options,indexes,indexNames:{contains:indexName=>indexes.some(index=>index.indexName===indexName)},createIndex(indexName,keyPath,indexOptions){indexes.push({indexName,keyPath,indexOptions})}};
       stores.set(name,store);return store;
     },close(){},transaction(){throw new Error('não usado neste teste')}};
   return {stores,factory:{open(name,version){
@@ -71,19 +71,22 @@ function schemaFactory(){
 
 test('abre banco vazio com nome, versão e dez stores esperadas',async()=>{
   const fake=schemaFactory(),database=await openLocalDatabase({indexedDBFactory:fake.factory});
-  assert.equal(database.name,LOCAL_DB_NAME);assert.equal(database.version,1);
+  assert.equal(database.name,LOCAL_DB_NAME);assert.equal(database.version,2);
   assert.deepEqual([...fake.stores.keys()],LOCAL_STORE_NAMES);
   for(const store of fake.stores.values()){
     assert.deepEqual(store.options.keyPath,['accountScope','id']);
     assert.equal(store.indexes[0].indexName,'accountScope');
+    if(store.name==='outbox')assert.deepEqual(store.indexes.slice(1).map(index=>index.indexName),['operationId','sequence']);
   }
 });
 
-test('upgrade de schema só cria stores na versão inicial',()=>{
+test('upgrade de schema cria stores inicialmente e índices da outbox na versão 2',()=>{
   const created=[];
-  const database={createObjectStore(name){created.push(name);return {createIndex(){}}}};
+  const database={createObjectStore(name){created.push(name);return {indexNames:{contains:()=>false},createIndex(){}}}};
   upgradeLocalSchema(database,0);assert.deepEqual(created,LOCAL_STORE_NAMES);
-  created.length=0;upgradeLocalSchema(database,1);assert.deepEqual(created,[]);
+  const indexes=[],outbox={indexNames:{contains:()=>false},createIndex(name,keyPath,options){indexes.push({name,keyPath,options})}};
+  created.length=0;upgradeLocalSchema(database,1,{objectStore:name=>{assert.equal(name,'outbox');return outbox}});assert.deepEqual(created,[]);
+  assert.deepEqual(indexes.map(index=>index.name),['operationId','sequence']);
 });
 
 test('upgrade interrompido rejeita de forma controlada e fecha sucesso tardio',async()=>{
@@ -269,6 +272,6 @@ test('somente local-db encapsula chamadas IndexedDB e app não grava chaves lega
   for(const asset of ['src/local-db.mjs','src/pepday-repository.mjs','src/local-data-migration.mjs']){
     const escaped=asset.replace(/[./]/g,'\\$&');assert.match(serviceWorker,new RegExp(escaped));assert.match(devServer,new RegExp(escaped));
   }
-  assert.match(serviceWorker,/pepday-v3-b22a-local-repository-hardening/);
+  assert.match(serviceWorker,/pepday-v3-b22b-outbox/);
   assert.doesNotMatch(serviceWorker,/indexedDB|deleteDatabase/);
 });

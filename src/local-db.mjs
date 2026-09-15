@@ -1,5 +1,5 @@
 export const LOCAL_DB_NAME = 'pepday_v3_local';
-export const LOCAL_DB_VERSION = 1;
+export const LOCAL_DB_VERSION = 2;
 
 export const LOCAL_STORE_NAMES = Object.freeze([
   'vials',
@@ -25,12 +25,21 @@ const transactionDone = transaction => new Promise((resolve,reject)=>{
   transaction.onerror=()=>{}; // onabort contém o erro final da transação.
 });
 
-export function upgradeLocalSchema(database, oldVersion) {
+function ensureOutboxIndexes(store){
+  if(!store.indexNames.contains('operationId'))store.createIndex('operationId','operationId',{unique:true});
+  if(!store.indexNames.contains('sequence'))store.createIndex('sequence',['accountScope','sequence'],{unique:true});
+}
+
+export function upgradeLocalSchema(database, oldVersion, transaction=null) {
   if(oldVersion<1){
     for(const name of LOCAL_STORE_NAMES){
       const store=database.createObjectStore(name,{keyPath:['accountScope','id']});
       store.createIndex('accountScope','accountScope',{unique:false});
+      if(name==='outbox')ensureOutboxIndexes(store);
     }
+  }else if(oldVersion<2){
+    if(!transaction)throw new Error('Transação de upgrade obrigatória para atualizar a outbox.');
+    ensureOutboxIndexes(transaction.objectStore('outbox'));
   }
 }
 
@@ -40,6 +49,7 @@ function transactionStore(transaction,name){
     get:(accountScope,id)=>requestResult(store.get([accountScope,id])),
     getAll:()=>requestResult(store.getAll()),
     getAllByScope:accountScope=>requestResult(store.index('accountScope').getAll(accountScope)),
+    getByIndex:(indexName,key)=>requestResult(store.index(indexName).get(key)),
     put:value=>requestResult(store.put(value)),
     delete:(accountScope,id)=>requestResult(store.delete([accountScope,id])),
     clear:()=>requestResult(store.clear())
@@ -81,7 +91,7 @@ export function openLocalDatabase({indexedDBFactory=globalThis.indexedDB,name=LO
     const request=indexedDBFactory.open(name,version);let settled=false,upgradeError=null;
     const fail=error=>{if(settled)return;settled=true;reject(error)};
     request.onupgradeneeded=event=>{
-      try{upgradeLocalSchema(request.result,event.oldVersion || 0)}
+      try{upgradeLocalSchema(request.result,event.oldVersion || 0,request.transaction)}
       catch(error){upgradeError=error;try{request.transaction?.abort()}catch{}fail(error)}
     };
     request.onsuccess=()=>{

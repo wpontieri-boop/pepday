@@ -43,7 +43,7 @@ test('salvar e cancelar frasco retornam à rotina; somente salvar seleciona um I
   assert.match(js,/routineAddVial[^]*vialReturnToRoutine=true;[^]*go\('vials'\);[^]*openVial\(\)/);
   assert.match(js,/cancelVial[^]*returnToRoutineFromVial\(\)/);
   assert.match(js,/savedVialId=crypto\.randomUUID\(\)[^]*await returnToRoutineFromVial\(savedVialId\)/);
-  assert.match(js,/saveVialWithDraft\(savedVial,draft\)/);
+  assert.match(js,/saveVialWithDraftAndOutbox\(savedVial,draft,operation\)/);
 });
 
 test('tooltip de Rotinas reutiliza interação visual responsiva',async()=>{

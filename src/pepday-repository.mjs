@@ -1,4 +1,5 @@
 import { openLocalDatabase } from './local-db.mjs';
+import { createSyncOutbox, enqueueOutboxInTransaction } from './sync-outbox.mjs';
 
 const ENTITY_STORES=new Set(['vials','routines','routineVersions','applications','vialMovements']);
 const WRITABLE_COLLECTIONS=new Set(['vials','routines','drafts','meta','migrationReceipts']);
@@ -54,10 +55,37 @@ function collection(database,getScope,storeName,{readonly=false}={}){
   });
 }
 
-export function createPepDayRepository({database,accountScope}){
+export function createPepDayRepository({database,accountScope,outboxOptions={}}){
   if(!database?.transaction)throw new Error('Banco local obrigatório.');
   let activeScope=assertAccountScope(accountScope);
   const getScope=()=>activeScope;
+  const outbox=createSyncOutbox({database,getAccountScope:getScope,...outboxOptions});
+  const outboxNow=()=>new Date((outboxOptions.clock||Date.now)()).toISOString();
+  async function saveEntityWithOutbox(storeName,entity,{operationId,type,draft=null,clearDraft=false}={}){
+    const scope=getScope(),id=assertId(entity?.id),stores=[storeName,'outbox','meta'];
+    if(draft||clearDraft)stores.push('drafts');
+    return database.transaction(stores,'readwrite',async tx=>{
+      const previous=await tx[storeName].get(scope,id),next=recordFor(scope,id,entity,previous);
+      await tx[storeName].put(next);
+      if(draft){const priorDraft=await tx.drafts.get(scope,assertId(draft.id));await tx.drafts.put(recordFor(scope,draft.id,draft,priorDraft))}
+      if(clearDraft)await tx.drafts.delete(scope,'routine-form');
+      const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,
+        type:type||(previous?'edit':'create'),entityType:storeName==='vials'?'vial':'routine',entityId:id,
+        payload:entity,baseVersion:previous?.localRevision||null,dependencies:[]}});
+      return {entity:clone(entity),outbox:queued};
+    });
+  }
+  async function deleteEntityWithOutbox(storeName,id,{operationId,dependencies=[]}={}){
+    const scope=getScope(),entityId=assertId(id);
+    return database.transaction([storeName,'outbox','meta'],'readwrite',async tx=>{
+      const previous=await tx[storeName].get(scope,entityId);
+      await tx[storeName].delete(scope,entityId);
+      const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,type:'delete',
+        entityType:storeName==='vials'?'vial':'routine',entityId,payload:null,
+        baseVersion:previous?.localRevision||null,dependencies}});
+      return {entity:previous?dataFrom(previous):null,outbox:queued};
+    });
+  }
   const repository={
     get accountScope(){return activeScope},
     setAccountScope(next){activeScope=assertAccountScope(next);return activeScope},
@@ -69,6 +97,7 @@ export function createPepDayRepository({database,accountScope}){
     drafts:collection(database,getScope,'drafts'),
     meta:collection(database,getScope,'meta'),
     migrationReceipts:collection(database,getScope,'migrationReceipts'),
+    outbox,
     async importLegacy({receiptId,sourceHash,routines,vials,validateSource=()=>true}){
       const scope=getScope();
       assertId(receiptId);
@@ -112,6 +141,11 @@ export function createPepDayRepository({database,accountScope}){
       });
       return {vial:clone(vial),draft:clone(draft)};
     },
+    saveRoutineWithOutbox(routine,options){return saveEntityWithOutbox('routines',routine,{...options,clearDraft:true})},
+    saveVialWithOutbox(vial,options){return saveEntityWithOutbox('vials',vial,options)},
+    saveVialWithDraftAndOutbox(vial,draft,options){return saveEntityWithOutbox('vials',vial,{...options,draft})},
+    deleteRoutineWithOutbox(id,options){return deleteEntityWithOutbox('routines',id,options)},
+    deleteVialWithOutbox(id,options){return deleteEntityWithOutbox('vials',id,options)},
     async clearUserData(){
       const scope=getScope(),stores=['routines','vials','drafts'];
       await database.transaction(stores,'readwrite',async txStores=>{
@@ -133,9 +167,9 @@ export function createPepDayRepository({database,accountScope}){
   return Object.freeze(repository);
 }
 
-export async function openPepDayRepository({accountScope,indexedDBFactory,databaseName}={}){
+export async function openPepDayRepository({accountScope,indexedDBFactory,databaseName,outboxOptions}={}){
   const database=await openLocalDatabase({indexedDBFactory,name:databaseName});
-  return createPepDayRepository({database,accountScope});
+  return createPepDayRepository({database,accountScope,outboxOptions});
 }
 
 export async function openDeviceRepository({indexedDBFactory,databaseName,database:providedDatabase,cryptoProvider=globalThis.crypto}={}){

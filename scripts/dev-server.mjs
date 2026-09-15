@@ -13,7 +13,7 @@ const permitted=new Set(['index.html','app.js','style.css','account.css','manife
   'termos.html','privacidade.html',
   'src/import-completion.mjs','src/account-ui.mjs','src/account.mjs','src/cloud.mjs','src/legacy-import.mjs',
   'src/entitlement.mjs','src/access-control.mjs','src/pro-gate.mjs','src/local-db.mjs',
-  'src/pepday-repository.mjs','src/local-data-migration.mjs','vendor/supabase-2.116.0.js']);
+  'src/pepday-repository.mjs','src/local-data-migration.mjs','src/sync-outbox.mjs','vendor/supabase-2.116.0.js']);
 http.createServer(async(req,res)=>{
   try {
     const url=new URL(req.url,'http://localhost'), path=decodeURIComponent(url.pathname).replace(/^\//,'')||'index.html';

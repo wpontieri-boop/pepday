@@ -190,6 +190,19 @@ logout ou outros testes já aprovados sem necessidade objetiva para um novo delt
 - Segredos e variáveis sensíveis removidos da sessão do PowerShell após o teste.
 - **B2.1 encerrada e aprovada.**
 
+## Fase B2.2-A — encerrada e aprovada
+
+Validação humana real concluída em 15/09/2026:
+
+- Persistência de Frasco após reload: `PASS`.
+- Segunda aba abriu logada e enxergou o mesmo escopo: `PASS`.
+- Frasco criado na aba 2 persistiu e apareceu na aba 1 após reload: `PASS`.
+- Logout bloqueou acesso a Frascos: `PASS`.
+- Login com segunda conta e trial PRO de sete dias abriu Frascos vazio: `PASS`.
+- Nenhum dado da primeira conta apareceu na segunda: `PASS`.
+- Isolamento entre contas: `PASS`.
+- **B2.2-A Repository Local encerrado e aprovado.**
+
 ## Pendências
 
 ### Bloco B

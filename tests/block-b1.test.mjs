@@ -105,7 +105,7 @@ test('módulos B1 estão disponíveis no servidor local e no cache versionado da
     assert.match(serviceWorker,new RegExp(asset.replace(/[./]/g,'\\$&')));
     assert.match(devServer,new RegExp(asset.replace(/[./]/g,'\\$&')));
   }
-  assert.match(serviceWorker,/pepday-v3-b22a-local-repository/);
+  assert.match(serviceWorker,/pepday-v3-b22b-outbox/);
 });
 
 class TestCustomEvent extends Event {constructor(type,options={}){super(type);this.detail=options.detail}}
@@ -210,8 +210,8 @@ test('trial e PRO não contornam bootstrap local nem regravam o legado fora do r
     assert.equal(h.store.get('pepday_v1_routines'),beforeR);
     assert.equal(h.store.get('pepday_v2_vials'),beforeV);
   }
-  assert.match(appSource,/repository\.saveRoutineAndClearDraft\(obj\)/);
-  assert.match(appSource,/repository\.vials\.put\(savedVial\)/);
+  assert.match(appSource,/repository\.saveRoutineWithOutbox\(obj/);
+  assert.match(appSource,/repository\.saveVialWithOutbox\(savedVial/);
   assert.match(appSource,/Nenhum saldo foi alterado/);
 });
 
