@@ -105,7 +105,7 @@ test('módulos B1 estão disponíveis no servidor local e no cache versionado da
     assert.match(serviceWorker,new RegExp(asset.replace(/[./]/g,'\\$&')));
     assert.match(devServer,new RegExp(asset.replace(/[./]/g,'\\$&')));
   }
-  assert.match(serviceWorker,/pepday-v3-b1-gate-hardening/);
+  assert.match(serviceWorker,/pepday-v3-b22a-local-repository/);
 });
 
 class TestCustomEvent extends Event {constructor(type,options={}){super(type);this.detail=options.detail}}
@@ -163,6 +163,7 @@ function appHarness(status='free',routineDone=false){
     alert(){},confirm:()=>true,prompt:()=> '7',CustomEvent:TestCustomEvent,
     setTimeout:fn=>{fn();return 1},clearTimeout(){},
     PepDayAccess:Object.freeze({requirePro:()=>allowed}),
+    PepDayDisableRepositoryBootstrap:true,
     addEventListener(type,fn){(windowListeners[type]??=[]).push(fn)},scrollTo(){},innerHeight:800,innerWidth:400
   };
   context.window=context;context.globalThis=context;
@@ -192,31 +193,30 @@ test('mutadores diretos de rotina, frasco e aplicação não alteram dados no FR
   }
 });
 
-test('mutações representativas são liberadas em trial e PRO ativo',()=>{
+test('trial e PRO alcançam formulários, mas não regravam o legado fora do repository',async()=>{
   for(const status of ['trial','pro_active']){
     const h=appHarness(status);
+    const beforeR=h.store.get('pepday_v1_routines'),beforeV=h.store.get('pepday_v2_vials');
     h.context.toggleDone('r1');
-    assert.notEqual(h.store.get('pepday_v1_routines'),undefined);
-    assert.equal(JSON.parse(h.store.get('pepday_v1_routines'))[0].done.length,1);
-    assert.equal(JSON.parse(h.store.get('pepday_v2_vials'))[0].remainingMg,7);
-    h.context.adjustVial('v1');
-    assert.equal(JSON.parse(h.store.get('pepday_v2_vials'))[0].remainingMg,7);
+    await h.context.adjustVial('v1');
     h.element('newRoutine').onclick();
+    assert.equal(h.element('routineForm').classList.contains('hidden'),false);
     Object.assign(h.element('rName'),{value:'R2'});Object.assign(h.element('rVial'),{value:'v1'});
     Object.assign(h.element('rDose'),{value:'1'});Object.assign(h.element('rDoseUnit'),{value:'mg'});
     Object.assign(h.element('rSyringe'),{value:'100'});Object.assign(h.element('rRefillAt'),{value:'3'});
     Object.assign(h.element('frequency'),{value:'daily'});Object.assign(h.element('startDate'),{value:'2026-09-11'});
-    h.element('saveRoutine').onclick();
-    assert.equal(JSON.parse(h.store.get('pepday_v1_routines')).length,2);
+    await h.element('saveRoutine').onclick();
     h.element('newVial').onclick();
+    assert.equal(h.element('vialForm').classList.contains('hidden'),false);
     Object.assign(h.element('vName'),{value:'Novo'});Object.assign(h.element('vMg'),{value:'5'});
     Object.assign(h.element('vWater'),{value:'1'});Object.assign(h.element('vDate'),{value:'2026-09-11'});
-    h.element('saveVial').onclick();
-    assert.equal(JSON.parse(h.store.get('pepday_v2_vials')).length,2);
-    const undo=appHarness(status,true);undo.context.toggleDone('r1');
-    assert.equal(JSON.parse(undo.store.get('pepday_v1_routines'))[0].done.length,0);
-    assert.equal(JSON.parse(undo.store.get('pepday_v2_vials'))[0].remainingMg,9);
+    await h.element('saveVial').onclick();
+    assert.equal(h.store.get('pepday_v1_routines'),beforeR);
+    assert.equal(h.store.get('pepday_v2_vials'),beforeV);
   }
+  assert.match(appSource,/repository\.saveRoutineAndClearDraft\(obj\)/);
+  assert.match(appSource,/repository\.vials\.put\(savedVial\)/);
+  assert.match(appSource,/Nenhum saldo foi alterado/);
 });
 
 test('ex-assinante expirado sem trial usado não recebe trial',()=>{

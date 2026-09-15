@@ -15,7 +15,7 @@ test('formulários de nova Rotina e novo Frasco ficam antes das listas',async()=
 test('abrir, cancelar e editar continuam usando os formulários existentes',async()=>{
   const js=await read('app.js');
   assert.match(js,/newRoutine'\)\.onclick=\(\)=>openRoutine\(\)/);
-  assert.match(js,/cancelRoutine'\)\.onclick=\(\)=>\$\('#routineForm'\)\.classList\.add\('hidden'\)/);
+  assert.match(js,/cancelRoutine'\)\.onclick=async\(\)=>[^]*drafts\.delete\('routine-form'\)[^]*routineForm'\)\.classList\.add\('hidden'\)/);
   assert.match(js,/window\.editR=id=>openRoutine/);
   assert.match(js,/newVial'\)\.onclick=\(\)=>\{vialReturnToRoutine=false;openVial\(\)\}/);
   assert.match(js,/cancelVial'\)\.onclick=.*classList\.add\('hidden'\).*returnToRoutineFromVial\(\)/);
@@ -42,8 +42,8 @@ test('salvar e cancelar frasco retornam à rotina; somente salvar seleciona um I
   const js=await read('app.js');
   assert.match(js,/routineAddVial[^]*vialReturnToRoutine=true;[^]*go\('vials'\);[^]*openVial\(\)/);
   assert.match(js,/cancelVial[^]*returnToRoutineFromVial\(\)/);
-  assert.match(js,/savedVialId=crypto\.randomUUID\(\)[^]*returnToRoutineFromVial\(savedVialId\)/);
-  assert.match(js,/if\(vialId\)fillRoutineVials\(vialId\)/);
+  assert.match(js,/savedVialId=crypto\.randomUUID\(\)[^]*await returnToRoutineFromVial\(savedVialId\)/);
+  assert.match(js,/saveVialWithDraft\(savedVial,draft\)/);
 });
 
 test('tooltip de Rotinas reutiliza interação visual responsiva',async()=>{

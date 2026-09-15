@@ -1,10 +1,36 @@
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const key='pepday_v1_routines';
-let routines=JSON.parse(localStorage.getItem(key)||'[]');
 const vialKey='pepday_v2_vials';
-let vials=JSON.parse(localStorage.getItem(vialKey)||'[]');
+function readLegacyArray(storageKey){try{let value=JSON.parse(localStorage.getItem(storageKey)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
+let routines=readLegacyArray(key),vials=readLegacyArray(vialKey),localRepository=null;
 let lastCalc=null, editing=null, editingVial=null, vialReturnToRoutine=false;
+
+const repositoryReady=(async()=>{
+  if(globalThis.PepDayDisableRepositoryBootstrap===true)return null;
+  const [{openDeviceRepository},{migrateLocalStorageToRepository}]=await Promise.all([
+    import('./src/pepday-repository.mjs'),import('./src/local-data-migration.mjs')
+  ]);
+  const repository=await openDeviceRepository();
+  localRepository=repository;
+  try{await migrateLocalStorageToRepository({repository,storage:localStorage})}
+  catch(error){console.error('PepDay legacy migration:',error);alert('A cópia antiga não pôde ser migrada automaticamente. Ela foi preservada sem alterações. Os dados já conferidos neste aparelho continuam disponíveis.')}
+  [routines,vials]=await Promise.all([repository.routines.list(),repository.vials.list()]);
+  const draft=await repository.drafts.get('routine-form');
+  if(draft)applyRoutineDraft(draft);
+  renderToday();renderRoutines();renderVials();
+  return repository;
+})().catch(error=>{console.error('PepDay local repository:',error);return null});
+
+async function requireLocalRepository(){
+  const repository=localRepository||await repositoryReady;
+  if(!repository)alert('O armazenamento local seguro não está disponível neste navegador. Nenhum dado foi alterado.');
+  return repository;
+}
+async function localOperation(action){
+  try{return {ok:true,value:await action()}}
+  catch(error){console.error('PepDay local operation:',error);alert('Não foi possível salvar os dados neste aparelho. Nenhuma alteração parcial foi mantida.');return {ok:false}}
+}
 
 function isoToday(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function br(n,max=4){return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:max})}
@@ -37,24 +63,9 @@ function renderToday(){
 }
 function toggleDone(id){
  if(!requirePro('application:toggle'))return false;
- let r=routines.find(x=>x.id===id); if(!r)return; r.done=r.done||[]; let day=isoToday(), done=r.done.includes(day), v=vials.find(x=>x.id===r.vialId);
- if(!done){
-   if(v){
-     if(v.remainingMg+1e-9<r.doseMg){alert(`Saldo insuficiente em ${v.name}. Restam ${br(v.remainingMg,3)} mg.`);return}
-     let before=v.remainingMg; v.remainingMg=Math.max(0,v.remainingMg-r.doseMg); v.history=v.history||[];
-     v.history.unshift({date:new Date().toISOString(),type:'dose',routineId:r.id,routineName:r.name,day,mg:r.doseMg,ui:r.ui,ml:r.ml,doseValue:r.doseValue,doseUnit:r.doseUnit,vialId:r.vialId,before,after:v.remainingMg});
-     saveVials();
-   }
-   r.done=[...r.done,day];
- }else{
-   r.done=r.done.filter(x=>x!==day);
-   if(v){
-     v.history=v.history||[];
-     let i=v.history.findIndex(h=>h.type==='dose'&&h.routineId===r.id&&h.day===day);
-     if(i>=0){let h=v.history[i],before=v.remainingMg;v.remainingMg=Math.min(v.initialMg,v.remainingMg+h.mg);v.history.splice(i,1);v.history.unshift({date:new Date().toISOString(),type:'undo',routineId:r.id,routineName:r.name,day,mg:h.mg,ui:r.ui,before,after:v.remainingMg});saveVials()}
-   }
- }
- save();renderToday();renderVials();
+ if(!routines.some(x=>x.id===id))return false;
+ alert('Aplicações e Undo serão conectados ao registro transacional na próxima etapa. Nenhum saldo foi alterado.');
+ return false;
 }
 window.toggleDone=toggleDone;
 
@@ -108,9 +119,28 @@ function openRoutine(calc=null,r=null){
  $('#frequency').value=r?.frequency||'daily'; $('#startDate').value=r?.start||isoToday(); $('#rTime').value=r?.time||'';
  $$('#weekdaysBox input').forEach(c=>c.checked=(r?.weekdays||[]).includes(+c.value)); toggleWeekdays(); calcRoutinePreview();
 }
-$('#newRoutine').onclick=()=>openRoutine(); $('#cancelRoutine').onclick=()=>$('#routineForm').classList.add('hidden');
-$('#routineAddVial').onclick=()=>{
+function captureRoutineDraft(){return {id:'routine-form',editing,lastCalc,
+  fields:{name:$('#rName').value,vialId:$('#rVial').value,dose:$('#rDose').value,doseUnit:$('#rDoseUnit').value,
+    syringe:$('#rSyringe').value,refillAt:$('#rRefillAt').value,frequency:$('#frequency').value,
+    startDate:$('#startDate').value,time:$('#rTime').value,
+    weekdays:$$('#weekdaysBox input:checked').map(input=>+input.value)}}}
+function applyRoutineDraft(draft,{show=false}={}){
+ if(!draft?.fields)return false;
+ editing=draft.editing||null;lastCalc=draft.lastCalc||lastCalc;
+ $('#routineFormTitle').textContent=editing?'Editar rotina':'Nova rotina';
+ $('#rName').value=draft.fields.name||'';fillRoutineVials(draft.fields.vialId||'');
+ $('#rDose').value=draft.fields.dose??'';$('#rDoseUnit').value=draft.fields.doseUnit||'mg';
+ $('#rSyringe').value=String(draft.fields.syringe||100);$('#rRefillAt').value=String(draft.fields.refillAt||3);
+ $('#frequency').value=draft.fields.frequency||'daily';$('#startDate').value=draft.fields.startDate||isoToday();
+ $('#rTime').value=draft.fields.time||'';
+ $$('#weekdaysBox input').forEach(input=>input.checked=(draft.fields.weekdays||[]).includes(+input.value));
+ toggleWeekdays();calcRoutinePreview();if(show)$('#routineForm').classList.remove('hidden');return true;
+}
+$('#newRoutine').onclick=()=>openRoutine(); $('#cancelRoutine').onclick=async()=>{let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.drafts.delete('routine-form'))).ok)return false;$('#routineForm').classList.add('hidden')};
+$('#routineAddVial').onclick=async()=>{
  if(!requirePro('routine:create-vial'))return false;
+ let repository=await requireLocalRepository();if(!repository)return false;
+ if(!(await localOperation(()=>repository.drafts.put(captureRoutineDraft()))).ok)return false;
  vialReturnToRoutine=true;
  go('vials');
  openVial();
@@ -118,8 +148,9 @@ $('#routineAddVial').onclick=()=>{
 };
 $('#frequency').onchange=toggleWeekdays;
 function toggleWeekdays(){$('#weekdaysBox').classList.toggle('hidden',$('#frequency').value!=='weekdays')}
-$('#saveRoutine').onclick=()=>{
+$('#saveRoutine').onclick=async()=>{
  if(!requirePro(editing?'routine:save-edit':'routine:save-create'))return false;
+ let repository=await requireLocalRepository();if(!repository)return false;
  let name=$('#rName').value.trim(), frequency=$('#frequency').value, start=$('#startDate').value, vialId=$('#rVial').value;
  let preview=calcRoutinePreview(), doseValue=+$('#rDose').value, doseUnit=$('#rDoseUnit').value, syringeCapacity=+$('#rSyringe').value, refillAt=+$('#rRefillAt').value;
  if(!name||!start||!vialId||!preview){alert('Confira nome, frasco, quantidade por aplicação e data.');return}
@@ -170,19 +201,17 @@ $('#saveRoutine').onclick=()=>{
    done:old?.done||[],
    doseHistory
  };
+ if(!(await localOperation(()=>repository.saveRoutineAndClearDraft(obj))).ok)return false;
  if(editing)routines=routines.map(x=>x.id===editing?obj:x); else routines.push(obj);
- save();$('#routineForm').classList.add('hidden');renderRoutines();renderToday();renderVials();
+ $('#routineForm').classList.add('hidden');renderRoutines();renderToday();renderVials();
 };
 function renderRoutines(){
  let box=$('#routineList'); if(!routines.length){box.innerHTML='<div class="card empty"><p>Você ainda não salvou nenhuma rotina.</p></div>';return}
  box.innerHTML=routines.map(r=>{let v=vials.find(x=>x.id===r.vialId);return `<div class="routine"><div><h4>${esc(r.name)}</h4><p>${br(r.doseValue,3)} ${r.doseUnit} por aplicação • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button onclick="editR('${r.id}')">Editar</button> <button onclick="delR('${r.id}')">Excluir</button></div></div>`}).join('');
 }
 window.editR=id=>openRoutine(null,routines.find(x=>x.id===id));
-window.delR=id=>{if(!requirePro('routine:delete'))return false;if(confirm('Excluir esta rotina?')){routines=routines.filter(x=>x.id!==id);save();renderRoutines()}};
-function save(){localStorage.setItem(key,JSON.stringify(routines))}
+window.delR=async id=>{if(!requirePro('routine:delete'))return false;if(confirm('Excluir esta rotina?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.routines.delete(id))).ok)return false;routines=routines.filter(x=>x.id!==id);renderRoutines()}};
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-
-function saveVials(){localStorage.setItem(vialKey,JSON.stringify(vials))}
 function vialPct(v){return v.initialMg>0?Math.max(0,Math.min(100,(v.remainingMg/v.initialMg)*100)):0}
 
 function closeFieldTooltips(except=null){
@@ -350,26 +379,35 @@ function renderVials(){
  }).join('');
 }
 function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create'))return false;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
-function returnToRoutineFromVial(vialId=null){
+async function returnToRoutineFromVial(vialId=null){
  if(!vialReturnToRoutine)return false;
- vialReturnToRoutine=false;go('routines');$('#routineForm').classList.remove('hidden');
- if(vialId)fillRoutineVials(vialId);
+ let repository=await requireLocalRepository();if(!repository)return false;
+ let result=await localOperation(()=>repository.drafts.get('routine-form'));if(!result.ok)return false;let draft=result.value;
+ vialReturnToRoutine=false;go('routines');if(draft)applyRoutineDraft(draft,{show:true});else $('#routineForm').classList.remove('hidden');
+ if(vialId&&$('#rVial').value!==vialId)fillRoutineVials(vialId);
  calcRoutinePreview();$('#routineForm').scrollIntoView({behavior:'smooth'});return true;
 }
 $('#newVial').onclick=()=>{vialReturnToRoutine=false;openVial()};
-$('#cancelVial').onclick=()=>{$('#vialForm').classList.add('hidden');returnToRoutineFromVial()};
-$('#saveVial').onclick=()=>{
+$('#cancelVial').onclick=async()=>{$('#vialForm').classList.add('hidden');return returnToRoutineFromVial()};
+$('#saveVial').onclick=async()=>{
  if(!requirePro(editingVial?'vial:save-edit':'vial:save-create'))return false;
+ let repository=await requireLocalRepository();if(!repository)return false;
  let name=$('#vName').value.trim(),initialMg=+$('#vMg').value,waterMl=+$('#vWater').value,date=$('#vDate').value,cost=+$('#vCost').value||0;
  if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}
  let savedVialId=editingVial;
- if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);vials=vials.map(x=>x.id===editingVial?{...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used)}:x)}
- else{savedVialId=crypto.randomUUID();vials.push({id:savedVialId,name,initialMg,waterMl,date,cost,remainingMg:initialMg,history:[]})}
- saveVials();$('#vialForm').classList.add('hidden');renderVials();returnToRoutineFromVial(savedVialId);
+ let savedVial;
+ if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);savedVial={...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used)}}
+ else{savedVialId=crypto.randomUUID();savedVial={id:savedVialId,name,initialMg,waterMl,date,cost,remainingMg:initialMg,history:[]}}
+ let draft=null;
+ if(vialReturnToRoutine){let read=await localOperation(()=>repository.drafts.get('routine-form'));if(!read.ok)return false;draft=read.value;if(draft)draft={...draft,fields:{...draft.fields,vialId:savedVialId}}}
+ let saved=draft?await localOperation(()=>repository.saveVialWithDraft(savedVial,draft)):await localOperation(()=>repository.vials.put(savedVial));
+ if(!saved.ok)return false;
+ if(editingVial)vials=vials.map(x=>x.id===editingVial?savedVial:x);else vials.push(savedVial);
+ $('#vialForm').classList.add('hidden');renderVials();await returnToRoutineFromVial(savedVialId);
 };
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
-window.deleteVial=id=>{if(!requirePro('vial:delete'))return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){vials=vials.filter(x=>x.id!==id);saveVials();renderVials()}};
-window.adjustVial=id=>{if(!requirePro('vial:adjust-balance'))return false;let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let before=v.remainingMg;v.remainingMg=n;v.history=v.history||[];v.history.unshift({date:new Date().toISOString(),type:'adjust',before,after:n});saveVials();renderVials()};
+window.deleteVial=async id=>{if(!requirePro('vial:delete'))return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.vials.delete(id))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials()}};
+window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance'))return false;let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.vials.put(next))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
 window.showVialHistory=id=>{
  if(!requirePro('vial:view-history'))return false;
  let v=vials.find(x=>x.id===id),h=v.history||[];
@@ -388,7 +426,7 @@ window.showVialHistory=id=>{
 };
 $('#closeHistory').onclick=()=>$('#historyCard').classList.add('hidden');
 
-$('#eraseData').onclick=()=>{if(confirm('Apagar todas as rotinas salvas neste aparelho?')){localStorage.removeItem(key);localStorage.removeItem(vialKey);routines=[];vials=[];renderToday();alert('Dados locais apagados.')}};
+$('#eraseData').onclick=async()=>{if(confirm('Apagar todas as rotinas salvas neste aparelho?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.clearUserData())).ok)return false;routines=[];vials=[];renderToday();renderRoutines();renderVials();alert('Dados locais apagados.')}};
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});
