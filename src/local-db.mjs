@@ -74,16 +74,26 @@ export class LocalDatabase {
   write(storeName,work){return this.transaction(storeName,'readwrite',stores=>work(stores[storeName]))}
 }
 
-export function openLocalDatabase({indexedDBFactory=globalThis.indexedDB,name=LOCAL_DB_NAME,version=LOCAL_DB_VERSION}={}){
+export function openLocalDatabase({indexedDBFactory=globalThis.indexedDB,name=LOCAL_DB_NAME,version=LOCAL_DB_VERSION,
+  onBlocked=()=>{},onVersionChange=()=>{}}={}){
   if(!indexedDBFactory?.open) return Promise.reject(new Error('IndexedDB indisponível neste navegador.'));
   return new Promise((resolve,reject)=>{
-    const request=indexedDBFactory.open(name,version);
+    const request=indexedDBFactory.open(name,version);let settled=false,upgradeError=null;
+    const fail=error=>{if(settled)return;settled=true;reject(error)};
     request.onupgradeneeded=event=>{
       try{upgradeLocalSchema(request.result,event.oldVersion || 0)}
-      catch(error){request.transaction?.abort();reject(error)}
+      catch(error){upgradeError=error;try{request.transaction?.abort()}catch{}fail(error)}
     };
-    request.onsuccess=()=>resolve(new LocalDatabase(request.result));
-    request.onerror=()=>reject(request.error || new Error('Não foi possível abrir os dados locais.'));
-    request.onblocked=()=>reject(new Error('Feche outras abas antigas do PepDay para atualizar os dados locais.'));
+    request.onsuccess=()=>{
+      const database=request.result;
+      database.onversionchange=event=>{database.close();try{onVersionChange(event)}catch{}};
+      if(settled){database.close();return}
+      settled=true;resolve(new LocalDatabase(database));
+    };
+    request.onerror=()=>fail(upgradeError||request.error||new Error('Não foi possível abrir os dados locais.'));
+    request.onblocked=()=>{
+      const error=new Error('Feche outras abas antigas do PepDay para atualizar os dados locais.');
+      error.code='IDB_BLOCKED';try{onBlocked(error)}catch{}fail(error);
+    };
   });
 }

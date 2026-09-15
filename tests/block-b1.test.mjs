@@ -193,23 +193,19 @@ test('mutadores diretos de rotina, frasco e aplicação não alteram dados no FR
   }
 });
 
-test('trial e PRO alcançam formulários, mas não regravam o legado fora do repository',async()=>{
+test('trial e PRO não contornam bootstrap local nem regravam o legado fora do repository',async()=>{
   for(const status of ['trial','pro_active']){
     const h=appHarness(status);
     const beforeR=h.store.get('pepday_v1_routines'),beforeV=h.store.get('pepday_v2_vials');
     h.context.toggleDone('r1');
     await h.context.adjustVial('v1');
+    assert.equal(h.context.PepDayNavigation.go('routines'),false);
+    assert.equal(h.context.PepDayNavigation.go('vials'),false);
     h.element('newRoutine').onclick();
-    assert.equal(h.element('routineForm').classList.contains('hidden'),false);
-    Object.assign(h.element('rName'),{value:'R2'});Object.assign(h.element('rVial'),{value:'v1'});
-    Object.assign(h.element('rDose'),{value:'1'});Object.assign(h.element('rDoseUnit'),{value:'mg'});
-    Object.assign(h.element('rSyringe'),{value:'100'});Object.assign(h.element('rRefillAt'),{value:'3'});
-    Object.assign(h.element('frequency'),{value:'daily'});Object.assign(h.element('startDate'),{value:'2026-09-11'});
+    assert.equal(h.element('routineForm').classList.contains('hidden'),true);
     await h.element('saveRoutine').onclick();
     h.element('newVial').onclick();
-    assert.equal(h.element('vialForm').classList.contains('hidden'),false);
-    Object.assign(h.element('vName'),{value:'Novo'});Object.assign(h.element('vMg'),{value:'5'});
-    Object.assign(h.element('vWater'),{value:'1'});Object.assign(h.element('vDate'),{value:'2026-09-11'});
+    assert.equal(h.element('vialForm').classList.contains('hidden'),true);
     await h.element('saveVial').onclick();
     assert.equal(h.store.get('pepday_v1_routines'),beforeR);
     assert.equal(h.store.get('pepday_v2_vials'),beforeV);

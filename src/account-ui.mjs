@@ -10,6 +10,7 @@ let importMode='import', importErrors=[];
 let access=normalizeEntitlement(null), declinedTrial=false;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
+const repositoryScope=globalThis.PepDayRepositoryScope;
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
@@ -57,11 +58,18 @@ async function run(action) {
 async function refresh() {
   const current = ++generation;
   clearPrivateUi();
-  if (!cloud) return;
+  repositoryScope?.suspend();
+  if (!cloud) { await repositoryScope?.signedOut(); return; }
   const session = await cloud.account.session();
   if (current !== generation) return;
   hide('accountSignedOut',Boolean(session?.session));
-  if (!session?.session) { status('Entre para acessar sua conta. A calculadora funciona sem login.'); return; }
+  if (!session?.session) {
+    await repositoryScope?.signedOut();
+    if(current!==generation)return;
+    status('Entre para acessar sua conta. A calculadora funciona sem login.'); return;
+  }
+  await repositoryScope?.signedIn(session.session.user.id);
+  if(current!==generation)return;
   hide('accountSignedIn',false); // Sair continua acessível mesmo se o banco estiver indisponível.
   status('Conferindo sua conta…');
   try {
@@ -129,9 +137,10 @@ el('accountChangeEmail').addEventListener('click',()=>{
 });
 el('accountGoogle').addEventListener('click',()=>run(()=>cloud.account.google()));
 el('accountLogout').addEventListener('click',()=>run(async()=>{
-  ++generation; clearPrivateUi();
+  const previousUser=state?.user?.id;++generation;clearPrivateUi();repositoryScope?.suspend();
   try { await cloud.account.logout(); }
-  catch(error) { hide('accountSignedIn',false); throw error; }
+  catch(error) { if(previousUser)await repositoryScope?.signedIn(previousUser);hide('accountSignedIn',false);throw error; }
+  await repositoryScope?.signedOut();
   pendingEmail=''; el('accountEmailForm').reset(); el('accountEmail').readOnly=false;
   hide('accountCodeForm'); hide('accountSignedOut',false);
   status('Você saiu da conta. Os dados locais deste aparelho foram preservados.');

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { indexedDB as fakeIndexedDB } from 'fake-indexeddb';
 import { LOCAL_DB_NAME, LOCAL_STORE_NAMES, openLocalDatabase, upgradeLocalSchema } from '../src/local-db.mjs';
 import { createPepDayRepository, openDeviceRepository } from '../src/pepday-repository.mjs';
 import { migrateLocalStorageToRepository } from '../src/local-data-migration.mjs';
@@ -33,6 +34,22 @@ function storageFixture({routines=[],vials=[]}={}){
     ['pepday_v2_vials',JSON.stringify(vials)]
   ]);
   return {values,getItem:key=>values.has(key)?values.get(key):null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};
+}
+
+const uniqueDbName=label=>`pepday-b22a-${label}-${webcrypto.randomUUID()}`;
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+function deleteDatabase(name){
+  return new Promise((resolve,reject)=>{
+    const request=fakeIndexedDB.deleteDatabase(name);
+    request.onsuccess=()=>resolve();request.onerror=()=>reject(request.error);request.onblocked=()=>reject(new Error(`Delete bloqueado: ${name}`));
+  });
+}
+function rawOpen(name,version,{closeOnVersionChange=false}={}){
+  return new Promise((resolve,reject)=>{
+    const request=fakeIndexedDB.open(name,version);
+    request.onupgradeneeded=()=>{};request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{if(closeOnVersionChange)request.result.onversionchange=()=>request.result.close();resolve(request.result)};
+  });
 }
 
 const vial={id:'11111111-1111-4111-8111-111111111111',name:'Frasco legado',initialMg:10,remainingMg:7,waterMl:2,date:'2026-09-15',history:[{type:'legacy-only'}]};
@@ -69,6 +86,18 @@ test('upgrade de schema só cria stores na versão inicial',()=>{
   created.length=0;upgradeLocalSchema(database,1);assert.deepEqual(created,[]);
 });
 
+test('upgrade interrompido rejeita de forma controlada e fecha sucesso tardio',async()=>{
+  let closes=0;
+  const database={close(){closes++},createObjectStore(){throw new Error('falha controlada no schema')}};
+  const factory={open(){
+    const request={result:database,transaction:{abort(){}},error:null};
+    queueMicrotask(()=>{request.onupgradeneeded?.({oldVersion:0,newVersion:1});request.onsuccess?.()});
+    return request;
+  }};
+  await assert.rejects(openLocalDatabase({indexedDBFactory:factory}),/falha controlada no schema/);
+  await tick();assert.equal(closes,1);
+});
+
 test('CRUD de Rotinas e Frascos persiste e recarrega pelo repository',async()=>{
   const database=new MemoryDatabase(),first=createPepDayRepository({database,accountScope:'user:alpha'});
   await first.vials.put(vial);await first.routines.put(routine);
@@ -99,6 +128,19 @@ test('openDeviceRepository conserva o mesmo installation id no banco',async()=>{
   assert.equal(first.accountScope,'device:install-fixed');assert.equal(second.accountScope,'device:install-fixed');assert.equal(calls,1);
 });
 
+test('get-or-create do installation id é atômico entre duas conexões',async()=>{
+  const name=uniqueDbName('installation');let calls=0;
+  const cryptoProvider={randomUUID:()=>`installation-${++calls}`};
+  const [first,second]=await Promise.all([
+    openDeviceRepository({indexedDBFactory:fakeIndexedDB,databaseName:name,cryptoProvider}),
+    openDeviceRepository({indexedDBFactory:fakeIndexedDB,databaseName:name,cryptoProvider})
+  ]);
+  assert.equal(first.accountScope,second.accountScope);
+  assert.equal(first.accountScope,'device:installation-1');
+  assert.equal(calls,1);
+  first.close();second.close();await deleteDatabase(name);
+});
+
 test('migração localStorage é idempotente, preserva bytes/IDs/saldo e não fabrica eventos',async()=>{
   const database=new MemoryDatabase(),repository=createPepDayRepository({database,accountScope:'device:migration'});
   const storage=storageFixture({routines:[routine],vials:[vial]});
@@ -109,7 +151,8 @@ test('migração localStorage é idempotente, preserva bytes/IDs/saldo e não fa
   assert.deepEqual(await repository.routines.list(),[routine]);assert.deepEqual(await repository.vials.list(),[vial]);
   assert.equal((await repository.vials.get(vial.id)).remainingMg,7);
   assert.deepEqual(await repository.confirmedCounts(),{applications:0,vialMovements:0});
-  assert.equal((await repository.migrationReceipts.list()).length,1);
+  const receipts=await repository.migrationReceipts.list();assert.equal(receipts.length,1);
+  assert.equal(receipts[0].sourceHash,first.sourceHash);assert.equal(receipts[0].id,`local-storage:${first.sourceHash}`);
   assert.deepEqual([...storage.values], [...before]);
 });
 
@@ -121,6 +164,75 @@ test('falha no meio da importação reverte toda a transação',async()=>{
   assert.deepEqual(await repository.vials.list(),[]);
   assert.equal((await repository.routines.get(routine.id)).name,'já existente e diferente');
   assert.deepEqual(await repository.migrationReceipts.list(),[]);
+});
+
+test('mutação concorrente da origem aborta importação e não cria receipt enganoso',async()=>{
+  const database=new MemoryDatabase(),repository=createPepDayRepository({database,accountScope:'device:source-race'});
+  const storage=storageFixture({routines:[routine],vials:[vial]});
+  let reads=0;
+  const racedStorage={...storage,getItem(key){
+    reads++;
+    if(reads===3)storage.values.set('pepday_v1_routines',JSON.stringify([{...routine,name:'mudou durante migração'}]));
+    return storage.getItem(key);
+  }};
+  await assert.rejects(migrateLocalStorageToRepository({repository,storage:racedStorage,cryptoProvider:webcrypto}),error=>error.code==='LEGACY_SOURCE_CHANGED');
+  assert.deepEqual(await repository.routines.list(),[]);
+  assert.deepEqual(await repository.vials.list(),[]);
+  assert.deepEqual(await repository.migrationReceipts.list(),[]);
+});
+
+test('mudança da origem após commit é distinguida de falha da migração',async()=>{
+  const database=new MemoryDatabase(),base=createPepDayRepository({database,accountScope:'device:source-after'});
+  const storage=storageFixture({routines:[routine],vials:[vial]});
+  const repository={...base,async importLegacy(input){
+    const result=await base.importLegacy(input);
+    storage.values.set('pepday_v1_routines',JSON.stringify([{...routine,name:'mudou após commit'}]));
+    return result;
+  }};
+  const result=await migrateLocalStorageToRepository({repository,storage,cryptoProvider:webcrypto});
+  assert.equal(result.status,'migrated');
+  assert.equal(result.originChangedAfterMigration,true);
+  assert.equal(result.originStatus,'snapshot-migrated-origin-changed-after');
+  assert.equal((await base.migrationReceipts.list()).length,1);
+  assert.deepEqual(await base.routines.list(),[routine]);
+});
+
+test('IndexedDB realista mantém rollback atômico em AbortError, QuotaExceededError e DataCloneError',async()=>{
+  for(const errorName of ['AbortError','QuotaExceededError']){
+    const name=uniqueDbName(errorName),database=await openLocalDatabase({indexedDBFactory:fakeIndexedDB,name});
+    await assert.rejects(database.transaction(['routines','vials'],'readwrite',async stores=>{
+      await stores.routines.put({accountScope:'device:test',id:'r',data:{name:'temporária'}});
+      await stores.vials.put({accountScope:'device:test',id:'v',data:{name:'temporário'}});
+      throw new DOMException(errorName,errorName);
+    }),error=>error.name===errorName);
+    assert.deepEqual(await database.read('routines',store=>store.getAll()),[]);
+    assert.deepEqual(await database.read('vials',store=>store.getAll()),[]);
+    database.close();await deleteDatabase(name);
+  }
+
+  const name=uniqueDbName('clone'),database=await openLocalDatabase({indexedDBFactory:fakeIndexedDB,name});
+  await assert.rejects(database.write('routines',store=>store.put({accountScope:'device:test',id:'bad',data:{notCloneable(){}}})),error=>error.name==='DataCloneError');
+  assert.deepEqual(await database.read('routines',store=>store.getAll()),[]);
+  database.close();await deleteDatabase(name);
+});
+
+test('versionchange fecha conexão antiga e libera upgrade posterior',async()=>{
+  const name=uniqueDbName('versionchange');let versionChanges=0;
+  const old=await openLocalDatabase({indexedDBFactory:fakeIndexedDB,name,version:1,onVersionChange:()=>versionChanges++});
+  const upgraded=await rawOpen(name,2,{closeOnVersionChange:true});
+  assert.equal(upgraded.version,2);assert.equal(versionChanges,1);
+  upgraded.close();old.close();await deleteDatabase(name);
+});
+
+test('upgrade bloqueado falha controladamente e conexão tardia é fechada',async()=>{
+  const name=uniqueDbName('blocked'),old=await rawOpen(name,1);let blocked=0;
+  const opening=openLocalDatabase({indexedDBFactory:fakeIndexedDB,name,version:2,onBlocked:()=>blocked++});
+  await assert.rejects(opening,error=>error.code==='IDB_BLOCKED');
+  assert.equal(blocked,1);
+  old.close();await tick();await tick();
+  const next=await rawOpen(name,3,{closeOnVersionChange:true});
+  assert.equal(next.version,3);
+  next.close();await deleteDatabase(name);
 });
 
 test('draft completo sobrevive ao fluxo Rotina → Frasco e a reload',async()=>{
@@ -139,15 +251,24 @@ test('draft completo sobrevive ao fluxo Rotina → Frasco e a reload',async()=>{
 });
 
 test('somente local-db encapsula chamadas IndexedDB e app não grava chaves legadas',async()=>{
-  const [dbSource,repositorySource,migrationSource,appSource,serviceWorker,devServer]=await Promise.all([
+  const [dbSource,repositorySource,migrationSource,appSource,accountSource,serviceWorker,devServer]=await Promise.all([
     readFile(new URL('../src/local-db.mjs',import.meta.url),'utf8'),readFile(new URL('../src/pepday-repository.mjs',import.meta.url),'utf8'),
     readFile(new URL('../src/local-data-migration.mjs',import.meta.url),'utf8'),readFile(new URL('../app.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/account-ui.mjs',import.meta.url),'utf8'),
     readFile(new URL('../sw.js',import.meta.url),'utf8'),readFile(new URL('../scripts/dev-server.mjs',import.meta.url),'utf8')]);
   assert.match(dbSource,/indexedDBFactory\.open/);
   assert.doesNotMatch(repositorySource,/\bindexedDB\b/);assert.doesNotMatch(migrationSource,/\bindexedDB\b/);assert.doesNotMatch(appSource,/\bindexedDB\b/);
+  for(const source of [dbSource,repositorySource,migrationSource,appSource,accountSource])assert.doesNotMatch(source,/from\s+['"]node:|require\s*\(/);
+  assert.doesNotMatch(appSource,/readLegacyArray/);assert.match(appSource,/let routines=\[\],vials=\[\]/);
+  assert.match(appSource,/localDataState='loading'/);assert.match(appSource,/if\(proScreens\.has\(id\)&&localDataState!=='ready'\)return false/);
+  assert.match(appSource,/if\(draft\)applyRoutineDraft\(draft,\{show:true\}\);\s*localRepository=base\.repository;localDataState='ready'/);
+  assert.match(appSource,/if\(token!==scopeGeneration\)return null/);assert.match(appSource,/token===scopeGeneration\?\{ok:true,value\}:\{ok:false,stale:true\}/);
+  assert.match(accountSource,/signedIn\(session\.session\.user\.id\)/);assert.match(accountSource,/repositoryScope\?\.suspend\(\)/);
   assert.doesNotMatch(appSource,/localStorage\.(setItem|removeItem)\((key|vialKey)/);
   assert.doesNotMatch(appSource,/remainingMg\s*=\s*Math\.(max|min).*dose/i);
   for(const asset of ['src/local-db.mjs','src/pepday-repository.mjs','src/local-data-migration.mjs']){
     const escaped=asset.replace(/[./]/g,'\\$&');assert.match(serviceWorker,new RegExp(escaped));assert.match(devServer,new RegExp(escaped));
   }
+  assert.match(serviceWorker,/pepday-v3-b22a-local-repository-hardening/);
+  assert.doesNotMatch(serviceWorker,/indexedDB|deleteDatabase/);
 });

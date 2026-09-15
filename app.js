@@ -1,34 +1,77 @@
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const key='pepday_v1_routines';
-const vialKey='pepday_v2_vials';
-function readLegacyArray(storageKey){try{let value=JSON.parse(localStorage.getItem(storageKey)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
-let routines=readLegacyArray(key),vials=readLegacyArray(vialKey),localRepository=null;
+let routines=[],vials=[],localRepository=null,localDataState='loading',localDataError='';
 let lastCalc=null, editing=null, editingVial=null, vialReturnToRoutine=false;
+let scopeGeneration=0,scopeTransition=Promise.resolve(null);
 
-const repositoryReady=(async()=>{
+function renderLocalData(){renderToday();renderRoutines();renderVials()}
+function clearPrivateLocalUi(state='loading',message=''){
+  routines=[];vials=[];localRepository=null;localDataState=state;localDataError=message;
+  editing=null;editingVial=null;vialReturnToRoutine=false;
+  ['routineForm','vialForm','historyCard'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+  if(['routines','vials'].includes(document.querySelector('.screen.active')?.id))go('home');
+  renderLocalData();
+}
+
+const repositoryBase=(async()=>{
   if(globalThis.PepDayDisableRepositoryBootstrap===true)return null;
   const [{openDeviceRepository},{migrateLocalStorageToRepository}]=await Promise.all([
     import('./src/pepday-repository.mjs'),import('./src/local-data-migration.mjs')
   ]);
   const repository=await openDeviceRepository();
-  localRepository=repository;
-  try{await migrateLocalStorageToRepository({repository,storage:localStorage})}
+  let migration=null;
+  try{migration=await migrateLocalStorageToRepository({repository,storage:localStorage})}
   catch(error){console.error('PepDay legacy migration:',error);alert('A cópia antiga não pôde ser migrada automaticamente. Ela foi preservada sem alterações. Os dados já conferidos neste aparelho continuam disponíveis.')}
-  [routines,vials]=await Promise.all([repository.routines.list(),repository.vials.list()]);
-  const draft=await repository.drafts.get('routine-form');
-  if(draft)applyRoutineDraft(draft);
-  renderToday();renderRoutines();renderVials();
-  return repository;
-})().catch(error=>{console.error('PepDay local repository:',error);return null});
+  if(migration?.originChangedAfterMigration)alert('A cópia antiga foi migrada com sucesso, mas mudou em outra aba depois. O snapshot conferido continua preservado e a nova origem será revisada no próximo carregamento.');
+  return {repository,deviceScope:repository.accountScope};
+})();
+
+function activateLocalScope(accountScope=null){
+  const token=++scopeGeneration;
+  clearPrivateLocalUi('loading');
+  const transition=(async()=>{
+    try{
+      const base=await repositoryBase;
+      if(!base)throw new Error('IndexedDB indisponível neste navegador.');
+      const scope=accountScope||base.deviceScope;
+      base.repository.setAccountScope(scope);
+      const [nextRoutines,nextVials,draft]=await Promise.all([
+        base.repository.routines.list(),base.repository.vials.list(),base.repository.drafts.get('routine-form')
+      ]);
+      if(token!==scopeGeneration)return null;
+      routines=nextRoutines;vials=nextVials;
+      if(draft)applyRoutineDraft(draft,{show:true});
+      localRepository=base.repository;localDataState='ready';localDataError='';
+      renderLocalData();return base.repository;
+    }catch(error){
+      console.error('PepDay local repository:',error);
+      if(token===scopeGeneration)clearPrivateLocalUi('error','Os dados locais não puderam ser abertos. A cópia existente foi preservada.');
+      return null;
+    }
+  })();
+  scopeTransition=transition;return transition;
+}
+
+const repositoryReady=activateLocalScope();
+const repositoryScopeAuthority=Object.freeze({
+  suspend(){++scopeGeneration;scopeTransition=Promise.resolve(null);clearPrivateLocalUi('loading')},
+  signedIn(userId){if(typeof userId!=='string'||!userId)return Promise.resolve(null);return activateLocalScope(`user:${userId}`)},
+  // O escopo device é usado somente sem sessão. Ele nunca é copiado automaticamente para uma conta.
+  signedOut(){return activateLocalScope(null)}
+});
+Object.defineProperty(globalThis,'PepDayRepositoryScope',{value:repositoryScopeAuthority,writable:false,configurable:false});
 
 async function requireLocalRepository(){
-  const repository=localRepository||await repositoryReady;
-  if(!repository)alert('O armazenamento local seguro não está disponível neste navegador. Nenhum dado foi alterado.');
-  return repository;
+  while(true){
+    const transition=scopeTransition,repository=await transition;
+    if(transition!==scopeTransition)continue;
+    if(repository&&localDataState==='ready')return repository;
+    alert(localDataError||'Os dados locais ainda estão sendo preparados. Nenhum dado foi alterado.');return null;
+  }
 }
 async function localOperation(action){
-  try{return {ok:true,value:await action()}}
+  const token=scopeGeneration;
+  try{const value=await action();return token===scopeGeneration?{ok:true,value}:{ok:false,stale:true}}
   catch(error){console.error('PepDay local operation:',error);alert('Não foi possível salvar os dados neste aparelho. Nenhuma alteração parcial foi mantida.');return {ok:false}}
 }
 
@@ -36,7 +79,7 @@ function isoToday(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMon
 function br(n,max=4){return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:max})}
 const proScreens=new Set(['routines','vials']);
 function requirePro(context){return globalThis.PepDayAccess?.requirePro?.(context)===true}
-function go(id){if(proScreens.has(id)&&!requirePro(`navigate:${id}`))return false;$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials();return true}
+function go(id){if(proScreens.has(id)&&!requirePro(`navigate:${id}`))return false;if(proScreens.has(id)&&localDataState!=='ready')return false;$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials();return true}
 Object.defineProperty(window,'PepDayNavigation',{value:Object.freeze({go}),writable:false,configurable:false});
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 
@@ -57,12 +100,14 @@ function freqLabel(r){
 }
 function renderToday(){
   let d=new Date(); $('#todayLabel').textContent=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  if(localDataState!=='ready'){$('#todayRoutines').innerHTML=`<div class="empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return}
   let box=$('#todayRoutines'), list=routines.filter(r=>activeOn(r,d));
   if(!list.length){box.innerHTML='<div class="empty"><p>Nenhuma rotina programada para hoje.</p></div>';return}
   box.innerHTML=list.map(r=>{let done=(r.done||[]).includes(isoToday()),v=vials.find(x=>x.id===r.vialId); return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button data-pro-action onclick="toggleDone('${r.id}')">${done?'Desfazer':'Registrar'}</button></div></div>`}).join('');
 }
 function toggleDone(id){
  if(!requirePro('application:toggle'))return false;
+ if(localDataState!=='ready')return false;
  if(!routines.some(x=>x.id===id))return false;
  alert('Aplicações e Undo serão conectados ao registro transacional na próxima etapa. Nenhum saldo foi alterado.');
  return false;
@@ -109,6 +154,7 @@ function calcRoutinePreview(){
 
 function openRoutine(calc=null,r=null){
  if(!requirePro(r?'routine:edit':'routine:create'))return false;
+ if(localDataState!=='ready')return false;
  $('#routineForm').classList.remove('hidden'); editing=r?r.id:null; $('#routineFormTitle').textContent=r?'Editar rotina':'Nova rotina';
  $('#rName').value=r?.name||calc?.name||'';
  fillRoutineVials(r?.vialId||'');
@@ -150,6 +196,7 @@ $('#frequency').onchange=toggleWeekdays;
 function toggleWeekdays(){$('#weekdaysBox').classList.toggle('hidden',$('#frequency').value!=='weekdays')}
 $('#saveRoutine').onclick=async()=>{
  if(!requirePro(editing?'routine:save-edit':'routine:save-create'))return false;
+ if(localDataState!=='ready')return false;
  let repository=await requireLocalRepository();if(!repository)return false;
  let name=$('#rName').value.trim(), frequency=$('#frequency').value, start=$('#startDate').value, vialId=$('#rVial').value;
  let preview=calcRoutinePreview(), doseValue=+$('#rDose').value, doseUnit=$('#rDoseUnit').value, syringeCapacity=+$('#rSyringe').value, refillAt=+$('#rRefillAt').value;
@@ -206,11 +253,11 @@ $('#saveRoutine').onclick=async()=>{
  $('#routineForm').classList.add('hidden');renderRoutines();renderToday();renderVials();
 };
 function renderRoutines(){
- let box=$('#routineList'); if(!routines.length){box.innerHTML='<div class="card empty"><p>Você ainda não salvou nenhuma rotina.</p></div>';return}
+ let box=$('#routineList');if(localDataState!=='ready'){box.innerHTML=`<div class="card empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return} if(!routines.length){box.innerHTML='<div class="card empty"><p>Você ainda não salvou nenhuma rotina.</p></div>';return}
  box.innerHTML=routines.map(r=>{let v=vials.find(x=>x.id===r.vialId);return `<div class="routine"><div><h4>${esc(r.name)}</h4><p>${br(r.doseValue,3)} ${r.doseUnit} por aplicação • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button onclick="editR('${r.id}')">Editar</button> <button onclick="delR('${r.id}')">Excluir</button></div></div>`}).join('');
 }
 window.editR=id=>openRoutine(null,routines.find(x=>x.id===id));
-window.delR=async id=>{if(!requirePro('routine:delete'))return false;if(confirm('Excluir esta rotina?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.routines.delete(id))).ok)return false;routines=routines.filter(x=>x.id!==id);renderRoutines()}};
+window.delR=async id=>{if(!requirePro('routine:delete')||localDataState!=='ready')return false;if(confirm('Excluir esta rotina?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.routines.delete(id))).ok)return false;routines=routines.filter(x=>x.id!==id);renderRoutines()}};
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function vialPct(v){return v.initialMg>0?Math.max(0,Math.min(100,(v.remainingMg/v.initialMg)*100)):0}
 
@@ -326,6 +373,7 @@ function forecastHtml(v){
 
 function renderVials(){
  let box=$('#vialList');
+ if(localDataState!=='ready'){box.innerHTML=`<div class="card empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return}
  if(!vials.length){
    box.innerHTML='<div class="card empty"><strong>🧪</strong><h3>Nenhum frasco cadastrado</h3><p>Cadastre um frasco para acompanhar concentração, data de reconstituição e saldo.</p></div>';
    return;
@@ -378,7 +426,7 @@ function renderVials(){
    </div>`;
  }).join('');
 }
-function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create'))return false;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
+function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create')||localDataState!=='ready')return false;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
 async function returnToRoutineFromVial(vialId=null){
  if(!vialReturnToRoutine)return false;
  let repository=await requireLocalRepository();if(!repository)return false;
@@ -391,6 +439,7 @@ $('#newVial').onclick=()=>{vialReturnToRoutine=false;openVial()};
 $('#cancelVial').onclick=async()=>{$('#vialForm').classList.add('hidden');return returnToRoutineFromVial()};
 $('#saveVial').onclick=async()=>{
  if(!requirePro(editingVial?'vial:save-edit':'vial:save-create'))return false;
+ if(localDataState!=='ready')return false;
  let repository=await requireLocalRepository();if(!repository)return false;
  let name=$('#vName').value.trim(),initialMg=+$('#vMg').value,waterMl=+$('#vWater').value,date=$('#vDate').value,cost=+$('#vCost').value||0;
  if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}
@@ -406,10 +455,10 @@ $('#saveVial').onclick=async()=>{
  $('#vialForm').classList.add('hidden');renderVials();await returnToRoutineFromVial(savedVialId);
 };
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
-window.deleteVial=async id=>{if(!requirePro('vial:delete'))return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.vials.delete(id))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials()}};
-window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance'))return false;let v=vials.find(x=>x.id===id),raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.vials.put(next))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
+window.deleteVial=async id=>{if(!requirePro('vial:delete')||localDataState!=='ready')return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.vials.delete(id))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials()}};
+window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance')||localDataState!=='ready')return false;let v=vials.find(x=>x.id===id);if(!v)return false;let raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.vials.put(next))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
 window.showVialHistory=id=>{
- if(!requirePro('vial:view-history'))return false;
+ if(!requirePro('vial:view-history')||localDataState!=='ready')return false;
  let v=vials.find(x=>x.id===id),h=v.history||[];
  $('#historyCard').classList.remove('hidden');
  $('#vialHistory').innerHTML=h.length?h.map(x=>{
@@ -426,13 +475,13 @@ window.showVialHistory=id=>{
 };
 $('#closeHistory').onclick=()=>$('#historyCard').classList.add('hidden');
 
-$('#eraseData').onclick=async()=>{if(confirm('Apagar todas as rotinas salvas neste aparelho?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.clearUserData())).ok)return false;routines=[];vials=[];renderToday();renderRoutines();renderVials();alert('Dados locais apagados.')}};
+$('#eraseData').onclick=async()=>{if(localDataState!=='ready')return false;if(confirm('Apagar todas as rotinas salvas neste aparelho?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.clearUserData())).ok)return false;routines=[];vials=[];renderToday();renderRoutines();renderVials();alert('Dados locais apagados.')}};
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});
 $('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden')}};
 if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
-renderToday();
+renderLocalData();
 
 
 // V2.7.1 — escala visual numerada da seringa (não altera o cálculo).

@@ -69,7 +69,7 @@ export function createPepDayRepository({database,accountScope}){
     drafts:collection(database,getScope,'drafts'),
     meta:collection(database,getScope,'meta'),
     migrationReceipts:collection(database,getScope,'migrationReceipts'),
-    async importLegacy({receiptId,sourceHash,routines,vials}){
+    async importLegacy({receiptId,sourceHash,routines,vials,validateSource=()=>true}){
       const scope=getScope();
       assertId(receiptId);
       return database.transaction(['routines','vials','migrationReceipts'],'readwrite',async stores=>{
@@ -83,6 +83,10 @@ export function createPepDayRepository({database,accountScope}){
             }
             if(!existing)await stores[storeName].put(recordFor(scope,id,item));
           }
+        }
+        if(validateSource()!==true){
+          const error=new Error('A origem local mudou durante a migração. Nenhum recibo foi criado.');
+          error.code='LEGACY_SOURCE_CHANGED';throw error;
         }
         const receipt={id:receiptId,sourceHash,sourceKeys:['pepday_v1_routines','pepday_v2_vials'],
           routineCount:routines.length,vialCount:vials.length,migratedAt:new Date().toISOString()};
@@ -123,7 +127,8 @@ export function createPepDayRepository({database,accountScope}){
         applications:(await stores.applications.getAllByScope(scope)).length,
         vialMovements:(await stores.vialMovements.getAllByScope(scope)).length
       }));
-    }
+    },
+    close(){database.close?.()}
   };
   return Object.freeze(repository);
 }
@@ -134,16 +139,19 @@ export async function openPepDayRepository({accountScope,indexedDBFactory,databa
 }
 
 export async function openDeviceRepository({indexedDBFactory,databaseName,database:providedDatabase,cryptoProvider=globalThis.crypto}={}){
+  if(!cryptoProvider?.randomUUID)throw new Error('Não foi possível identificar esta instalação.');
   const database=providedDatabase||await openLocalDatabase({indexedDBFactory,name:databaseName});
-  const bootstrapScope='device:bootstrap';
-  const bootstrap=createPepDayRepository({database,accountScope:bootstrapScope});
-  let installation=await bootstrap.meta.get('installation-id');
-  if(!installation){
-    if(!cryptoProvider?.randomUUID)throw new Error('Não foi possível identificar esta instalação.');
-    installation={id:'installation-id',value:cryptoProvider.randomUUID()};
-    await bootstrap.meta.put(installation);
-  }
-  return createPepDayRepository({database,accountScope:`device:${installation.value}`});
+  try{
+    const bootstrapScope='device:bootstrap';
+    const installation=await database.transaction('meta','readwrite',async stores=>{
+      const store=stores.meta,existing=await store.get(bootstrapScope,'installation-id');
+      if(existing)return dataFrom(existing);
+      const created={id:'installation-id',value:cryptoProvider.randomUUID()};
+      await store.put(recordFor(bootstrapScope,created.id,created));
+      return created;
+    });
+    return createPepDayRepository({database,accountScope:`device:${installation.value}`});
+  }catch(error){if(!providedDatabase)database.close();throw error}
 }
 
 export const repositoryStores=Object.freeze({entities:[...ENTITY_STORES],writable:[...WRITABLE_COLLECTIONS]});

@@ -24,10 +24,10 @@ export async function migrateLocalStorageToRepository({repository,storage=global
   const sourceHash=await sha256(canonical,cryptoProvider);
   const routines=parseArray(raw.pepday_v1_routines,'Rotinas');
   const vials=parseArray(raw.pepday_v2_vials,'Frascos');
-  const result=await repository.importLegacy({receiptId:`local-storage:${sourceHash}`,sourceHash,routines,vials});
+  const sourceMatches=()=>LOCAL_DATA_KEYS.every(key=>storage.getItem(key)===raw[key]);
+  const result=await repository.importLegacy({receiptId:`local-storage:${sourceHash}`,sourceHash,routines,vials,validateSource:sourceMatches});
   // Não escrever, remover nem normalizar os bytes originais do localStorage.
-  for(const key of LOCAL_DATA_KEYS){
-    if(storage.getItem(key)!==raw[key])throw new Error('Os dados legados mudaram durante a migração.');
-  }
-  return {...result,sourceHash,routineCount:routines.length,vialCount:vials.length};
+  const originChangedAfterMigration=!sourceMatches();
+  return {...result,sourceHash,routineCount:routines.length,vialCount:vials.length,originChangedAfterMigration,
+    originStatus:originChangedAfterMigration?'snapshot-migrated-origin-changed-after':'snapshot-migrated-origin-unchanged'};
 }
