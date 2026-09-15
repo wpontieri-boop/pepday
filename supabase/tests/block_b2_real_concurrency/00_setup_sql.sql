@@ -12,6 +12,7 @@ do $$ begin
     or exists(select 1 from public.routine_versions where id in (
       'c2610000-0000-4000-8000-000000000001','c2610000-0000-4000-8000-000000000002',
       'c2620000-0000-4000-8000-000000000001','c2630000-0000-4000-8000-000000000001'))
+    or exists(select 1 from public.local_data_imports where id='a2600000-0000-4000-8000-000000000001')
     or exists(select 1 from public.applications where operation_id in (
       'b2610000-0000-4000-8000-000000000001','b2610000-0000-4000-8000-000000000002',
       'b2620000-0000-4000-8000-000000000001','b2630000-0000-4000-8000-000000000001',
@@ -24,9 +25,12 @@ do $$ begin
       'b2620000-0000-4000-8000-000000000001','b2630000-0000-4000-8000-000000000001',
       'b2630000-0000-4000-8000-000000000002'))
     or exists(select 1 from public.audit_logs where operation_id in (
-      'b2610000-0000-4000-8000-000000000001','b2610000-0000-4000-8000-000000000002',
-      'b2620000-0000-4000-8000-000000000001','b2630000-0000-4000-8000-000000000001',
-      'b2630000-0000-4000-8000-000000000002')) then
+      'a1610000-0000-4000-8000-000000000001','a1610000-0000-4000-8000-000000000002',
+      'b1610000-0000-4000-8000-000000000001','b1610000-0000-4000-8000-000000000002',
+      'a1620000-0000-4000-8000-000000000001','a1620000-0000-4000-8000-000000000002',
+      'b1620000-0000-4000-8000-000000000001','b1620000-0000-4000-8000-000000000002',
+      'a1630000-0000-4000-8000-000000000001','a1630000-0000-4000-8000-000000000002',
+      'b1630000-0000-4000-8000-000000000001','b1630000-0000-4000-8000-000000000002')) then
     raise exception 'PREFLIGHT: UUID reservado B2.1 concorrência já existe';
   end if;
 end $$;
@@ -53,6 +57,16 @@ do $$ begin
   end if;
 end $$;
 
+-- Marcador de procedência: só existe quando este setup conclui após o preflight.
+-- O cleanup recusa qualquer exclusão se esta linha não corresponder exatamente.
+insert into public.local_data_imports(id,user_id,source_hash,source_version,status,
+  source_snapshot,verification,completed_at) values (
+  'a2600000-0000-4000-8000-000000000001','f2600000-0000-4000-8000-000000000001',
+  repeat('c',64),'b2.1-concurrency','completed',
+  jsonb_build_object('fixture','pepday-b2.1-real-concurrency','package_version','v2',
+    'run_marker',gen_random_uuid()::text),
+  '{"purpose":"cleanup-provenance"}',statement_timestamp());
+
 insert into public.vials(id,user_id,name,initial_mg,remaining_mg,water_ml,prepared_on) values
   ('e2610000-0000-4000-8000-000000000001','f2600000-0000-4000-8000-000000000001','B2 concorrência mesmo frasco',10,10,2,current_date),
   ('e2620000-0000-4000-8000-000000000002','f2600000-0000-4000-8000-000000000001','B2 contenção FOR UPDATE',10,10,2,current_date),
@@ -75,4 +89,5 @@ from public.routines r join (values
 where r.user_id='f2600000-0000-4000-8000-000000000001';
 commit;
 
-select 'PASS — SETUP SQL' as resultado;
+select 'PASS — SETUP SQL' as resultado,source_snapshot->>'run_marker' run_marker
+from public.local_data_imports where id='a2600000-0000-4000-8000-000000000001';

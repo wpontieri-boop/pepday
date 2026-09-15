@@ -1,12 +1,13 @@
 // B2.1: transporte JWT/RLS e replay concorrente. Executar só em pepday-v3-test.
 // Nenhum token, senha ou header é impresso ou persistido.
-const required = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'PEPDAY_B2_JWT_A', 'PEPDAY_B2_JWT_B'];
+const required = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'PEPDAY_B2_JWT_A', 'PEPDAY_B2_JWT_B', 'PEPDAY_B2_RUN_MARKER'];
 for (const key of required) if (!process.env[key]) throw new Error(`Variável obrigatória ausente: ${key}`);
 
 const baseUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
 const anonKey = process.env.SUPABASE_ANON_KEY;
 const tokenA = process.env.PEPDAY_B2_JWT_A;
 const tokenB = process.env.PEPDAY_B2_JWT_B;
+const runMarker = process.env.PEPDAY_B2_RUN_MARKER;
 if (baseUrl !== 'https://fsbqpyyprtymwrmzsacp.supabase.co') {
   throw new Error('SUPABASE_URL não corresponde ao pepday-v3-test autorizado');
 }
@@ -26,6 +27,11 @@ if (accountA.exp * 1000 <= Date.now() || accountB.exp * 1000 <= Date.now()) thro
 if (accountA.email !== 'pepday-b2-jwt-a@example.invalid' || accountB.email !== 'pepday-b2-jwt-b@example.invalid') {
   throw new Error('JWTs não pertencem aos e-mails fixtures reservados');
 }
+if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(runMarker)
+  || accountA.user_metadata?.pepday_b2_run_marker !== runMarker
+  || accountB.user_metadata?.pepday_b2_run_marker !== runMarker) {
+  throw new Error('Run marker ausente ou diferente da metadata das contas fixtures');
+}
 
 async function request(token, path, { method = 'GET', body, allowFailure = false } = {}) {
   const started = performance.now();
@@ -33,6 +39,7 @@ async function request(token, path, { method = 'GET', body, allowFailure = false
     method,
     headers: { apikey: anonKey, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(60_000),
   });
   const text = await response.text();
   let data = null;
@@ -44,6 +51,26 @@ async function request(token, path, { method = 'GET', body, allowFailure = false
 const rpc = (token, name, body, options) => request(token, `/rest/v1/rpc/${name}`, { method: 'POST', body, ...options });
 const rows = (token, table, query) => request(token, `/rest/v1/${table}?${query}`);
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const MAX_DISPATCH_SKEW_MS = 25;
+
+async function coordinated(entries) {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const prepared = entries.map(({ name, run }) => (async () => {
+    await gate;
+    const dispatchedAt = performance.now();
+    const result = await run();
+    return { name, dispatchedAt, result };
+  })());
+  await new Promise(resolve => setImmediate(resolve));
+  release();
+  const completed = await Promise.all(prepared);
+  const dispatches = completed.map(item => item.dispatchedAt);
+  const dispatchSkewMs = Math.max(...dispatches) - Math.min(...dispatches);
+  assert(dispatchSkewMs <= MAX_DISPATCH_SKEW_MS,
+    `Disparos não coordenados: skew ${dispatchSkewMs.toFixed(3)} ms`);
+  return { completed, dispatchSkewMs };
+}
 
 async function prepare() {
   for (const [token, label] of [[tokenA, 'A'], [tokenB, 'B']]) {
@@ -63,6 +90,7 @@ async function authRls() {
     p_routine_id: 'd2640000-0000-4000-8000-000000000004', p_routine_version_id: 'c2640000-0000-4000-8000-000000000004',
     p_vial_id: 'e2640000-0000-4000-8000-000000000004', p_scheduled_date: new Date().toISOString().slice(0, 10), p_applied_at: null,
   });
+  assert(registerA.data?.replay === false, 'Registro inicial Auth/RLS não foi uma nova aplicação');
   const applicationId = registerA.data.application.id;
   const [aVial, bVial, aApp, bApp] = await Promise.all([
     rows(tokenA, 'vials', 'id=eq.e2640000-0000-4000-8000-000000000004&select=id,remaining_mg'),
@@ -99,22 +127,42 @@ async function replayUndo() {
     p_vial_id: 'e2650000-0000-4000-8000-000000000005', p_scheduled_date: new Date().toISOString().slice(0, 10), p_applied_at: null,
   };
   const first = await rpc(tokenA, 'register_application', intent);
+  assert(first.data?.replay === false, 'Registro inicial do cenário replay/Undo não retornou replay=false');
   const applicationId = first.data.application.id;
-  const [replay, undo] = await Promise.all([
-    rpc(tokenA, 'register_application', intent),
-    rpc(tokenA, 'undo_application', { p_undo_operation_id: 'b2650000-0000-4000-8000-000000000002', p_expected_user: accountA.sub, p_application_id: applicationId, p_undone_at: null }),
+  const concurrent = await coordinated([
+    { name: 'replay', run: () => rpc(tokenA, 'register_application', intent) },
+    { name: 'undo', run: () => rpc(tokenA, 'undo_application', {
+      p_undo_operation_id: 'b2650000-0000-4000-8000-000000000002', p_expected_user: accountA.sub,
+      p_application_id: applicationId, p_undone_at: null,
+    }) },
   ]);
+  const replay = concurrent.completed.find(item => item.name === 'replay').result;
+  const undo = concurrent.completed.find(item => item.name === 'undo').result;
+  assert(replay.data?.replay === true, 'Reenvio concorrente não retornou replay=true');
+  assert(undo.data?.replay === false, 'Primeiro Undo concorrente não retornou replay=false');
+  const secondUndo = await rpc(tokenA, 'undo_application', {
+    p_undo_operation_id: 'b2650000-0000-4000-8000-000000000003', p_expected_user: accountA.sub,
+    p_application_id: applicationId, p_undone_at: null,
+  }, { allowFailure: true });
+  assert(!secondUndo.ok && /já desfeita por outra operação/i.test(secondUndo.data?.message ?? ''),
+    'Segundo Undo com UUID diferente não retornou o conflito previsto');
   const [applications, movements, vial] = await Promise.all([
-    rows(tokenA, 'applications', 'operation_id=eq.b2650000-0000-4000-8000-000000000001&select=id,undone_at,undo_operation_id'),
+    rows(tokenA, 'applications', 'vial_id=eq.e2650000-0000-4000-8000-000000000005&select=id,operation_id,undone_at,undo_operation_id'),
     rows(tokenA, 'vial_movements', `application_id=eq.${applicationId}&select=kind,delta_mg,balance_before,balance_after`),
     rows(tokenA, 'vials', 'id=eq.e2650000-0000-4000-8000-000000000005&select=remaining_mg'),
   ]);
   const applicationMoves = movements.data.filter(item => item.kind === 'application');
   const undoMoves = movements.data.filter(item => item.kind === 'undo');
-  assert(replay.ok && undo.ok, 'Replay ou Undo concorrente falhou');
   assert(applications.data.length === 1 && applications.data[0].undone_at && applications.data[0].undo_operation_id === 'b2650000-0000-4000-8000-000000000002', 'Aplicação final não está desfeita exatamente uma vez');
-  assert(applicationMoves.length === 1 && undoMoves.length === 1 && Number(vial.data[0].remaining_mg) === 10, 'Movimentos ou saldo final divergentes');
-  console.log(JSON.stringify({ resultado: 'PASS — REPLAY CONCORRENTE + UNDO', replay_ms: replay.duration_ms, undo_ms: undo.duration_ms }));
+  assert(movements.data.length === 2 && applicationMoves.length === 1 && undoMoves.length === 1,
+    'Segundo desconto, segundo Undo ou movimento duplicado');
+  assert(Number(applicationMoves[0].delta_mg) === -1 && Number(applicationMoves[0].balance_before) === 10
+    && Number(applicationMoves[0].balance_after) === 9 && Number(undoMoves[0].delta_mg) === 1
+    && Number(undoMoves[0].balance_before) === 9 && Number(undoMoves[0].balance_after) === 10
+    && Number(vial.data[0].remaining_mg) === 10, 'Cadeia de movimentos ou saldo final divergente');
+  console.log(JSON.stringify({ resultado: 'PASS — REPLAY CONCORRENTE + UNDO',
+    dispatch_skew_ms: Number(concurrent.dispatchSkewMs.toFixed(3)), replay_ms: replay.duration_ms,
+    undo_ms: undo.duration_ms, second_undo_http: secondUndo.status }));
 }
 
 const command = process.argv[2];

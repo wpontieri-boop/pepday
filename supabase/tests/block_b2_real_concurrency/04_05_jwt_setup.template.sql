@@ -2,12 +2,19 @@
 -- exibidos pelo runner. Executar somente em pepday-v3-test.
 select set_config('pepday.b2.jwt_a','REPLACE_WITH_USER_A_UUID',false);
 select set_config('pepday.b2.jwt_b','REPLACE_WITH_USER_B_UUID',false);
+select set_config('pepday.b2.run_marker','REPLACE_WITH_RUN_MARKER_UUID',false);
 
-do $$ declare a text:=current_setting('pepday.b2.jwt_a'); b text:=current_setting('pepday.b2.jwt_b'); begin
-  if a like 'REPLACE_%' or b like 'REPLACE_%' or a=b then raise exception 'PREFLIGHT JWT: IDs ausentes ou iguais'; end if;
-  if not exists(select 1 from auth.users where id=a::uuid and email='pepday-b2-jwt-a@example.invalid')
-    or not exists(select 1 from auth.users where id=b::uuid and email='pepday-b2-jwt-b@example.invalid') then
-    raise exception 'PREFLIGHT JWT: contas/e-mails fixtures não conferem';
+do $$ declare a text:=current_setting('pepday.b2.jwt_a'); b text:=current_setting('pepday.b2.jwt_b');
+  marker text:=current_setting('pepday.b2.run_marker'); begin
+  if a like 'REPLACE_%' or b like 'REPLACE_%' or marker like 'REPLACE_%' or a=b
+    or marker!~*'^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$' then
+    raise exception 'PREFLIGHT JWT: IDs ou run marker ausentes/inválidos';
+  end if;
+  if not exists(select 1 from auth.users where id=a::uuid and email='pepday-b2-jwt-a@example.invalid'
+      and raw_user_meta_data->>'pepday_b2_run_marker'=marker)
+    or not exists(select 1 from auth.users where id=b::uuid and email='pepday-b2-jwt-b@example.invalid'
+      and raw_user_meta_data->>'pepday_b2_run_marker'=marker) then
+    raise exception 'PREFLIGHT JWT: contas, e-mails ou metadata de execução não conferem';
   end if;
   if exists(select 1 from public.vials where user_id in (a::uuid,b::uuid))
     or exists(select 1 from public.routines where user_id in (a::uuid,b::uuid))
@@ -16,24 +23,25 @@ do $$ declare a text:=current_setting('pepday.b2.jwt_a'); b text:=current_settin
     or exists(select 1 from public.vial_movements where user_id in (a::uuid,b::uuid))
     or exists(select 1 from public.local_data_imports where user_id in (a::uuid,b::uuid))
     or exists(select 1 from public.legacy_import_records where user_id in (a::uuid,b::uuid))
+    or exists(select 1 from public.local_data_imports where id='a2640000-0000-4000-8000-000000000004')
     or exists(select 1 from public.vials where id in ('e2640000-0000-4000-8000-000000000004','e2650000-0000-4000-8000-000000000005'))
     or exists(select 1 from public.routines where id in ('d2640000-0000-4000-8000-000000000004','d2650000-0000-4000-8000-000000000005'))
     or exists(select 1 from public.routine_versions where id in ('c2640000-0000-4000-8000-000000000004','c2650000-0000-4000-8000-000000000005'))
     or exists(select 1 from public.applications where operation_id in (
       'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
       'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
-      'b2650000-0000-4000-8000-000000000002') or undo_operation_id in (
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003') or undo_operation_id in (
       'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
       'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
-      'b2650000-0000-4000-8000-000000000002'))
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003'))
     or exists(select 1 from public.vial_movements where operation_id in (
       'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
       'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
-      'b2650000-0000-4000-8000-000000000002'))
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003'))
     or exists(select 1 from public.audit_logs where operation_id in (
       'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
       'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
-      'b2650000-0000-4000-8000-000000000002')) then
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003')) then
     raise exception 'PREFLIGHT JWT: UUID de domínio/operação reservado já existe';
   end if;
 end $$;
@@ -60,5 +68,13 @@ select x.version_id,r.user_id,r.id,1,to_jsonb(r) from public.routines r join (va
   ('d2650000-0000-4000-8000-000000000005'::uuid,'c2650000-0000-4000-8000-000000000005'::uuid)
 ) x(routine_id,version_id) on x.routine_id=r.id
 where r.user_id=current_setting('pepday.b2.jwt_a')::uuid;
+insert into public.local_data_imports(id,user_id,source_hash,source_version,status,
+  source_snapshot,verification,completed_at) values (
+  'a2640000-0000-4000-8000-000000000004',current_setting('pepday.b2.jwt_a')::uuid,
+  repeat('d',64),'b2.1-concurrency','completed',
+  jsonb_build_object('fixture','pepday-b2.1-real-concurrency',
+    'package_version','v2','run_marker',current_setting('pepday.b2.run_marker'),
+    'user_a',current_setting('pepday.b2.jwt_a'),'user_b',current_setting('pepday.b2.jwt_b')),
+  '{"purpose":"cleanup-provenance"}',statement_timestamp());
 commit;
 select 'PASS — SETUP JWT' as resultado,current_setting('pepday.b2.jwt_a')::uuid as user_a,current_setting('pepday.b2.jwt_b')::uuid as user_b;

@@ -1,0 +1,21 @@
+-- Executar antes de criar as duas contas Auth. Não escreve nenhuma linha.
+do $$ begin
+  if exists(select 1 from public.local_data_imports where id='a2640000-0000-4000-8000-000000000004')
+    or exists(select 1 from public.vials where id in ('e2640000-0000-4000-8000-000000000004','e2650000-0000-4000-8000-000000000005'))
+    or exists(select 1 from public.routines where id in ('d2640000-0000-4000-8000-000000000004','d2650000-0000-4000-8000-000000000005'))
+    or exists(select 1 from public.routine_versions where id in ('c2640000-0000-4000-8000-000000000004','c2650000-0000-4000-8000-000000000005'))
+    or exists(select 1 from public.applications where operation_id in (
+      'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
+      'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003') or undo_operation_id in (
+      'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
+      'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003'))
+    or exists(select 1 from public.vial_movements where operation_id in (
+      'b2640000-0000-4000-8000-000000000001','b2640000-0000-4000-8000-000000000002',
+      'b2640000-0000-4000-8000-000000000003','b2650000-0000-4000-8000-000000000001',
+      'b2650000-0000-4000-8000-000000000002','b2650000-0000-4000-8000-000000000003')) then
+    raise exception 'PREFLIGHT JWT: UUID reservado já existe; não criar contas Auth';
+  end if;
+end $$;
+select 'PASS — PREFLIGHT JWT; contas Auth ainda não foram criadas' resultado;
