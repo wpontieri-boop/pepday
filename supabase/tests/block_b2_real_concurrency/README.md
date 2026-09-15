@@ -65,48 +65,38 @@ ou inverter o vencedor produz `FAIL`, mesmo que o saldo isolado pareça correto.
 
 ## Auth/RLS real e replay concorrente com Undo
 
-Esses cenários usam `scripts/test-b2-real-transport.mjs` e duas contas Auth novas,
-criadas manualmente no painel de **Auth do projeto de testes**, com auto-confirmação,
-o mesmo marcador UUID aleatório em `user_metadata.pepday_b2_run_marker` e estes
-e-mails reservados:
+Esses cenários usam `scripts/test-b2-real-transport.mjs`. O runner cria via Admin
+Auth duas contas novas, auto-confirmadas, com senha aleatória mantida somente em
+memória e um UUID aleatório comum em `user_metadata.pepday_b2_run_marker`:
 
 - `pepday-b2-jwt-a@example.invalid`
 - `pepday-b2-jwt-b@example.invalid`
 
-Usar criação direta com auto-confirmação; não usar o fluxo **Invite user**, para
-não solicitar envio de e-mail. Gerar um UUID novo para esta execução antes de criar
-as contas e emitir os JWTs somente depois de salvar a metadata.
-
-Senhas temporárias e tokens não devem ser salvos. Obter um access token legítimo
-para cada conta e definir somente na sessão do terminal:
+Definir somente na sessão do terminal, nunca em `.env` dentro do projeto:
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `PEPDAY_B2_JWT_A`
-- `PEPDAY_B2_JWT_B`
-- `PEPDAY_B2_RUN_MARKER`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-Ordem:
+Executar uma única vez:
 
-1. Executar `04_05_jwt_preflight.sql` **antes de criar as contas**. Qualquer colisão
-   interrompe o fluxo sem deixar fixture Auth.
-2. Gerar o run marker, criar as contas com essa metadata, emitir os JWTs e definir
-   as cinco variáveis de sessão.
-3. `node scripts/test-b2-real-transport.mjs prepare`
-4. Copiar os dois UUIDs exibidos (nenhum token é impresso).
-5. Fazer uma cópia fora do repositório de `04_05_jwt_setup.template.sql`, substituir
-   os placeholders de usuário e `REPLACE_WITH_RUN_MARKER_UUID`, e executar a cópia
-   no SQL Editor. Esperado: `PASS — SETUP JWT`.
-6. `node scripts/test-b2-real-transport.mjs auth-rls`
-7. `node scripts/test-b2-real-transport.mjs replay-undo`
-8. Fazer uma cópia fora do repositório de `99_cleanup_jwt.template.sql`, substituir
-   os mesmos UUIDs e executá-la. Esperado: total zero e
-   `PASS — LIMPEZA JWT CONFIRMADA`.
-9. Remover as cinco variáveis do terminal e apagar as cópias temporárias.
+`node scripts/test-b2-real-transport.mjs`
 
-O comando `prepare` conclui cadastro e inicia trial somente nas duas contas de
-teste. O setup JWT recusa placeholders, IDs iguais, e-mails inesperados, falta de
-entitlement e colisões em qualquer UUID de domínio/operação reservado.
+O runner recusa qualquer URL diferente de
+`https://fsbqpyyprtymwrmzsacp.supabase.co` — inclusive a mesma URL com barra final —,
+faz preflight de e-mails e UUIDs,
+cria as contas sem convite/e-mail externo, autentica ambas pelo fluxo normal com a
+anon key, executa internamente `prepare`, `auth-rls` e `replay-undo`, e tenta o
+cleanup mesmo quando uma etapa falha. Nenhuma credencial, senha, sessão, UUID de
+usuário ou token é exibido. A única saída normal é `PASS FINAL — AUTH/RLS +
+REPLAY/UNDO` ou `FAIL FINAL — <motivo sanitizado>`.
+
+O marcador de domínio é criado antes das demais fixtures. A remoção de domínio só
+prossegue quando ele contém exatamente o run marker e os dois usuários da execução;
+a remoção Auth exige ainda e-mail e metadata idênticos. Se a falha ocorrer antes do
+marcador de domínio, somente as contas recém-criadas cuja metadata coincida podem
+ser removidas. Ao final, o runner confirma zero linhas nas 12 tabelas públicas,
+ausência das duas contas na API Admin e rejeição dos access/refresh tokens antigos.
 
 ### Critérios objetivos JWT
 
@@ -115,7 +105,8 @@ entitlement e colisões em qualquer UUID de domínio/operação reservado.
   nas tentativas cruzadas.
 - **Replay + Undo:** as duas requisições aguardam a mesma barreira no cliente. O
   runner exige `dispatch skew ≤ 25 ms`, `replay=true` no reenvio e `replay=false`
-  no primeiro Undo. Ao final
+  no primeiro Undo. A barreira usa espera completa de todas as operações: uma
+  falha rápida não libera cleanup enquanto a outra request ainda estiver em curso. Ao final
   existe uma aplicação original, exatamente um movimento negativo e um inverso,
   a aplicação está desfeita e o saldo voltou de `9` para `10` exatamente uma vez.
   Um segundo Undo com outro UUID precisa retornar o conflito previsto sem alterar
@@ -124,23 +115,34 @@ entitlement e colisões em qualquer UUID de domínio/operação reservado.
 
 ## Riscos residuais
 
-- As fixtures precisam ser confirmadas temporariamente para ficarem visíveis entre
-  conexões. Uma interrupção exige executar o cleanup antes de repetir.
+- As fixtures JWT são confirmadas temporariamente para o transporte real. Uma queda
+  abrupta do processo pode exigir a recuperação manual já existente em
+  `99_cleanup_jwt.template.sql`, usando o run marker conhecido da execução.
 - Latência do SQL Editor pode reduzir a janela de sobreposição; repetir somente
   depois de limpar e recriar todas as fixtures.
 - Perda de conexão pode ocultar o resultado, mas não amplia os filtros de escrita.
-- Tokens dão acesso às contas fixtures enquanto válidos; devem permanecer apenas
-  na memória/ambiente da sessão e ser removidos após o teste.
+- Tokens e senhas existem apenas na memória do processo; as três chaves de ambiente
+  devem ser removidas da sessão do terminal após o teste.
 - O runner comprova transporte HTTP/JWT, não a segurança do computador usado para
   armazenar temporariamente as variáveis de ambiente.
 
-Depois dos cleanups, o resultado final soma as 13 tabelas de domínio/conta e, se
-existirem no schema, `auth.identities`, `auth.sessions` e `auth.refresh_tokens`.
-Somente `TOTAL = 0` autoriza encerrar o teste. Se uma conexão cair, o PostgreSQL
+O runner tenta contar diretamente `auth.identities`, `auth.sessions` e
+`auth.refresh_tokens` quando o schema `auth` está exposto ao PostgREST; se não
+estiver, o Admin Auth não oferece essa contagem SQL com as três variáveis permitidas.
+Nesse caso, ele comprova o hard-delete em `auth.users` e que access/refresh tokens
+antigos deixaram de funcionar; a remoção interna decorre do hard-delete transacional
+suportado pelo Auth. A confirmação literal de contagem zero continua disponível no
+cleanup SQL manual, caso seja exigida após uma interrupção. Se uma conexão cair, o PostgreSQL
 reverte a transação daquela conexão e libera seus locks; executar `ROLLBACK;` na
 aba se ela ainda estiver aberta, aguardar as demais sessões terminarem, e somente
 então executar o cleanup. Nunca remover manualmente o marcador para contornar uma
 recusa de procedência.
+
+O refresh token emitido pelo login normal não é consumido antes do hard-delete no
+teste real, porque uma troca bem-sucedida pode rotacioná-lo e alterar a intenção do
+teste. Sua emissão pela autenticação confirma o estado anterior; depois da exclusão,
+o runner tenta usá-lo uma única vez e exige recusa. O mock local modela explicitamente
+o mesmo token como válido antes e inválido depois da remoção.
 
 ## Validação local do pacote
 
