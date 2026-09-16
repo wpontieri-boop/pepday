@@ -14,7 +14,7 @@ function stable(value){
 }
 function fingerprint(input){
   return JSON.stringify(stable({type:input.type,entityType:input.entityType,entityId:input.entityId,
-    payload:input.payload,baseVersion:input.baseVersion??null,dependencies:input.dependencies||[]}));
+    payload:input.payload,baseVersion:input.baseVersion??null,dependencies:input.dependencies||[],blockedReason:input.blockedReason||null}));
 }
 function validateInput(input,scope){
   if(!input||typeof input!=='object')fail('INVALID_OPERATION','Operação obrigatória.');
@@ -23,7 +23,8 @@ function validateInput(input,scope){
   const dependencies=[...new Set(input.dependencies||[])];
   if(!dependencies.every(id=>UUID.test(id)))fail('INVALID_DEPENDENCY','Dependência inválida.');
   if(dependencies.includes(input.operationId))fail('CIRCULAR_DEPENDENCY','Operação não pode depender de si mesma.');
-  return {...clone(input),accountScope:scope,dependencies,payload:clone(input.payload??null),baseVersion:input.baseVersion??null};
+  return {...clone(input),accountScope:scope,dependencies,payload:clone(input.payload??null),baseVersion:input.baseVersion??null,
+    blockedReason:input.blockedReason||null};
 }
 function intentEntry(input){return {operationId:input.operationId,fingerprint:fingerprint(input)}}
 function ownsIntent(row,operationId){return (row.intents||[]).some(intent=>intent.operationId===operationId)}
@@ -94,7 +95,7 @@ export async function enqueueOutboxInTransaction({stores,accountScope,input,now=
   const row={accountScope,id:operation.operationId,operationId:operation.operationId,type:operation.type,
     entityType:operation.entityType,entityId:operation.entityId,payload:clone(operation.payload),baseVersion:operation.baseVersion,
     sequence,dependencies:operation.dependencies,status:'pending',attemptCount:0,nextAttemptAt:now,leaseOwner:null,
-    leaseExpiresAt:null,createdAt:now,updatedAt:now,lastErrorCode:null,intents:[intentEntry(operation)]};
+    leaseExpiresAt:null,createdAt:now,updatedAt:now,lastErrorCode:null,blockedReason:operation.blockedReason,intents:[intentEntry(operation)]};
   await stores.outbox.put(row);
   return {operation:clone(row),deduplicated:false,compacted:false};
 }
@@ -125,11 +126,25 @@ export function createSyncOutbox({database,getAccountScope,clock=()=>Date.now(),
           if(row.status==='syncing'&&millis(row.leaseExpiresAt)<=now){row.status='pending';row.leaseOwner=null;row.leaseExpiresAt=null;row.updatedAt=nowText;await store.put(row)}
         }
         const allowed=allowedTypes?new Set(allowedTypes):null;
-        const candidate=rows.find(row=>(!allowed||allowed.has(row.type))&&row.status==='pending'&&millis(row.nextAttemptAt)<=now&&
+        const candidate=rows.find(row=>(!allowed||allowed.has(row.type))&&!row.blockedReason&&row.status==='pending'&&millis(row.nextAttemptAt)<=now&&
           row.dependencies.every(id=>byId.get(id)?.status==='synced'));
         if(!candidate)return null;
         candidate.status='syncing';candidate.attemptCount+=1;candidate.leaseOwner=workerId;
         candidate.leaseExpiresAt=iso(now+leaseDurationMs);candidate.updatedAt=nowText;await store.put(candidate);return clone(candidate);
+      });
+    },
+    async resolvePrerequisites(operationId,{payload,dependencies}={}){
+      const accountScope=scope(),now=nowIso();
+      return database.write('outbox',async store=>{
+        const row=await store.get(accountScope,operationId);
+        if(!row)fail('OPERATION_NOT_FOUND','Operação não encontrada.');
+        if(row.status!=='pending'||row.attemptCount!==0)fail('OPERATION_ALREADY_STARTED','Somente intenção ainda não enviada pode receber pré-requisitos.');
+        if(!row.blockedReason)return clone(row);
+        const rows=await store.getAllByScope(accountScope),byId=new Map(rows.map(item=>[item.operationId,item]));
+        const nextDependencies=dependencies??row.dependencies;
+        for(const dependency of nextDependencies)if(byId.get(dependency)?.status!=='synced')fail('MISSING_DEPENDENCY','Dependência ainda não confirmada.');
+        row.payload=clone(payload??row.payload);row.dependencies=[...nextDependencies];row.blockedReason=null;row.updatedAt=now;
+        await store.put(row);return clone(row);
       });
     },
     async settle(operationId,{workerId,outcome,errorCode=null,retryAfterMs=null,transportConfirmed=false,replay=false}={}){

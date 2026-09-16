@@ -9,7 +9,7 @@ function category(error){
 }
 export function createSyncEngine({repository,api,coordinator,online=()=>globalThis.navigator?.onLine!==false,
   clock=()=>Date.now(),random=Math.random,windowTarget=globalThis.window,documentTarget=globalThis.document,
-  setTimer=setTimeout,clearTimer=clearTimeout,maxBackoffMs=300000}={}){
+  setTimer=setTimeout,clearTimer=clearTimeout,maxBackoffMs=300000,onConfirmed=()=>{}}={}){
   if(!repository?.outbox||!api?.send||!coordinator?.runExclusive)throw new Error('Dependências de sincronização obrigatórias.');
   let active=false,paused=false,generation=0,running=null,timer=null;
   const workerId=coordinator.ownerId;
@@ -32,6 +32,7 @@ export function createSyncEngine({repository,api,coordinator,online=()=>globalTh
     if(!valid(token,scope))return;
     // Falha local deixa syncing: o lease expira e o mesmo UUID repara via replay.
     await repository.persistRemoteConfirmation({accountScope:scope,operationId:op.operationId,workerId,response});
+    if(valid(token,scope))await onConfirmed({accountScope:scope,operationId:op.operationId,type:op.type,replay:Boolean(response.replay)});
   }
   async function drain(token,scope){
     if(!valid(token,scope)||!online())return {processed:0,offline:!online()};let processed=0;
@@ -48,7 +49,7 @@ export function createSyncEngine({repository,api,coordinator,online=()=>globalTh
     if(running)return running;const token=generation,scope=repository.accountScope;
     running=drain(token,scope).finally(async()=>{running=null;
       if(!valid(token,scope)||!online())return;
-      const pending=(await repository.outbox.list()).filter(row=>SUPPORTED.includes(row.type)&&['pending','syncing'].includes(row.status));
+      const pending=(await repository.outbox.list()).filter(row=>SUPPORTED.includes(row.type)&&!row.blockedReason&&['pending','syncing'].includes(row.status));
       const next=Math.min(...pending.map(row=>Date.parse(row.status==='syncing'?row.leaseExpiresAt:row.nextAttemptAt)).filter(Number.isFinite));
       if(Number.isFinite(next)){if(timer)clearTimer(timer);timer=setTimer(()=>{timer=null;trigger()},Math.max(0,next-clock()))}
     });return running;

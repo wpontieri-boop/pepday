@@ -55,10 +55,11 @@ function clearPrivateUi() {
 function stopSync(){syncEngine?.stop();syncEngine=null}
 function startSync(repository){
   stopSync();if(!repository)return;
-  const api=createSyncApi({client:cloud.client}),coordinator=createTabCoordinator({repository});
-  syncEngine=createSyncEngine({repository,api,coordinator});
+  const api=createSyncApi({client:cloud.client,config}),coordinator=createTabCoordinator({repository});
+  syncEngine=createSyncEngine({repository,api,coordinator,onConfirmed:detail=>window.dispatchEvent(new CustomEvent('pepday:sync-confirmed',{detail}))});
   syncEngine.start().catch(error=>console.warn('PepDay sync adiada:',error?.code||error?.name||'erro'));
 }
+window.addEventListener('pepday:outbox-ready',()=>syncEngine?.trigger());
 async function run(action) {
   if (busy) return;
   busy=true; enableMethods();

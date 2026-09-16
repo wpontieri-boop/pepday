@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {indexedDB} from 'fake-indexeddb';
 import {openPepDayRepository} from '../src/pepday-repository.mjs';
 import {createSyncEngine} from '../src/sync-engine.mjs';
-import {createSyncApi,SyncApiError} from '../src/sync-api.mjs';
+import {createSyncApi,SyncApiError,parseRetryAfter} from '../src/sync-api.mjs';
 import {createTabCoordinator} from '../src/tab-coordinator.mjs';
 
 let serial=0;const uuid=()=>`90000000-0000-4000-8000-${String(++serial).padStart(12,'0')}`;
+const publicConfig={supabaseUrl:'https://fixture.supabase.co',supabasePublishableKey:'sb_publishable_fixture'};
+const authClient=()=>({auth:{getSession:async()=>({data:{session:{access_token:'test-token'}}}),refreshSession:async()=>({error:null})}});
+const appSource=readFileSync(new URL('../app.js',import.meta.url),'utf8');
 const dbName=label=>`pepday-b22c-${label}-${Date.now()}-${++serial}`;
 const remove=name=>new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(name);r.onsuccess=resolve;r.onerror=()=>reject(r.error)});
 const application=(overrides={})=>({operationId:uuid(),type:'application',entityType:'application',entityId:'planned',dependencies:[],baseVersion:null,
@@ -36,6 +40,26 @@ test('Application online confirma snapshots e saldo atomicamente; Undo dependent
   api.send=async op=>confirmation(op,{balance:10,kind:'undo'});await f.engine(api).start();
   assert.equal((await f.repository.outbox.get(u.operationId)).status,'synced');assert.equal((await f.repository.vialMovements.list()).length,2);
   assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);await f.close();
+});
+
+test('UI cria intenções Application/Undo sem saldo otimista e mantém pré-requisitos recuperáveis',()=>{
+  assert.match(appSource,/repository\.enqueueApplicationIntent\(\{operationId:crypto\.randomUUID\(\),routine,vial,scheduledDate\}\)/);
+  assert.match(appSource,/repository\.enqueueUndoIntent\(\{operationId:crypto\.randomUUID\(\),application/);
+  assert.match(appSource,/repository\.outbox\.resolvePrerequisites\(operation\.operationId/);
+  assert.doesNotMatch(appSource,/Aplicações e Undo serão conectados/);
+  const toggle=appSource.slice(appSource.indexOf('async function toggleDone'),appSource.indexOf('window.toggleDone'));
+  assert.ok(toggle.indexOf('applicationIntentInFlight.add(key)')<toggle.indexOf('await requireLocalRepository()'));
+  assert.doesNotMatch(toggle,/remainingMg\s*=|vialMovements\.put|applications\.put/);
+});
+
+test('repository cria uma única intenção funcional e Undo depende da Application confirmada',async()=>{
+  const f=await fixture('functional-intent'),routine={id:'local-r',remoteRef:{status:'synced',id:'routine-1',versionId:'rv-1'}},
+    vial=await f.repository.vials.get('vial-1');vial.remoteRef={status:'synced',id:'vial-1'};
+  const applicationOperation=uuid();await f.repository.enqueueApplicationIntent({operationId:applicationOperation,routine,vial,scheduledDate:'2026-09-16'});
+  assert.equal((await f.repository.outbox.list()).length,1);assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);
+  await f.engine({send:async x=>confirmation(x),refreshSession:async()=>{}}).start();const confirmed=(await f.repository.applications.list())[0],undoOperation=uuid();
+  await f.repository.enqueueUndoIntent({operationId:undoOperation,application:confirmed,localRoutineId:routine.id,localVialId:vial.id,scheduledDate:'2026-09-16'});
+  const queued=await f.repository.outbox.get(undoOperation);assert.deepEqual(queued.dependencies,[applicationOperation]);assert.equal(queued.status,'pending');assert.equal((await f.repository.vials.get('vial-1')).remainingMg,9);await f.close();
 });
 
 test('offline antes do claim não incrementa tentativa nem altera saldo; reconexão dispara envio',async()=>{
@@ -98,6 +122,32 @@ test('Undo offline permanece pending sem saldo otimista; replay é sucesso e out
   assert.equal((await f.repository.outbox.get(second.operationId)).status,'conflict');assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);await f.close();
 });
 
+test('Undo com resposta perdida converge por replay para exatamente dois movimentos',async()=>{
+  const f=await fixture('undo-cardinality'),a=application();await f.repository.outbox.enqueue(a);await f.engine({send:async x=>confirmation(x),refreshSession:async()=>{}}).start();
+  const u=undo('app-1',a.operationId);await f.repository.outbox.enqueue(u);let calls=0;
+  const api={send:async x=>{if(++calls===1)throw new SyncApiError('lost',{status:0,code:'LOST'});return confirmation(x,{replay:true,balance:10,kind:'undo'})},refreshSession:async()=>{}};
+  await f.engine(api).start();f.time.value+=1000;await f.engine(api).start();
+  const applications=await f.repository.applications.list(),movements=await f.repository.vialMovements.list();
+  assert.equal(applications.length,1);assert.equal(movements.filter(x=>x.kind==='application').length,1);assert.equal(movements.filter(x=>x.kind==='undo').length,1);
+  assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);await f.engine(api).start();assert.equal((await f.repository.vialMovements.list()).length,2);await f.close();
+});
+
+test('intenção aguarda pré-requisitos remotos e depois prossegue com o mesmo UUID',async()=>{
+  const f=await fixture('prerequisites'),operationId=uuid(),routine={id:'local-r'},vial={id:'vial-1'};
+  await f.repository.enqueueApplicationIntent({operationId,routine,vial,scheduledDate:'2026-09-16'});let sends=0;await f.engine({send:async x=>{sends++;return confirmation(x)},refreshSession:async()=>{}}).start();
+  let row=await f.repository.outbox.get(operationId);assert.equal(sends,0);assert.equal(row.status,'pending');assert.equal(row.attemptCount,0);
+  row=await f.repository.outbox.resolvePrerequisites(operationId,{payload:{...row.payload,routineId:'routine-1',routineVersionId:'rv-1',vialId:'vial-1'}});
+  await f.engine({send:async x=>{sends++;assert.equal(x.operationId,operationId);return confirmation(x)},refreshSession:async()=>{}}).start();
+  assert.equal(sends,1);assert.equal((await f.repository.outbox.get(operationId)).status,'synced');await f.close();
+});
+
+test('confirmação remota atualiza IDs locais sem fabricar Rotina ou Frasco duplicado',async()=>{
+  const f=await fixture('local-remote-map'),op=application({payload:{...application().payload,localRoutineId:'local-routine',localVialId:'vial-1',routineId:'remote-routine',routineVersionId:'remote-version',vialId:'remote-vial'}});
+  await f.repository.outbox.enqueue(op);await f.engine({send:async x=>{const result=confirmation(x);result.application.routine_id='remote-routine';result.application.scheduled_date='2026-09-16';result.vial.id='remote-vial';return result},refreshSession:async()=>{}}).start();
+  const apps=await f.repository.applications.list(),vials=await f.repository.vials.list();assert.equal(apps[0].localRoutineId,'local-routine');assert.equal(vials.length,1);
+  assert.equal(vials[0].id,'vial-1');assert.deepEqual(vials[0].remoteRef,{status:'synced',id:'remote-vial'});assert.equal(vials[0].remainingMg,9);await f.close();
+});
+
 test('antes da resposta remota não há saldo, Application ou movimento otimista',async()=>{
   const f=await fixture('no-optimism'),op=application();await f.repository.outbox.enqueue(op);let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);
   const running=f.engine({send:async x=>{entered();await gate;return confirmation(x)},refreshSession:async()=>{}}).start();await started;
@@ -110,6 +160,16 @@ test('confirmação local é atômica: DataCloneError intermediário não deixa 
   const bad=confirmation(claimed);bad.movement.invalid=()=>{};
   await assert.rejects(f.repository.persistRemoteConfirmation({accountScope:f.repository.accountScope,operationId:op.operationId,workerId:'atomic',response:bad}),error=>error.name==='DataCloneError');
   assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);assert.equal((await f.repository.outbox.get(op.operationId)).status,'syncing');await f.close();
+});
+
+test('resposta após lease expirado não grava; novo worker repara por replay sem duplicação',async()=>{
+  const f=await fixture('expired-confirmation'),op=application();await f.repository.outbox.enqueue(op);
+  const claimed=await f.repository.outbox.claimNext({workerId:'old',leaseDurationMs:10});f.time.value+=11;
+  await assert.rejects(f.repository.persistRemoteConfirmation({accountScope:f.repository.accountScope,operationId:op.operationId,workerId:'old',response:confirmation(claimed)}),error=>error.code==='LEASE_EXPIRED');
+  assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});assert.equal((await f.repository.vials.get('vial-1')).remainingMg,10);
+  const coordinator=createTabCoordinator({repository:f.repository,locks:null,ownerId:'new',clock:()=>f.time.value,setIntervalFn:()=>1,clearIntervalFn:()=>{}});
+  await createSyncEngine({repository:f.repository,api:{send:async x=>confirmation(x,{replay:true}),refreshSession:async()=>{}},coordinator,clock:()=>f.time.value,online:()=>true,windowTarget:null,documentTarget:null,setTimer:()=>1,clearTimer:()=>{}}).start();
+  assert.equal((await f.repository.outbox.get(op.operationId)).transportReplay,true);assert.deepEqual(await f.repository.confirmedCounts(),{applications:1,vialMovements:1});assert.equal((await f.repository.vials.get('vial-1')).remainingMg,9);await f.close();
 });
 
 test('reload durante syncing recupera lease e reenvia exatamente o mesmo UUID',async()=>{
@@ -139,6 +199,16 @@ test('duas abas elegem um líder e não enviam a mesma operação duas vezes',as
   await Promise.all([make(f.repository,'a').start(),make(other,'b').start()]);assert.equal(sends,1);assert.equal((await f.repository.outbox.get(op.operationId)).status,'synced');await f.close(other);
 });
 
+test('Web Locks elege um líder, impede envio simultâneo e libera o próximo',async()=>{
+  const f=await fixture('web-locks'),other=await f.open(),first=application(),second=application({entityId:'planned-2',payload:{...application().payload,scheduledDate:'2026-09-17'}});await f.repository.outbox.enqueue(first);
+  let locked=false,sends=0,simultaneous=0,maxSimultaneous=0;
+  const locks={async request(name,options,callback){if(locked)return callback(null);locked=true;try{return await callback({name})}finally{locked=false}}};
+  const api={send:async x=>{sends++;simultaneous++;maxSimultaneous=Math.max(maxSimultaneous,simultaneous);await new Promise(r=>setTimeout(r,5));simultaneous--;return confirmation(x)},refreshSession:async()=>{}};
+  const make=(repo,id)=>createSyncEngine({repository:repo,api,coordinator:createTabCoordinator({repository:repo,locks,ownerId:id}),online:()=>true,windowTarget:null,documentTarget:null,setTimer:()=>1,clearTimer:()=>{}});
+  const a=make(f.repository,'web-a'),b=make(other,'web-b');await Promise.all([a.start(),b.start()]);assert.equal(sends,1);assert.equal(maxSimultaneous,1);
+  await f.repository.outbox.enqueue(second);await b.trigger();assert.equal(sends,2);assert.equal((await f.repository.outbox.get(second.operationId)).status,'synced');await f.close(other);
+});
+
 test('logout/troca de conta invalida resposta tardia e mantém isolamento',async()=>{
   const f=await fixture('scope'),op=application();await f.repository.outbox.enqueue(op);let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);
   const engine=f.engine({send:async x=>{entered();await gate;return confirmation(x)},refreshSession:async()=>{}}),running=engine.start();await started;
@@ -146,16 +216,39 @@ test('logout/troca de conta invalida resposta tardia e mantém isolamento',async
   assert.equal((await f.repository.applications.list()).length,0);f.repository.setAccountScope('user:user-a');assert.equal((await f.repository.outbox.get(op.operationId)).status,'syncing');await f.close();
 });
 
+test('logout durante envio não grava em device e login posterior repara a conta original',async()=>{
+  const f=await fixture('logout'),op=application();await f.repository.outbox.enqueue(op);let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);
+  const engine=f.engine({send:async x=>{entered();await gate;return confirmation(x)},refreshSession:async()=>{}}),running=engine.start();await started;
+  engine.stop();f.repository.setAccountScope('device:installation');release();await running;
+  assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});assert.equal((await f.repository.outbox.list()).length,0);
+  f.repository.setAccountScope('user:user-a');assert.equal((await f.repository.outbox.get(op.operationId)).status,'syncing');f.time.value+=101;
+  const coordinator=createTabCoordinator({repository:f.repository,locks:null,ownerId:'after-login',clock:()=>f.time.value,setIntervalFn:()=>1,clearIntervalFn:()=>{}});
+  await createSyncEngine({repository:f.repository,api:{send:async x=>confirmation(x,{replay:true}),refreshSession:async()=>{}},coordinator,clock:()=>f.time.value,online:()=>true,windowTarget:null,documentTarget:null,setTimer:()=>1,clearTimer:()=>{}}).start();
+  assert.equal((await f.repository.outbox.get(op.operationId)).status,'synced');assert.deepEqual(await f.repository.confirmedCounts(),{applications:1,vialMovements:1});await f.close();
+});
+
 test('tipos Rotina/Frasco permanecem pending no B2.2-C',async()=>{
   const f=await fixture('types');for(const type of ['create','edit'])await f.repository.outbox.enqueue({operationId:uuid(),type,entityType:type==='create'?'routine':'vial',entityId:type,payload:{},dependencies:[]});
   await f.engine({send:async()=>{throw new Error('não deve enviar')},refreshSession:async()=>{}}).start();assert.deepEqual((await f.repository.outbox.list()).map(x=>x.status),['pending','pending']);await f.close();
 });
 
-test('sync-api chama RPCs existentes com contrato e mesmo operationId; rejeita resposta incompleta',async()=>{
-  const calls=[],client={rpc:async(name,args)=>{calls.push({name,args});return {data:{replay:false,application:{id:'a'},movement:{id:'m'},vial:{id:'v',remaining_mg:1}}}},auth:{refreshSession:async()=>({})}};
-  const api=createSyncApi({client}),a=application();await api.send(a);const u=undo('a',a.operationId);await api.send(u);
-  assert.equal(calls[0].name,'register_application');assert.equal(calls[0].args.p_operation_id,a.operationId);assert.equal(calls[1].name,'undo_application');assert.equal(calls[1].args.p_operation_id,u.operationId);
-  const bad=createSyncApi({client:{rpc:async()=>({data:{}}),auth:{refreshSession:async()=>({})}}});await assert.rejects(bad.send(a),error=>error.code==='INVALID_RPC_RESPONSE');
+test('sync-api usa HTTP bruto, JWT da sessão e mesmo operationId sem expor credenciais',async()=>{
+  const calls=[],fetchImpl=async(url,options)=>{calls.push({url,options});return new Response(JSON.stringify({replay:false,application:{id:'a'},movement:{id:'m'},vial:{id:'v',remaining_mg:1}}),{status:200,headers:{'Content-Type':'application/json'}})};
+  const api=createSyncApi({client:authClient(),config:publicConfig,fetchImpl}),a=application();await api.send(a);const u=undo('a',a.operationId);await api.send(u);
+  assert.match(calls[0].url,/\/rpc\/register_application$/);assert.equal(JSON.parse(calls[0].options.body).p_operation_id,a.operationId);
+  assert.match(calls[1].url,/\/rpc\/undo_application$/);assert.equal(JSON.parse(calls[1].options.body).p_operation_id,u.operationId);
+  assert.equal(calls[0].options.headers.Authorization,'Bearer test-token');assert.equal(calls[0].options.headers.apikey,publicConfig.supabasePublishableKey);
+  const bad=createSyncApi({client:authClient(),config:publicConfig,fetchImpl:async()=>new Response('{}',{status:200,headers:{'Content-Type':'application/json'}})});
+  await assert.rejects(bad.send(a),error=>error.code==='INVALID_RPC_RESPONSE');
+});
+
+test('429 realista respeita Retry-After em segundos e data HTTP; inválido usa backoff local',async()=>{
+  const now=Date.parse('2026-09-16T12:00:00Z'),op=application();
+  for(const [header,expected] of [['42',42000],[new Date(now+60000).toUTCString(),60000],['inválido',null]]){
+    const api=createSyncApi({client:authClient(),config:publicConfig,clock:()=>now,fetchImpl:async()=>new Response(JSON.stringify({code:'RATE',message:'limite'}),{status:429,headers:{'Content-Type':'application/json','Retry-After':header}})});
+    await assert.rejects(api.send(op),error=>error.status===429&&error.retryAfterMs===expected);
+  }
+  assert.equal(parseRetryAfter('2',now),2000);assert.equal(parseRetryAfter('inválido',now),null);
 });
 
 test('visibilidade e foco disparam retomada sem usar online como confirmação',async()=>{

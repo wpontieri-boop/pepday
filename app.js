@@ -1,12 +1,13 @@
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-let routines=[],vials=[],localRepository=null,localDataState='loading',localDataError='';
+let routines=[],vials=[],confirmedApplications=[],outboxOperations=[],localRepository=null,localDataState='loading',localDataError='';
 let lastCalc=null, editing=null, editingVial=null, vialReturnToRoutine=false;
 let scopeGeneration=0,scopeTransition=Promise.resolve(null);
+const applicationIntentInFlight=new Set();
 
 function renderLocalData(){renderToday();renderRoutines();renderVials()}
 function clearPrivateLocalUi(state='loading',message=''){
-  routines=[];vials=[];localRepository=null;localDataState=state;localDataError=message;
+  routines=[];vials=[];confirmedApplications=[];outboxOperations=[];applicationIntentInFlight.clear();localRepository=null;localDataState=state;localDataError=message;
   editing=null;editingVial=null;vialReturnToRoutine=false;
   ['routineForm','vialForm','historyCard'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
   if(['routines','vials'].includes(document.querySelector('.screen.active')?.id))go('home');
@@ -35,11 +36,20 @@ function activateLocalScope(accountScope=null){
       if(!base)throw new Error('IndexedDB indisponível neste navegador.');
       const scope=accountScope||base.deviceScope;
       base.repository.setAccountScope(scope);
-      const [nextRoutines,nextVials,draft]=await Promise.all([
-        base.repository.routines.list(),base.repository.vials.list(),base.repository.drafts.get('routine-form')
+      const [nextRoutines,nextVials,nextApplications,loadedOutbox,draft]=await Promise.all([
+        base.repository.routines.list(),base.repository.vials.list(),base.repository.applications.list(),base.repository.outbox.list(),base.repository.drafts.get('routine-form')
       ]);
       if(token!==scopeGeneration)return null;
-      routines=nextRoutines;vials=nextVials;
+      let nextOutbox=loadedOutbox;
+      for(const operation of loadedOutbox.filter(item=>item.type==='application'&&item.blockedReason==='remote-prerequisites')){
+        if(token!==scopeGeneration||base.repository.accountScope!==scope)return null;
+        const routine=nextRoutines.find(item=>item.id===operation.payload?.localRoutineId),vial=nextVials.find(item=>item.id===operation.payload?.localVialId),remote=confirmedRemoteRefs(routine,vial);
+        if(remote)await base.repository.outbox.resolvePrerequisites(operation.operationId,{payload:{...operation.payload,...remote}});
+      }
+      if(token!==scopeGeneration)return null;
+      if(loadedOutbox.some(item=>item.blockedReason==='remote-prerequisites'))nextOutbox=await base.repository.outbox.list();
+      if(token!==scopeGeneration)return null;
+      routines=nextRoutines;vials=nextVials;confirmedApplications=nextApplications;outboxOperations=nextOutbox;
       if(draft)applyRoutineDraft(draft,{show:true});
       localRepository=base.repository;localDataState='ready';localDataError='';
       renderLocalData();return base.repository;
@@ -103,16 +113,50 @@ function renderToday(){
   if(localDataState!=='ready'){$('#todayRoutines').innerHTML=`<div class="empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return}
   let box=$('#todayRoutines'), list=routines.filter(r=>activeOn(r,d));
   if(!list.length){box.innerHTML='<div class="empty"><p>Nenhuma rotina programada para hoje.</p></div>';return}
-  box.innerHTML=list.map(r=>{let done=(r.done||[]).includes(isoToday()),v=vials.find(x=>x.id===r.vialId); return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button data-pro-action onclick="toggleDone('${r.id}')">${done?'Desfazer':'Registrar'}</button></div></div>`}).join('');
+  const day=isoToday();
+  box.innerHTML=list.map(r=>{let app=confirmedApplications.find(item=>(item.localRoutineId===r.id||item.routine_id===r.id)&&item.scheduled_date===day&&!item.undone_at),
+    intent=outboxOperations.find(item=>['application','undo'].includes(item.type)&&item.payload?.localRoutineId===r.id&&item.payload?.scheduledDate===day&&['pending','syncing','failed','conflict'].includes(item.status)),
+    done=Boolean(app),v=vials.find(x=>x.id===r.vialId),label=intent?(intent.status==='conflict'?'Conflito — revisar':intent.status==='failed'?'Não enviado — revisar':intent.blockedReason?'Aguardando sincronização':intent.status==='syncing'?'Sincronizando…':'Pendente'):(done?'Desfazer':'Registrar');
+    return `<div class="routine ${done?'done':''}"><div><h4>${esc(r.name)}</h4><p>${r.time?esc(r.time)+' • ':''}${br(r.doseValue,3)} ${r.doseUnit} • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button data-pro-action onclick="toggleDone('${r.id}')"${intent?' disabled':''}>${label}</button></div></div>`}).join('');
 }
-function toggleDone(id){
+function confirmedRemoteRefs(routine,vial){
+ const rr=routine?.remoteRef,vr=vial?.remoteRef;
+ return rr?.status==='synced'&&vr?.status==='synced'&&rr.id&&rr.versionId&&vr.id
+   ?{routineId:rr.id,routineVersionId:rr.versionId,vialId:vr.id}:null;
+}
+async function toggleDone(id){
  if(!requirePro('application:toggle'))return false;
  if(localDataState!=='ready')return false;
- if(!routines.some(x=>x.id===id))return false;
- alert('Aplicações e Undo serão conectados ao registro transacional na próxima etapa. Nenhum saldo foi alterado.');
- return false;
+ const routine=routines.find(x=>x.id===id);if(!routine)return false;
+ const scheduledDate=isoToday(),key=`${id}:${scheduledDate}`;if(applicationIntentInFlight.has(key))return false;
+ applicationIntentInFlight.add(key);
+ try{
+   let repository=await requireLocalRepository();if(!repository||!repository.accountScope.startsWith('user:'))return false;
+   const token=scopeGeneration,accountScope=repository.accountScope,isCurrent=()=>token===scopeGeneration&&repository===localRepository&&repository.accountScope===accountScope;
+   if(!isCurrent())return false;
+   const durableOutbox=await repository.outbox.list();if(!isCurrent())return false;outboxOperations=durableOutbox;
+   if(durableOutbox.some(item=>item.payload?.localRoutineId===id&&item.payload?.scheduledDate===scheduledDate&&['pending','syncing','failed','conflict'].includes(item.status)))return false;
+   const application=confirmedApplications.find(item=>(item.localRoutineId===id||item.routine_id===id)&&item.scheduled_date===scheduledDate&&!item.undone_at);
+   if(application){
+     await repository.enqueueUndoIntent({operationId:crypto.randomUUID(),application,localRoutineId:id,localVialId:routine.vialId,scheduledDate});
+   }else{
+     const vial=vials.find(item=>item.id===routine.vialId),remote=confirmedRemoteRefs(routine,vial);
+     if(!isCurrent())return false;
+     await repository.enqueueApplicationIntent({operationId:crypto.randomUUID(),routine,vial,scheduledDate});
+     if(!remote)alert('Registro guardado neste aparelho. Ele será enviado com o mesmo identificador quando Rotina e Frasco estiverem confirmados na conta.');
+   }
+   const nextOutbox=await repository.outbox.list();if(!isCurrent())return false;outboxOperations=nextOutbox;renderToday();window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope}}));return true;
+ }catch(error){console.error('PepDay application intent:',error?.code||error?.name||'erro');alert('Não foi possível guardar esta intenção. Nenhum saldo foi alterado.');return false}
+ finally{applicationIntentInFlight.delete(key)}
 }
 window.toggleDone=toggleDone;
+
+window.addEventListener('pepday:sync-confirmed',async event=>{
+ const repository=localRepository,token=scopeGeneration;if(!repository||event.detail?.accountScope!==repository.accountScope)return;
+ const [nextApplications,nextOutbox,nextVials]=await Promise.all([repository.applications.list(),repository.outbox.list(),repository.vials.list()]);
+ if(token!==scopeGeneration||repository!==localRepository)return;
+ confirmedApplications=nextApplications;outboxOperations=nextOutbox;vials=nextVials;renderLocalData();
+});
 
 $('#calculate').onclick=()=>{
  let mg=+$('#vialMg').value, water=+$('#waterMl').value, dose=+$('#dose').value;
@@ -445,7 +489,7 @@ $('#saveVial').onclick=async()=>{
  if(!name||initialMg<=0||waterMl<=0||!date){alert('Confira nome, quantidade, diluente e data.');return}
  let savedVialId=editingVial;
  let savedVial;
- if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);savedVial={...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used)}}
+ if(editingVial){let old=vials.find(x=>x.id===editingVial),used=Math.max(0,old.initialMg-old.remainingMg);savedVial={...old,name,initialMg,waterMl,date,cost,remainingMg:Math.max(0,initialMg-used),remoteRef:null}}
  else{savedVialId=crypto.randomUUID();savedVial={id:savedVialId,name,initialMg,waterMl,date,cost,remainingMg:initialMg,history:[]}}
  let draft=null;
  if(vialReturnToRoutine){let read=await localOperation(()=>repository.drafts.get('routine-form'));if(!read.ok)return false;draft=read.value;if(draft)draft={...draft,fields:{...draft.fields,vialId:savedVialId}}}
@@ -457,7 +501,7 @@ $('#saveVial').onclick=async()=>{
 };
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
 window.deleteVial=async id=>{if(!requirePro('vial:delete')||localDataState!=='ready')return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.deleteVialWithOutbox(id,{operationId:crypto.randomUUID()}))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials()}};
-window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance')||localDataState!=='ready')return false;let v=vials.find(x=>x.id===id);if(!v)return false;let raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.saveVialWithOutbox(next,{operationId:crypto.randomUUID(),type:'edit'}))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
+window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance')||localDataState!=='ready')return false;let v=vials.find(x=>x.id===id);if(!v)return false;let raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,remoteRef:null,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.saveVialWithOutbox(next,{operationId:crypto.randomUUID(),type:'edit'}))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
 window.showVialHistory=id=>{
  if(!requirePro('vial:view-history')||localDataState!=='ready')return false;
  let v=vials.find(x=>x.id===id),h=v.history||[];

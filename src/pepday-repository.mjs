@@ -60,7 +60,8 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
   let activeScope=assertAccountScope(accountScope);
   const getScope=()=>activeScope;
   const outbox=createSyncOutbox({database,getAccountScope:getScope,...outboxOptions});
-  const outboxNow=()=>new Date((outboxOptions.clock||Date.now)()).toISOString();
+  const repositoryClock=outboxOptions.clock||Date.now;
+  const outboxNow=()=>new Date(repositoryClock()).toISOString();
   async function saveEntityWithOutbox(storeName,entity,{operationId,type,draft=null,clearDraft=false}={}){
     const scope=getScope(),id=assertId(entity?.id),stores=[storeName,'outbox','meta'];
     if(draft||clearDraft)stores.push('drafts');
@@ -98,6 +99,21 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
     meta:collection(database,getScope,'meta'),
     migrationReceipts:collection(database,getScope,'migrationReceipts'),
     outbox,
+    async enqueueApplicationIntent({operationId,routine,vial,scheduledDate}){
+      const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Application exige conta autenticada.');
+      const rr=routine?.remoteRef,vr=vial?.remoteRef,remote=rr?.status==='synced'&&vr?.status==='synced'&&rr.id&&rr.versionId&&vr.id;
+      return outbox.enqueue({operationId,type:'application',entityType:'application',entityId:`${assertId(routine?.id)}:${scheduledDate}`,
+        dependencies:[],blockedReason:remote?null:'remote-prerequisites',payload:{expectedUserId:scope.slice(5),localRoutineId:routine.id,
+          localVialId:assertId(vial?.id),routineId:remote?rr.id:null,routineVersionId:remote?rr.versionId:null,vialId:remote?vr.id:null,
+          scheduledDate,appliedAt:null}});
+    },
+    async enqueueUndoIntent({operationId,application,localRoutineId,localVialId,scheduledDate}){
+      const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Undo exige conta autenticada.');
+      const dependency=await outbox.get(application?.operation_id);
+      if(!dependency||dependency.status!=='synced'){const error=new Error('Application correspondente ainda não foi confirmada.');error.code='MISSING_CONFIRMED_APPLICATION';throw error}
+      return outbox.enqueue({operationId,type:'undo',entityType:'application',entityId:assertId(application?.id),dependencies:[application.operation_id],
+        payload:{expectedUserId:scope.slice(5),applicationId:application.id,localRoutineId:assertId(localRoutineId),localVialId:assertId(localVialId),scheduledDate,undoneAt:null}});
+    },
     async acquireSyncLeader({ownerId,accountScope=getScope(),leaseMs=30000,now=Date.now()}={}){
       const scope=assertAccountScope(accountScope),id='sync-leader';
       return database.write('meta',async store=>{
@@ -112,20 +128,28 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
       await database.write('meta',async store=>{const row=await store.get(scope,id);if(row?.data?.ownerId===ownerId)await store.delete(scope,id)});
     },
     async persistRemoteConfirmation({accountScope,operationId,workerId,response}){
-      if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}
+      const ensureScope=()=>{if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}};
+      ensureScope();
       const application=response?.application,movement=response?.movement,vial=response?.vial;
       if(!application?.id||!movement?.id||!vial?.id||vial.remaining_mg==null){const error=new Error('Resposta remota incompleta.');error.code='INVALID_CONFIRMATION';throw error}
       return database.transaction(['applications','vialMovements','vials','outbox'],'readwrite',async stores=>{
-        if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}
+        ensureScope();
         const queued=await stores.outbox.get(accountScope,operationId);
-        if(!queued||queued.status!=='syncing'||queued.leaseOwner!==workerId){const error=new Error('Lease perdida.');error.code='LEASE_LOST';throw error}
+        const ensureLease=()=>{
+          if(!queued||queued.status!=='syncing'||queued.leaseOwner!==workerId){const error=new Error('Lease perdida.');error.code='LEASE_LOST';throw error}
+          if(Date.parse(queued.leaseExpiresAt)<=repositoryClock()){const error=new Error('Lease expirado.');error.code='LEASE_EXPIRED';throw error}
+        };
+        ensureLease();
         const putConfirmed=async(name,value)=>{const prior=await stores[name].get(accountScope,value.id);await stores[name].put({...recordFor(accountScope,value.id,value,prior),syncState:'synced'})};
-        await putConfirmed('applications',application);await putConfirmed('vialMovements',movement);
-        const priorVial=await stores.vials.get(accountScope,vial.id);
-        const vialData={...(priorVial?.data||{}),id:vial.id,remainingMg:Number(vial.remaining_mg)};
-        await stores.vials.put({...recordFor(accountScope,vial.id,vialData,priorVial),syncState:'synced'});
+        const applicationData={...application,localRoutineId:queued.payload?.localRoutineId||application.localRoutineId||null};
+        await putConfirmed('applications',applicationData);await putConfirmed('vialMovements',movement);
+        const localVialId=queued.payload?.localVialId||vial.id,priorVial=await stores.vials.get(accountScope,localVialId);
+        const vialData={...(priorVial?.data||{}),id:localVialId,remoteRef:{status:'synced',id:vial.id},remainingMg:Number(vial.remaining_mg)};
+        await stores.vials.put({...recordFor(accountScope,localVialId,vialData,priorVial),syncState:'synced'});
+        ensureLease();ensureScope();
         queued.status='synced';queued.transportReplay=Boolean(response.replay);queued.nextAttemptAt=null;queued.lastErrorCode=null;
         queued.leaseOwner=null;queued.leaseExpiresAt=null;queued.updatedAt=new Date().toISOString();await stores.outbox.put(queued);
+        ensureScope();
         return clone(queued);
       });
     },
