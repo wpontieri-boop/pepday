@@ -236,7 +236,7 @@ test('sync-api usa HTTP bruto, JWT da sessão e mesmo operationId sem expor cred
   const calls=[],fetchImpl=async(url,options)=>{calls.push({url,options});return new Response(JSON.stringify({replay:false,application:{id:'a'},movement:{id:'m'},vial:{id:'v',remaining_mg:1}}),{status:200,headers:{'Content-Type':'application/json'}})};
   const api=createSyncApi({client:authClient(),config:publicConfig,fetchImpl}),a=application();await api.send(a);const u=undo('a',a.operationId);await api.send(u);
   assert.match(calls[0].url,/\/rpc\/register_application$/);assert.equal(JSON.parse(calls[0].options.body).p_operation_id,a.operationId);
-  assert.match(calls[1].url,/\/rpc\/undo_application$/);assert.equal(JSON.parse(calls[1].options.body).p_operation_id,u.operationId);
+  assert.match(calls[1].url,/\/rpc\/undo_application$/);assert.equal(JSON.parse(calls[1].options.body).p_undo_operation_id,u.operationId);
   assert.equal(calls[0].options.headers.Authorization,'Bearer test-token');assert.equal(calls[0].options.headers.apikey,publicConfig.supabasePublishableKey);
   const bad=createSyncApi({client:authClient(),config:publicConfig,fetchImpl:async()=>new Response('{}',{status:200,headers:{'Content-Type':'application/json'}})});
   await assert.rejects(bad.send(a),error=>error.code==='INVALID_RPC_RESPONSE');

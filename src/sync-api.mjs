@@ -19,7 +19,7 @@ export function createSyncApi({client,config,fetchImpl=globalThis.fetch,clock=()
         p_routine_id:p.routineId,p_routine_version_id:p.routineVersionId,p_vial_id:p.vialId,
         p_scheduled_date:p.scheduledDate,p_applied_at:p.appliedAt??null};
     }else if(operation.type==='undo'){
-      name='undo_application';args={p_operation_id:operation.operationId,p_expected_user:p.expectedUserId,
+      name='undo_application';args={p_undo_operation_id:operation.operationId,p_expected_user:p.expectedUserId,
         p_application_id:p.applicationId,p_undone_at:p.undoneAt??null};
     }else throw new SyncApiError('Tipo ainda não sincronizável.',{status:400,code:'UNSUPPORTED_TYPE'});
     let session;
