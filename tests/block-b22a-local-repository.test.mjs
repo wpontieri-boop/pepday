@@ -272,6 +272,6 @@ test('somente local-db encapsula chamadas IndexedDB e app não grava chaves lega
   for(const asset of ['src/local-db.mjs','src/pepday-repository.mjs','src/local-data-migration.mjs']){
     const escaped=asset.replace(/[./]/g,'\\$&');assert.match(serviceWorker,new RegExp(escaped));assert.match(devServer,new RegExp(escaped));
   }
-  assert.match(serviceWorker,/pepday-v3-b22b-outbox/);
+  assert.match(serviceWorker,/pepday-v3-b22c-sync/);
   assert.doesNotMatch(serviceWorker,/indexedDB|deleteDatabase/);
 });

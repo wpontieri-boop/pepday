@@ -98,6 +98,37 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
     meta:collection(database,getScope,'meta'),
     migrationReceipts:collection(database,getScope,'migrationReceipts'),
     outbox,
+    async acquireSyncLeader({ownerId,accountScope=getScope(),leaseMs=30000,now=Date.now()}={}){
+      const scope=assertAccountScope(accountScope),id='sync-leader';
+      return database.write('meta',async store=>{
+        const prior=await store.get(scope,id),expires=Date.parse(prior?.data?.leaseExpiresAt||0);
+        if(prior&&prior.data.ownerId!==ownerId&&expires>now)return false;
+        const data={id,ownerId,leaseExpiresAt:new Date(now+leaseMs).toISOString()};
+        await store.put(recordFor(scope,id,data,prior));return true;
+      });
+    },
+    async releaseSyncLeader(ownerId,accountScope=getScope()){
+      const scope=assertAccountScope(accountScope),id='sync-leader';
+      await database.write('meta',async store=>{const row=await store.get(scope,id);if(row?.data?.ownerId===ownerId)await store.delete(scope,id)});
+    },
+    async persistRemoteConfirmation({accountScope,operationId,workerId,response}){
+      if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}
+      const application=response?.application,movement=response?.movement,vial=response?.vial;
+      if(!application?.id||!movement?.id||!vial?.id||vial.remaining_mg==null){const error=new Error('Resposta remota incompleta.');error.code='INVALID_CONFIRMATION';throw error}
+      return database.transaction(['applications','vialMovements','vials','outbox'],'readwrite',async stores=>{
+        if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}
+        const queued=await stores.outbox.get(accountScope,operationId);
+        if(!queued||queued.status!=='syncing'||queued.leaseOwner!==workerId){const error=new Error('Lease perdida.');error.code='LEASE_LOST';throw error}
+        const putConfirmed=async(name,value)=>{const prior=await stores[name].get(accountScope,value.id);await stores[name].put({...recordFor(accountScope,value.id,value,prior),syncState:'synced'})};
+        await putConfirmed('applications',application);await putConfirmed('vialMovements',movement);
+        const priorVial=await stores.vials.get(accountScope,vial.id);
+        const vialData={...(priorVial?.data||{}),id:vial.id,remainingMg:Number(vial.remaining_mg)};
+        await stores.vials.put({...recordFor(accountScope,vial.id,vialData,priorVial),syncState:'synced'});
+        queued.status='synced';queued.transportReplay=Boolean(response.replay);queued.nextAttemptAt=null;queued.lastErrorCode=null;
+        queued.leaseOwner=null;queued.leaseExpiresAt=null;queued.updatedAt=new Date().toISOString();await stores.outbox.put(queued);
+        return clone(queued);
+      });
+    },
     async importLegacy({receiptId,sourceHash,routines,vials,validateSource=()=>true}){
       const scope=getScope();
       assertId(receiptId);

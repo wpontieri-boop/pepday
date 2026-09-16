@@ -105,7 +105,7 @@ test('módulos B1 estão disponíveis no servidor local e no cache versionado da
     assert.match(serviceWorker,new RegExp(asset.replace(/[./]/g,'\\$&')));
     assert.match(devServer,new RegExp(asset.replace(/[./]/g,'\\$&')));
   }
-  assert.match(serviceWorker,/pepday-v3-b22b-outbox/);
+  assert.match(serviceWorker,/pepday-v3-b22c-sync/);
 });
 
 class TestCustomEvent extends Event {constructor(type,options={}){super(type);this.detail=options.detail}}

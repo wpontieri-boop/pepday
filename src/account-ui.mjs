@@ -3,11 +3,14 @@ import { initializeCloud, readPublicAuthSettings, loadAccountState, accountError
 import { reviewLegacy, readCloudInventory, completeLegacyImport } from './import-completion.mjs';
 import { normalizeEntitlement, entitlementPresentation } from './entitlement.mjs';
 import { createAccessController } from './access-control.mjs';
+import { createSyncApi } from './sync-api.mjs';
+import { createSyncEngine } from './sync-engine.mjs';
+import { createTabCoordinator } from './tab-coordinator.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false;
+let access=normalizeEntitlement(null), declinedTrial=false, syncEngine=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -49,6 +52,13 @@ function clearPrivateUi() {
   el('accountImportIssues').textContent = '';
   ['accountSignedIn','accountProfileForm','accountImport','accountImportReview'].forEach(id => hide(id));
 }
+function stopSync(){syncEngine?.stop();syncEngine=null}
+function startSync(repository){
+  stopSync();if(!repository)return;
+  const api=createSyncApi({client:cloud.client}),coordinator=createTabCoordinator({repository});
+  syncEngine=createSyncEngine({repository,api,coordinator});
+  syncEngine.start().catch(error=>console.warn('PepDay sync adiada:',error?.code||error?.name||'erro'));
+}
 async function run(action) {
   if (busy) return;
   busy=true; enableMethods();
@@ -57,7 +67,7 @@ async function run(action) {
 }
 async function refresh() {
   const current = ++generation;
-  clearPrivateUi();
+  stopSync();clearPrivateUi();
   repositoryScope?.suspend();
   if (!cloud) { await repositoryScope?.signedOut(); return; }
   const session = await cloud.account.session();
@@ -68,8 +78,9 @@ async function refresh() {
     if(current!==generation)return;
     status('Entre para acessar sua conta. A calculadora funciona sem login.'); return;
   }
-  await repositoryScope?.signedIn(session.session.user.id);
+  const repository=await repositoryScope?.signedIn(session.session.user.id);
   if(current!==generation)return;
+  startSync(repository);
   hide('accountSignedIn',false); // Sair continua acessível mesmo se o banco estiver indisponível.
   status('Conferindo sua conta…');
   try {
@@ -137,9 +148,9 @@ el('accountChangeEmail').addEventListener('click',()=>{
 });
 el('accountGoogle').addEventListener('click',()=>run(()=>cloud.account.google()));
 el('accountLogout').addEventListener('click',()=>run(async()=>{
-  const previousUser=state?.user?.id;++generation;clearPrivateUi();repositoryScope?.suspend();
+  const previousUser=state?.user?.id;++generation;stopSync();clearPrivateUi();repositoryScope?.suspend();
   try { await cloud.account.logout(); }
-  catch(error) { if(previousUser)await repositoryScope?.signedIn(previousUser);hide('accountSignedIn',false);throw error; }
+  catch(error) { if(previousUser)startSync(await repositoryScope?.signedIn(previousUser));hide('accountSignedIn',false);throw error; }
   await repositoryScope?.signedOut();
   pendingEmail=''; el('accountEmailForm').reset(); el('accountEmail').readOnly=false;
   hide('accountCodeForm'); hide('accountSignedOut',false);

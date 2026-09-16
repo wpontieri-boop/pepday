@@ -115,7 +115,7 @@ export function createSyncOutbox({database,getAccountScope,clock=()=>Date.now(),
     async get(operationId){
       const accountScope=scope(),row=await database.read('outbox',store=>store.get(accountScope,operationId));return clone(row||null);
     },
-    async claimNext({workerId,leaseDurationMs=leaseMs}={}){
+    async claimNext({workerId,leaseDurationMs=leaseMs,allowedTypes=null}={}){
       if(typeof workerId!=='string'||!workerId)fail('INVALID_WORKER','workerId obrigatório.');
       const accountScope=scope(),now=clock(),nowText=iso(now);
       return database.write('outbox',async store=>{
@@ -124,7 +124,8 @@ export function createSyncOutbox({database,getAccountScope,clock=()=>Date.now(),
         for(const row of rows){
           if(row.status==='syncing'&&millis(row.leaseExpiresAt)<=now){row.status='pending';row.leaseOwner=null;row.leaseExpiresAt=null;row.updatedAt=nowText;await store.put(row)}
         }
-        const candidate=rows.find(row=>row.status==='pending'&&millis(row.nextAttemptAt)<=now&&
+        const allowed=allowedTypes?new Set(allowedTypes):null;
+        const candidate=rows.find(row=>(!allowed||allowed.has(row.type))&&row.status==='pending'&&millis(row.nextAttemptAt)<=now&&
           row.dependencies.every(id=>byId.get(id)?.status==='synced'));
         if(!candidate)return null;
         candidate.status='syncing';candidate.attemptCount+=1;candidate.leaseOwner=workerId;
