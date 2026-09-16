@@ -156,3 +156,67 @@ test('UI repository cria intenção atômica sem mudar saldo por processamento d
   assert.equal((await f.repository.vials.get(vial.id)).remainingMg,before);assert.equal((await f.repository.outbox.get(queued.operationId)).status,'synced');
   assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});await f.close();
 });
+
+test('Application isolada altera somente a outbox, sem evento confirmado, movimento ou saldo',async()=>{
+  const f=await fixture('application-only'),vial={id:'vial-application',initialMg:10,remainingMg:7};
+  await f.repository.vials.put(vial);
+  const application=intent({type:'application',entityType:'application',entityId:'app-only',
+    payload:{vialId:vial.id,doseMg:1},baseVersion:null});
+  await f.repository.outbox.enqueue(application);
+  assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});
+  const before=await f.repository.vials.get(vial.id);
+  await f.repository.outbox.processNext({workerId:'application-worker',transport:createMockTransport()});
+  assert.equal((await f.repository.outbox.get(application.operationId)).status,'synced');
+  assert.deepEqual(await f.repository.confirmedCounts(),{applications:0,vialMovements:0});
+  assert.equal((await f.repository.vials.get(vial.id)).remainingMg,before.remainingMg);
+  await f.close();
+});
+
+test('Undo isolado altera somente a outbox, sem movimento inverso, aplicação ou saldo',async()=>{
+  const f=await fixture('undo-only'),vial={id:'vial-undo',initialMg:10,remainingMg:6};
+  await f.repository.vials.put(vial);
+  const transport=createMockTransport();
+  const application=intent({type:'application',entityType:'application',entityId:'app-for-undo',
+    payload:{vialId:vial.id,doseMg:1},baseVersion:null});
+  await f.repository.outbox.enqueue(application);
+  await f.repository.outbox.processNext({workerId:'prepare-worker',transport});
+  const beforeCounts=await f.repository.confirmedCounts(),beforeVial=await f.repository.vials.get(vial.id);
+  const undo=intent({type:'undo',entityType:'application',entityId:'app-for-undo',payload:{applicationOperationId:application.operationId},
+    baseVersion:null,dependencies:[application.operationId]});
+  await f.repository.outbox.enqueue(undo);
+  await f.repository.outbox.processNext({workerId:'undo-worker',transport});
+  assert.equal((await f.repository.outbox.get(undo.operationId)).status,'synced');
+  assert.deepEqual(await f.repository.confirmedCounts(),beforeCounts);
+  assert.deepEqual(beforeCounts,{applications:0,vialMovements:0});
+  assert.equal((await f.repository.vials.get(vial.id)).remainingMg,beforeVial.remainingMg);
+  await f.close();
+});
+
+test('conflict é terminal e não volta a ser reclamado',async()=>{
+  const f=await fixture('conflict-terminal'),input=intent();
+  await f.repository.outbox.enqueue(input);await f.repository.outbox.claimNext({workerId:'first'});
+  await f.repository.outbox.settle(input.operationId,{workerId:'first',outcome:'conflict'});
+  f.time.value+=60000;
+  assert.equal(await f.repository.outbox.claimNext({workerId:'second'}),null);
+  assert.equal((await f.repository.outbox.get(input.operationId)).status,'conflict');
+  await f.close();
+});
+
+test('synced permanece terminal após recovery, novo claim e reload',async()=>{
+  const f=await fixture('synced-terminal'),input=intent();
+  await f.repository.outbox.enqueue(input);await f.repository.outbox.claimNext({workerId:'first'});
+  await f.repository.outbox.settle(input.operationId,{workerId:'first',outcome:'success',transportConfirmed:true});
+  f.time.value+=60000;assert.equal(await f.repository.outbox.claimNext({workerId:'second'}),null);
+  const reload=await f.open('user:alpha');assert.equal(await reload.outbox.claimNext({workerId:'reload'}),null);
+  const persisted=await reload.outbox.get(input.operationId);assert.equal(persisted.status,'synced');assert.equal(persisted.leaseOwner,null);
+  await f.close(reload);
+});
+
+test('duas abas enfileirando simultaneamente o mesmo UUID mantêm uma única entrada consistente',async()=>{
+  const f=await fixture('concurrent-uuid'),second=await f.open('user:alpha'),input=intent();
+  const results=await Promise.all([f.repository.outbox.enqueue(input),second.outbox.enqueue(input)]);
+  const rows=await f.repository.outbox.list();assert.equal(rows.length,1);assert.equal(rows[0].operationId,input.operationId);
+  assert.equal(rows[0].status,'pending');assert.equal(rows[0].sequence,1);
+  assert.equal(results.filter(result=>result.deduplicated===true).length,1);
+  await f.close(second);
+});
