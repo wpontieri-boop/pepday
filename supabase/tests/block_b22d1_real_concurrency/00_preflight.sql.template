@@ -1,0 +1,61 @@
+-- Somente leitura. Execute após aplicar 202609160006_block_b22d1_versioned_vials.sql.
+do $$
+begin
+  if to_regclass('public.domain_mutation_operations') is null then
+    raise exception 'PREFLIGHT FAIL: domain_mutation_operations ausente';
+  end if;
+  if not exists(select 1 from information_schema.columns
+      where table_schema='public' and table_name='vials' and column_name='edit_version'
+        and data_type='bigint' and is_nullable='NO' and column_default='1') then
+    raise exception 'PREFLIGHT FAIL: vials.edit_version divergente';
+  end if;
+  if exists(select 1 from public.vials where edit_version is null or edit_version<1) then
+    raise exception 'PREFLIGHT FAIL: backfill de edit_version inválido';
+  end if;
+  if to_regprocedure('public.create_vial_versioned(uuid,uuid,uuid,text,numeric,numeric,date,numeric)') is null
+    or to_regprocedure('public.update_vial_versioned(uuid,uuid,uuid,bigint,jsonb,jsonb)') is null
+    or to_regprocedure('public.soft_delete_vial_versioned(uuid,uuid,uuid,bigint,jsonb)') is null then
+    raise exception 'PREFLIGHT FAIL: assinatura RPC D1 ausente';
+  end if;
+  if not has_function_privilege('authenticated','public.create_vial_versioned(uuid,uuid,uuid,text,numeric,numeric,date,numeric)','EXECUTE')
+    or not has_function_privilege('authenticated','public.update_vial_versioned(uuid,uuid,uuid,bigint,jsonb,jsonb)','EXECUTE')
+    or not has_function_privilege('authenticated','public.soft_delete_vial_versioned(uuid,uuid,uuid,bigint,jsonb)','EXECUTE') then
+    raise exception 'PREFLIGHT FAIL: authenticated sem EXECUTE nas RPCs D1';
+  end if;
+  if has_function_privilege('anon','public.create_vial_versioned(uuid,uuid,uuid,text,numeric,numeric,date,numeric)','EXECUTE')
+    or has_function_privilege('anon','public.update_vial_versioned(uuid,uuid,uuid,bigint,jsonb,jsonb)','EXECUTE')
+    or has_function_privilege('anon','public.soft_delete_vial_versioned(uuid,uuid,uuid,bigint,jsonb)','EXECUTE')
+    or exists(select 1 from pg_proc where oid in (
+        'public.create_vial_versioned(uuid,uuid,uuid,text,numeric,numeric,date,numeric)'::regprocedure,
+        'public.update_vial_versioned(uuid,uuid,uuid,bigint,jsonb,jsonb)'::regprocedure,
+        'public.soft_delete_vial_versioned(uuid,uuid,uuid,bigint,jsonb)'::regprocedure)
+      and (not prosecdef or not exists(select 1 from unnest(coalesce(proconfig,'{}'::text[])) cfg
+        where cfg like 'search_path=%'))) then
+    raise exception 'PREFLIGHT FAIL: SECURITY DEFINER/search_path/grants divergentes';
+  end if;
+  if not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+      where n.nspname='public' and c.relname='vials' and c.relrowsecurity)
+    or not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+      where n.nspname='public' and c.relname='domain_mutation_operations' and c.relrowsecurity) then
+    raise exception 'PREFLIGHT FAIL: RLS D1 não está habilitada';
+  end if;
+  if has_table_privilege('authenticated','public.vials','INSERT')
+    or has_table_privilege('authenticated','public.vials','UPDATE')
+    or has_table_privilege('authenticated','public.vials','DELETE')
+    or has_table_privilege('authenticated','public.domain_mutation_operations','INSERT')
+    or has_table_privilege('authenticated','public.domain_mutation_operations','UPDATE')
+    or has_table_privilege('authenticated','public.domain_mutation_operations','DELETE') then
+    raise exception 'PREFLIGHT FAIL: authenticated ganhou CRUD direto';
+  end if;
+  if exists(select 1 from auth.users where id='__USER_ID__' or email='__FIXTURE_EMAIL__')
+    or exists(select 1 from public.profiles where id='__USER_ID__')
+    or exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      or source_hash='__SOURCE_HASH__' or source_snapshot->>'run_marker'='__RUN_MARKER__')
+    or exists(select 1 from public.vials where id='__VIAL_ID__')
+    or exists(select 1 from public.domain_mutation_operations where operation_id in
+      ('__CREATE_OP_A__','__CREATE_OP_B__','__UPDATE_OP_A__','__DELETE_OP_B__')) then
+    raise exception 'PREFLIGHT FAIL: identificador reservado já existe; não crie fixture';
+  end if;
+end $$;
+
+select 'PASS — preflight D1, grants e UUIDs reservados' resultado;

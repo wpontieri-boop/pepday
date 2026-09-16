@@ -1,0 +1,70 @@
+-- Falha automaticamente se houve execução sequencial, ausência de uma sessão ou divergência.
+do $$
+declare s jsonb; ca jsonb; cb jsonb; ua jsonb; db jsonb;
+begin
+  select source_snapshot into s from public.local_data_imports
+  where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+    and source_snapshot->>'fixture'='pepday-b22d1-real-concurrency'
+    and source_snapshot->>'run_marker'='__RUN_MARKER__';
+  if not found then raise exception 'VERIFY FAIL: marker/proveniência ausente'; end if;
+  ca:=s#>'{evidence,create_a}'; cb:=s#>'{evidence,create_b}';
+  ua:=s#>'{evidence,update_a}'; db:=s#>'{evidence,delete_b}';
+  if ca is null or cb is null or ua is null or db is null then
+    raise exception 'VERIFY FAIL: as duas sessões não participaram de ambos os cenários';
+  end if;
+  if (ca#>>'{result,outcome}')<>'success' or (ca#>>'{result,replay}')::boolean
+    or (cb#>>'{result,outcome}')<>'conflict' or (cb#>>'{result,code}')<>'ENTITY_ALREADY_EXISTS'
+    or (cb#>>'{result,replay}')::boolean then
+    raise exception 'VERIFY FAIL: resultados create/create divergentes';
+  end if;
+  if (cb->>'wait_ms')::numeric<7000
+    or (ca->>'lock_acquired_at')::timestamptz>(cb->>'started_at')::timestamptz
+    or (cb->>'started_at')::timestamptz>=(ca->>'sleep_finished_at')::timestamptz
+    or (cb->>'finished_at')::timestamptz<(ca->>'sleep_finished_at')::timestamptz then
+    raise exception 'VERIFY FAIL: lock real create/create não observado; execução sequencial não vale';
+  end if;
+  if (ua#>>'{result,outcome}')<>'success' or (ua#>>'{result,replay}')::boolean
+    or (db#>>'{result,outcome}')<>'conflict' or (db#>>'{result,code}')<>'STALE_VERSION'
+    or (db#>>'{result,replay}')::boolean
+    or (db#>>'{replay_result,outcome}')<>'conflict'
+    or not (db#>>'{replay_result,replay}')::boolean
+    or (db->'result'-'replay') is distinct from (db->'replay_result'-'replay') then
+    raise exception 'VERIFY FAIL: update/delete ou replay divergente';
+  end if;
+  if (db->>'wait_ms')::numeric<7000
+    or (ua->>'lock_acquired_at')::timestamptz>(db->>'started_at')::timestamptz
+    or (db->>'started_at')::timestamptz>=(ua->>'sleep_finished_at')::timestamptz
+    or (db->>'finished_at')::timestamptz<(ua->>'sleep_finished_at')::timestamptz then
+    raise exception 'VERIFY FAIL: lock real update/delete não observado; execução sequencial não vale';
+  end if;
+  if (select count(*) from public.vials where id='__VIAL_ID__' and user_id='__USER_ID__')<>1
+    or not exists(select 1 from public.vials where id='__VIAL_ID__' and user_id='__USER_ID__'
+      and name='Frasco D1 atualizado pela Sessão A' and initial_mg=10 and remaining_mg=10
+      and water_ml=2 and concentration=5 and active and deleted_at is null
+      and version=2 and edit_version=2)
+    or exists(select 1 from public.vial_movements where vial_id='__VIAL_ID__' or user_id='__USER_ID__')
+    or exists(select 1 from public.applications where vial_id='__VIAL_ID__' or user_id='__USER_ID__')
+    or exists(select 1 from public.routines where vial_id='__VIAL_ID__' or user_id='__USER_ID__')
+    or exists(select 1 from public.routine_versions where user_id='__USER_ID__') then
+    raise exception 'VERIFY FAIL: entidade, versão, saldo ou histórico divergente';
+  end if;
+  if (select count(*) from public.domain_mutation_operations
+      where user_id='__USER_ID__' and entity_id='__VIAL_ID__')<>4
+    or not exists(select 1 from public.domain_mutation_operations where user_id='__USER_ID__'
+      and operation_id='__CREATE_OP_A__' and entity_id='__VIAL_ID__' and mutation_type='create'
+      and outcome='success' and result->>'outcome'='success' and not (result->>'replay')::boolean)
+    or not exists(select 1 from public.domain_mutation_operations where user_id='__USER_ID__'
+      and operation_id='__CREATE_OP_B__' and entity_id='__VIAL_ID__' and mutation_type='create'
+      and outcome='conflict' and result->>'code'='ENTITY_ALREADY_EXISTS')
+    or not exists(select 1 from public.domain_mutation_operations where user_id='__USER_ID__'
+      and operation_id='__UPDATE_OP_A__' and entity_id='__VIAL_ID__' and mutation_type='update'
+      and outcome='success')
+    or not exists(select 1 from public.domain_mutation_operations where user_id='__USER_ID__'
+      and operation_id='__DELETE_OP_B__' and entity_id='__VIAL_ID__' and mutation_type='soft_delete'
+      and outcome='conflict' and result->>'code'='STALE_VERSION') then
+    raise exception 'VERIFY FAIL: cardinalidade/ledger divergente';
+  end if;
+end $$;
+
+select 'PASS — lock real observado; create serializado; update venceu; delete conflitou e replay foi estável' veredito,
+  '__RUN_MARKER__'::text run_marker;

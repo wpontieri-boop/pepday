@@ -1,0 +1,31 @@
+-- SESSÃO B. Inicie enquanto a Sessão A está no pg_sleep.
+begin;
+set local statement_timeout='30s';
+select set_config('pepday.d1.b_started',clock_timestamp()::text,true);
+set local role authenticated;
+select set_config('request.jwt.claim.sub','__USER_ID__',true);
+select set_config('pepday.d1.b_result',public.create_vial_versioned(
+  '__CREATE_OP_B__',auth.uid(),'__VIAL_ID__','Frasco concorrência D1',10,2,
+  date '2026-09-16',100)::text,true);
+select set_config('pepday.d1.b_finished',clock_timestamp()::text,true);
+reset role;
+
+update public.local_data_imports set source_snapshot=jsonb_set(source_snapshot,'{evidence,create_b}',
+  jsonb_build_object(
+    'started_at',current_setting('pepday.d1.b_started'),
+    'finished_at',current_setting('pepday.d1.b_finished'),
+    'wait_ms',extract(epoch from
+      (current_setting('pepday.d1.b_finished')::timestamptz-current_setting('pepday.d1.b_started')::timestamptz))*1000,
+    'result',current_setting('pepday.d1.b_result')::jsonb),true),updated_at=now()
+where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+  and source_snapshot->>'fixture'='pepday-b22d1-real-concurrency'
+  and source_snapshot->>'run_marker'='__RUN_MARKER__';
+do $$ begin
+  if not exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+      and source_snapshot#>'{evidence,create_b}' is not null) then
+    raise exception 'SESSÃO B: marker/proveniência divergente';
+  end if;
+end $$;
+commit;
+select 'SESSÃO B CREATE CONCLUÍDA' resultado;

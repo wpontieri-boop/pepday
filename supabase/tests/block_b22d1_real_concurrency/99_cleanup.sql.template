@@ -1,0 +1,73 @@
+-- Só remove o usuário descartável quando marker, metadata e todos os IDs conferem.
+begin;
+do $$ declare snap jsonb; deleted_count bigint;
+begin
+  select source_snapshot into snap from public.local_data_imports
+  where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+    and source_version='b22d1-real-concurrency-v1'
+    and source_snapshot->>'fixture'='pepday-b22d1-real-concurrency'
+    and source_snapshot->>'run_marker'='__RUN_MARKER__' for update;
+  if not found or snap#>>'{fixture_ids,user_id}'<>'__USER_ID__'
+    or snap#>>'{fixture_ids,marker_id}'<>'__MARKER_ID__'
+    or snap#>>'{fixture_ids,vial_id}'<>'__VIAL_ID__'
+    or snap#>>'{fixture_ids,create_op_a}'<>'__CREATE_OP_A__'
+    or snap#>>'{fixture_ids,create_op_b}'<>'__CREATE_OP_B__'
+    or snap#>>'{fixture_ids,update_op_a}'<>'__UPDATE_OP_A__'
+    or snap#>>'{fixture_ids,delete_op_b}'<>'__DELETE_OP_B__' then
+    raise exception 'CLEANUP RECUSADO: marker/IDs não comprovam procedência';
+  end if;
+  if not exists(select 1 from auth.users where id='__USER_ID__' and email='__FIXTURE_EMAIL__'
+      and raw_user_meta_data->>'pepday_b22d1_run_marker'='__RUN_MARKER__') then
+    raise exception 'CLEANUP RECUSADO: conta Auth não pertence ao run';
+  end if;
+  if exists(select 1 from public.vials where user_id='__USER_ID__' and id<>'__VIAL_ID__')
+    or exists(select 1 from public.domain_mutation_operations where user_id='__USER_ID__'
+      and operation_id not in ('__CREATE_OP_A__','__CREATE_OP_B__','__UPDATE_OP_A__','__DELETE_OP_B__'))
+    or exists(select 1 from public.routines where user_id='__USER_ID__')
+    or exists(select 1 from public.routine_versions where user_id='__USER_ID__')
+    or exists(select 1 from public.applications where user_id='__USER_ID__')
+    or exists(select 1 from public.vial_movements where user_id='__USER_ID__') then
+    raise exception 'CLEANUP RECUSADO: dados inesperados associados ao usuário fixture';
+  end if;
+  delete from auth.users where id='__USER_ID__' and email='__FIXTURE_EMAIL__'
+    and raw_user_meta_data->>'pepday_b22d1_run_marker'='__RUN_MARKER__';
+  get diagnostics deleted_count=row_count;
+  if deleted_count<>1 then raise exception 'CLEANUP FAIL: usuário não removido exatamente uma vez'; end if;
+end $$;
+commit;
+
+select set_config('pepday.d1.auth_internal_remaining','0',false);
+do $$ declare n bigint:=0; c bigint; begin
+  if to_regclass('auth.identities') is not null then
+    execute 'select count(*) from auth.identities where user_id=$1' into c using '__USER_ID__'::uuid; n:=n+c;
+  end if;
+  if to_regclass('auth.sessions') is not null then
+    execute 'select count(*) from auth.sessions where user_id=$1' into c using '__USER_ID__'::uuid; n:=n+c;
+  end if;
+  if to_regclass('auth.refresh_tokens') is not null then
+    execute 'select count(*) from auth.refresh_tokens where user_id=$1' into c using '__USER_ID__'::uuid; n:=n+c;
+  end if;
+  perform set_config('pepday.d1.auth_internal_remaining',n::text,false);
+end $$;
+
+with remaining as (
+  select count(*)::bigint n from auth.users where id='__USER_ID__' or email='__FIXTURE_EMAIL__'
+  union all select count(*) from public.profiles where id='__USER_ID__'
+  union all select count(*) from public.subscriptions where user_id='__USER_ID__'
+  union all select count(*) from public.trials where user_id='__USER_ID__'
+  union all select count(*) from public.settings where user_id='__USER_ID__'
+  union all select count(*) from public.vials where user_id='__USER_ID__' or id='__VIAL_ID__'
+  union all select count(*) from public.routines where user_id='__USER_ID__' or vial_id='__VIAL_ID__'
+  union all select count(*) from public.routine_versions where user_id='__USER_ID__'
+  union all select count(*) from public.applications where user_id='__USER_ID__' or vial_id='__VIAL_ID__'
+  union all select count(*) from public.vial_movements where user_id='__USER_ID__' or vial_id='__VIAL_ID__'
+  union all select count(*) from public.local_data_imports where user_id='__USER_ID__'
+    or id='__MARKER_ID__' or source_hash='__SOURCE_HASH__' or source_snapshot->>'run_marker'='__RUN_MARKER__'
+  union all select count(*) from public.legacy_import_records where user_id='__USER_ID__'
+  union all select count(*) from public.audit_logs where user_id='__USER_ID__'
+  union all select count(*) from public.domain_mutation_operations where user_id='__USER_ID__'
+    or operation_id in ('__CREATE_OP_A__','__CREATE_OP_B__','__UPDATE_OP_A__','__DELETE_OP_B__')
+), total as (select coalesce(sum(n),0)+current_setting('pepday.d1.auth_internal_remaining')::bigint n from remaining)
+select n total_fixtures,
+  case when n=0 then 'PASS — cleanup B2.2-D1, zero fixtures' else 'FAIL — fixtures remanescentes' end resultado
+from total;

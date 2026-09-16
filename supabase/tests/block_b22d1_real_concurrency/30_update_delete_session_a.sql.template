@@ -1,0 +1,45 @@
+-- SESSÃO A. O create/create deve ter terminado. Esta atualização é a vencedora definida.
+begin;
+set local statement_timeout='30s';
+select set_config('pepday.d1.ud_base',(select to_jsonb(v)::text from public.vials v
+  where id='__VIAL_ID__' and user_id='__USER_ID__'),true);
+select set_config('pepday.d1.ud_a_started',clock_timestamp()::text,true);
+set local role authenticated;
+select set_config('request.jwt.claim.sub','__USER_ID__',true);
+select set_config('pepday.d1.ud_a_result',public.update_vial_versioned(
+  '__UPDATE_OP_A__',auth.uid(),'__VIAL_ID__',1,
+  current_setting('pepday.d1.ud_base')::jsonb,
+  '{"name":"Frasco D1 atualizado pela Sessão A","cost":null}'::jsonb)::text,true);
+select set_config('pepday.d1.ud_a_lock',clock_timestamp()::text,true);
+reset role;
+
+update public.local_data_imports set source_snapshot=jsonb_set(source_snapshot,'{evidence,update_a}',
+  jsonb_build_object(
+    'started_at',current_setting('pepday.d1.ud_a_started'),
+    'lock_acquired_at',current_setting('pepday.d1.ud_a_lock'),
+    'base',current_setting('pepday.d1.ud_base')::jsonb,
+    'result',current_setting('pepday.d1.ud_a_result')::jsonb),true),updated_at=now()
+where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+  and source_snapshot->>'fixture'='pepday-b22d1-real-concurrency'
+  and source_snapshot->>'run_marker'='__RUN_MARKER__';
+do $$ begin
+  if not exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+      and source_snapshot#>'{evidence,update_a}' is not null) then
+    raise exception 'UPDATE A: marker/proveniência divergente';
+  end if;
+end $$;
+
+select pg_sleep(12);
+update public.local_data_imports set source_snapshot=jsonb_set(source_snapshot,
+  '{evidence,update_a,sleep_finished_at}',to_jsonb(clock_timestamp()::text),true),updated_at=now()
+where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+  and source_snapshot->>'run_marker'='__RUN_MARKER__';
+do $$ begin
+  if not exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      and source_snapshot#>>'{evidence,update_a,sleep_finished_at}' is not null) then
+    raise exception 'UPDATE A: evidência final não persistida';
+  end if;
+end $$;
+commit;
+select 'SESSÃO A UPDATE CONCLUÍDA' resultado;

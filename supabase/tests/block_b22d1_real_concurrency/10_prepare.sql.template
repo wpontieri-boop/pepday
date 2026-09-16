@@ -1,0 +1,43 @@
+begin;
+
+-- Repete a guarda dentro da transação antes de qualquer escrita.
+do $$ begin
+  if exists(select 1 from auth.users where id='__USER_ID__' or email='__FIXTURE_EMAIL__')
+    or exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      or source_hash='__SOURCE_HASH__' or source_snapshot->>'run_marker'='__RUN_MARKER__')
+    or exists(select 1 from public.vials where id='__VIAL_ID__')
+    or exists(select 1 from public.domain_mutation_operations where operation_id in
+      ('__CREATE_OP_A__','__CREATE_OP_B__','__UPDATE_OP_A__','__DELETE_OP_B__')) then
+    raise exception 'PREPARE RECUSADO: colisão após preflight';
+  end if;
+end $$;
+
+insert into auth.users(id,email,raw_user_meta_data)
+values('__USER_ID__','__FIXTURE_EMAIL__',jsonb_build_object(
+  'pepday_b22d1_run_marker','__RUN_MARKER__'));
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','__USER_ID__',true);
+select public.complete_onboarding('Fixture B2.2-D1','BR','America/Sao_Paulo',true,
+  'b22d1-real','b22d1-real',false);
+select public.start_trial();
+reset role;
+
+insert into public.local_data_imports(id,user_id,source_hash,source_version,status,
+  source_snapshot,verification,completed_at)
+values('__MARKER_ID__','__USER_ID__','__SOURCE_HASH__','b22d1-real-concurrency-v1','completed',
+  jsonb_build_object(
+    'fixture','pepday-b22d1-real-concurrency',
+    'package_version','v1',
+    'run_marker','__RUN_MARKER__',
+    'fixture_ids',jsonb_build_object(
+      'user_id','__USER_ID__','marker_id','__MARKER_ID__','vial_id','__VIAL_ID__',
+      'create_op_a','__CREATE_OP_A__','create_op_b','__CREATE_OP_B__',
+      'update_op_a','__UPDATE_OP_A__','delete_op_b','__DELETE_OP_B__'),
+    'evidence','{}'::jsonb),
+  jsonb_build_object('prepared',true),now());
+
+commit;
+
+select 'PASS — fixture D1 preparada' resultado,
+  '__RUN_MARKER__'::text run_marker;

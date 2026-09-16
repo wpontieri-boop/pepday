@@ -1,0 +1,38 @@
+-- SESSÃO B. Inicie enquanto a Sessão A está no pg_sleep.
+begin;
+set local statement_timeout='30s';
+select set_config('pepday.d1.ud_b_base',(select to_jsonb(v)::text from public.vials v
+  where id='__VIAL_ID__' and user_id='__USER_ID__'),true);
+select set_config('pepday.d1.ud_b_started',clock_timestamp()::text,true);
+set local role authenticated;
+select set_config('request.jwt.claim.sub','__USER_ID__',true);
+select set_config('pepday.d1.ud_b_result',public.soft_delete_vial_versioned(
+  '__DELETE_OP_B__',auth.uid(),'__VIAL_ID__',1,
+  current_setting('pepday.d1.ud_b_base')::jsonb)::text,true);
+select set_config('pepday.d1.ud_b_finished',clock_timestamp()::text,true);
+select set_config('pepday.d1.ud_b_replay',public.soft_delete_vial_versioned(
+  '__DELETE_OP_B__',auth.uid(),'__VIAL_ID__',1,
+  current_setting('pepday.d1.ud_b_base')::jsonb)::text,true);
+reset role;
+
+update public.local_data_imports set source_snapshot=jsonb_set(source_snapshot,'{evidence,delete_b}',
+  jsonb_build_object(
+    'started_at',current_setting('pepday.d1.ud_b_started'),
+    'finished_at',current_setting('pepday.d1.ud_b_finished'),
+    'wait_ms',extract(epoch from
+      (current_setting('pepday.d1.ud_b_finished')::timestamptz-current_setting('pepday.d1.ud_b_started')::timestamptz))*1000,
+    'base',current_setting('pepday.d1.ud_b_base')::jsonb,
+    'result',current_setting('pepday.d1.ud_b_result')::jsonb,
+    'replay_result',current_setting('pepday.d1.ud_b_replay')::jsonb),true),updated_at=now()
+where id='__MARKER_ID__' and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+  and source_snapshot->>'fixture'='pepday-b22d1-real-concurrency'
+  and source_snapshot->>'run_marker'='__RUN_MARKER__';
+do $$ begin
+  if not exists(select 1 from public.local_data_imports where id='__MARKER_ID__'
+      and user_id='__USER_ID__' and source_hash='__SOURCE_HASH__'
+      and source_snapshot#>'{evidence,delete_b}' is not null) then
+    raise exception 'DELETE B: marker/proveniência divergente';
+  end if;
+end $$;
+commit;
+select 'SESSÃO B DELETE/REPLAY CONCLUÍDA' resultado;
