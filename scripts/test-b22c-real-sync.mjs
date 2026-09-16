@@ -50,16 +50,19 @@ export function createB22CRealRunner({
   password = () => `${randomBytes(36).toString('base64url')}!aA9`, indexedDBFactory = defaultIndexedDB,
   recoveryStore,
 } = {}) {
-  for (const key of ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) {
+  for (const key of ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY']) {
     if (!env[key]) throw new Error(`Variável obrigatória ausente: ${key}`);
   }
   if (env.SUPABASE_URL !== EXPECTED_SUPABASE_URL) throw new Error('SUPABASE_URL não corresponde exatamente ao pepday-v3-test autorizado');
+  if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(env.SUPABASE_PUBLISHABLE_KEY)) {
+    throw new Error('SUPABASE_PUBLISHABLE_KEY deve usar a chave pública sb_publishable_... do projeto de teste');
+  }
   if (typeof fetchImpl !== 'function') throw new Error('Transporte HTTP indisponível');
-  const baseUrl = env.SUPABASE_URL, anonKey = env.SUPABASE_ANON_KEY, serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const baseUrl = env.SUPABASE_URL, publishableKey = env.SUPABASE_PUBLISHABLE_KEY, serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
   const runMarker = uuid(), fixture = ids(uuid);
   assert(UUID_RE.test(runMarker), 'run_marker inválido');
   const email = `pepday-b22c-${runMarker}@example.invalid`;
-  const secrets = [anonKey, serviceKey];
+  const secrets = [publishableKey, serviceKey];
   const state = { user: null, session: null, markerCreated: false, repository: null, recoveryWritten: false };
   const receiptPath = join(tmpdir(), `pepday-b22c-real-${runMarker}.json`);
   const receipt = recoveryStore ?? {
@@ -68,7 +71,7 @@ export function createB22CRealRunner({
   };
   const requestHeaders = (key, token = key) => ({ apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' });
 
-  async function http(path, { method = 'GET', key = anonKey, token = key, body, allowFailure = false, prefer, profile } = {}) {
+  async function http(path, { method = 'GET', key = publishableKey, token = key, body, allowFailure = false, prefer, profile } = {}) {
     const headers = requestHeaders(key, token);
     if (prefer) headers.Prefer = prefer;
     if (profile) headers['Accept-Profile'] = profile;
@@ -81,7 +84,7 @@ export function createB22CRealRunner({
   const admin = (path, options) => http(`/auth/v1/admin${path}`, { key: serviceKey, ...options });
   const serviceRows = (table, query) => http(`/rest/v1/${table}?${query}`, { key: serviceKey });
   const serviceInsert = (table, body) => http(`/rest/v1/${table}`, { method: 'POST', key: serviceKey, body, prefer: 'return=representation' });
-  const userRpc = (name, body) => http(`/rest/v1/rpc/${name}`, { method: 'POST', key: anonKey, token: state.session.access_token, body });
+  const userRpc = (name, body) => http(`/rest/v1/rpc/${name}`, { method: 'POST', key: publishableKey, token: state.session.access_token, body });
 
   async function listUsers() {
     const result = [];
@@ -197,7 +200,7 @@ export function createB22CRealRunner({
       }
       return response;
     };
-    return createSyncApi({ client: authClient(), config: { supabaseUrl: baseUrl, supabasePublishableKey: anonKey }, fetchImpl: transport });
+    return createSyncApi({ client: authClient(), config: { supabaseUrl: baseUrl, supabasePublishableKey: publishableKey }, fetchImpl: transport });
   }
 
   async function runEngine(api, repository = state.repository, owner = uuid()) {
@@ -397,7 +400,7 @@ export async function main(options) {
   try { output = await createB22CRealRunner(options).run(); }
   catch (error) {
     const env = options?.env ?? process.env;
-    output = { ok: false, result: `FAIL FINAL — ${sanitize(error, [env.SUPABASE_ANON_KEY, env.SUPABASE_SERVICE_ROLE_KEY])}` };
+    output = { ok: false, result: `FAIL FINAL — ${sanitize(error, [env.SUPABASE_PUBLISHABLE_KEY, env.SUPABASE_SERVICE_ROLE_KEY])}` };
   }
   console.log(output.result);
   return output.ok ? 0 : 1;

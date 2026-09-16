@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { indexedDB } from 'fake-indexeddb';
 import { createB22CRealRunner, EXPECTED_SUPABASE_URL, main, PASS_RESULT } from '../scripts/test-b22c-real-sync.mjs';
 
-const ENV = { SUPABASE_URL: EXPECTED_SUPABASE_URL, SUPABASE_ANON_KEY: 'sb_publishable_runner_test', SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-secret' };
+const ENV = { SUPABASE_URL: EXPECTED_SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_runner_test', SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-secret' };
 const UUIDS = Array.from({ length: 13 }, (_, index) => `${(index + 1).toString(16).padStart(8, '0')}-0000-4000-8000-${(index + 1).toString().padStart(12, '0')}`);
 const response = (status, data) => new Response(data == null ? null : JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
 
@@ -69,7 +69,11 @@ class FakeRemote {
   }
   async fetch(input, init = {}) {
     const url = new URL(input), method = init.method ?? 'GET', headers = new Headers(init.headers), body = init.body ? JSON.parse(init.body) : null;
+    const bearer = headers.get('authorization')?.replace('Bearer ', '');
     this.calls.push({ path: url.pathname, method,
+      keyKind: headers.get('apikey') === ENV.SUPABASE_PUBLISHABLE_KEY ? 'publishable'
+        : headers.get('apikey') === ENV.SUPABASE_SERVICE_ROLE_KEY ? 'service' : 'other',
+      authKind: this.tokens.has(bearer) ? 'user' : bearer === ENV.SUPABASE_SERVICE_ROLE_KEY ? 'service' : 'other',
       operationId: body?.p_operation_id ?? body?.p_undo_operation_id ?? null });
     if (url.pathname === '/auth/v1/admin/users' && method === 'GET') return response(200, { users: [...this.users.values()] });
     if (url.pathname === '/auth/v1/admin/users' && method === 'POST') {
@@ -125,12 +129,21 @@ test('runner completo valida sync, replay, Undo, conflito, reparo local e zero f
   const undo = fake.calls.filter(call => call.path === '/rest/v1/rpc/undo_application').map(call => call.operationId);
   assert.deepEqual(register, [UUIDS[5], UUIDS[5], UUIDS[11], UUIDS[11]]);
   assert.deepEqual(undo, [UUIDS[6], UUIDS[6], UUIDS[7]]);
+  const userMutations = fake.calls.filter(call => ['/rest/v1/rpc/register_application', '/rest/v1/rpc/undo_application'].includes(call.path));
+  assert.equal(userMutations.every(call => call.keyKind === 'publishable' && call.authKind === 'user'), true);
 });
 
 test('URL guard recusa projeto diferente e barra final antes de qualquer request', () => {
   for (const url of ['https://outro.supabase.co', `${EXPECTED_SUPABASE_URL}/`]) {
     const fake = new FakeRemote(); assert.throws(() => createB22CRealRunner({ env: { ...ENV, SUPABASE_URL: url }, fetchImpl: fake.fetch.bind(fake) }), /não corresponde exatamente/); assert.equal(fake.calls.length, 0);
   }
+});
+
+test('key guard aceita somente sb_publishable e rejeita anon JWT legada antes de request', () => {
+  const fake = new FakeRemote();
+  assert.throws(() => createB22CRealRunner({ env: { ...ENV, SUPABASE_PUBLISHABLE_KEY: 'eyJhbGciOiJIUzI1NiJ9.legacy' },
+    fetchImpl: fake.fetch.bind(fake) }), /deve usar a chave pública sb_publishable_/);
+  assert.equal(fake.calls.length, 0);
 });
 
 test('falha após criar somente a conta executa cleanup guardado', async () => {

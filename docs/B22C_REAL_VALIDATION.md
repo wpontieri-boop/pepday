@@ -8,7 +8,7 @@ Este documento acompanha `scripts/test-b22c-real-sync.mjs`. A execução no
 - O runner recusa qualquer URL diferente de
   `https://fsbqpyyprtymwrmzsacp.supabase.co`, inclusive a mesma URL com barra
   final.
-- As únicas entradas secretas são `SUPABASE_URL`, `SUPABASE_ANON_KEY` e
+- As únicas entradas de configuração são `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e
   `SUPABASE_SERVICE_ROLE_KEY`, recebidas pelo ambiente do processo. Não há
   `.env`, argumentos de linha de comando ou arquivos de credenciais.
 - A senha é aleatória e existe somente em memória. Chaves, senha, access token
@@ -46,10 +46,10 @@ Em uma sessão temporária do PowerShell, sem criar arquivo `.env`:
 
 ```powershell
 $env:SUPABASE_URL = 'https://fsbqpyyprtymwrmzsacp.supabase.co'
-$env:SUPABASE_ANON_KEY = '<anon/publishable key do projeto de teste>'
+$env:SUPABASE_PUBLISHABLE_KEY = '<chave sb_publishable_... do projeto de teste>'
 $env:SUPABASE_SERVICE_ROLE_KEY = '<service role do projeto de teste>'
 node scripts/test-b22c-real-sync.mjs
-Remove-Item Env:SUPABASE_URL, Env:SUPABASE_ANON_KEY, Env:SUPABASE_SERVICE_ROLE_KEY
+Remove-Item Env:SUPABASE_URL, Env:SUPABASE_PUBLISHABLE_KEY, Env:SUPABASE_SERVICE_ROLE_KEY
 ```
 
 O processo imprime exatamente uma linha final:
