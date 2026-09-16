@@ -214,18 +214,56 @@ export function createB22CRealRunner({
     if (Number.isFinite(target)) await sleep(Math.max(0, target - Date.now()) + 20);
   }
 
-  async function remoteApplication(operationId) {
-    const result = await serviceRows('applications', `operation_id=eq.${operationId}&select=*`);
-    assert(result.data?.length === 1, `Application remota ${operationId} não é única`);
-    return result.data[0];
+  function fixtureIdsMatch(actual) {
+    const expected = Object.entries(fixture);
+    return actual && Object.keys(actual).length === expected.length
+      && expected.every(([key, value]) => actual[key] === value);
   }
-  async function remoteMovements(applicationId) {
-    const result = await serviceRows('vial_movements', `application_id=eq.${applicationId}&select=*`);
-    return result.data ?? [];
+  async function assertRunProvenance() {
+    assert(state.user && state.markerCreated, 'Proveniência do run ainda não foi criada');
+    const result = await serviceRows('local_data_imports', `id=eq.${fixture.marker}&user_id=eq.${state.user.id}&select=id,user_id,source_snapshot`);
+    const row = result.data?.[0], marker = row?.source_snapshot;
+    assert(result.data?.length === 1 && row.id === fixture.marker && row.user_id === state.user.id
+      && marker?.fixture === 'pepday-b22c-real-sync' && marker?.run_marker === runMarker
+      && marker?.user_id === state.user.id && fixtureIdsMatch(marker?.fixture_ids),
+    'Proveniência ou IDs do run_marker divergentes');
+    return marker;
+  }
+  function expectedApplication(operationId) {
+    if (operationId === fixture.applicationPrimary) return { routineId: fixture.routinePrimary,
+      routineVersionId: fixture.versionPrimary, vialId: fixture.vialPrimary };
+    if (operationId === fixture.applicationRepair) return { routineId: fixture.routineRepair,
+      routineVersionId: fixture.versionRepair, vialId: fixture.vialRepair };
+    throw new Error('operation_id não pertence às fixtures do run atual');
+  }
+  async function remoteApplication(operationId) {
+    await assertRunProvenance(); const expected = expectedApplication(operationId);
+    const result = await serviceRows('applications', `user_id=eq.${state.user.id}&operation_id=eq.${operationId}&select=*`);
+    assert(result.data?.length === 1, `Application remota ${operationId} não é única`);
+    const row = result.data[0];
+    assert(row.user_id === state.user.id && row.operation_id === operationId
+      && row.routine_id === expected.routineId && row.routine_version_id === expected.routineVersionId
+      && row.vial_id === expected.vialId, 'Application retornada não pertence aos IDs do run atual');
+    return row;
+  }
+  async function remoteMovements(application, allowedOperationIds) {
+    await assertRunProvenance(); const expected = expectedApplication(application.operation_id);
+    assert(application.user_id === state.user.id && allowedOperationIds.every(id =>
+      [fixture.applicationPrimary, fixture.undoPrimary, fixture.applicationRepair].includes(id)),
+    'Movimentos solicitados não pertencem ao run atual');
+    const result = await serviceRows('vial_movements', `user_id=eq.${state.user.id}&application_id=eq.${application.id}&select=*`);
+    const rows = result.data ?? [];
+    assert(rows.every(row => row.user_id === state.user.id && row.application_id === application.id
+      && row.vial_id === expected.vialId && allowedOperationIds.includes(row.operation_id)),
+    'Movimento retornado não pertence aos IDs do run atual');
+    return rows;
   }
   async function remoteVial(id) {
-    const result = await serviceRows('vials', `id=eq.${id}&select=*`);
-    assert(result.data?.length === 1, 'Frasco remoto fixture ausente'); return result.data[0];
+    await assertRunProvenance();
+    assert([fixture.vialPrimary, fixture.vialRepair].includes(id), 'Frasco solicitado não pertence ao run atual');
+    const result = await serviceRows('vials', `user_id=eq.${state.user.id}&id=eq.${id}&select=*`);
+    assert(result.data?.length === 1 && result.data[0].user_id === state.user.id && result.data[0].id === id,
+      'Frasco remoto não pertence aos IDs do run atual'); return result.data[0];
   }
 
   async function primaryScenario() {
@@ -238,7 +276,8 @@ export function createB22CRealRunner({
     await runEngine(apiWithLostResponse());
     queued = await state.repository.outbox.get(fixture.applicationPrimary);
     assert(queued.status === 'synced' && queued.transportReplay === true, 'Replay Application não confirmou a outbox');
-    const application = await remoteApplication(fixture.applicationPrimary), movements = await remoteMovements(application.id), remote = await remoteVial(fixture.vialPrimary);
+    const application = await remoteApplication(fixture.applicationPrimary), movements = await remoteMovements(application,
+      [fixture.applicationPrimary]), remote = await remoteVial(fixture.vialPrimary);
     assert(movements.length === 1 && movements[0].kind === 'application' && Number(movements[0].delta_mg) === -1 && Number(remote.remaining_mg) === 9,
       'Replay Application duplicou movimento ou desconto');
     const local = (await state.repository.applications.list()).find(item => item.operation_id === fixture.applicationPrimary);
@@ -250,7 +289,7 @@ export function createB22CRealRunner({
     assert((await state.repository.outbox.get(fixture.undoPrimary)).status === 'pending', 'Resposta perdida não preservou Undo');
     await waitUntilEligible(fixture.undoPrimary); await runEngine(apiWithLostResponse());
     const undoRow = await state.repository.outbox.get(fixture.undoPrimary), undone = await remoteApplication(fixture.applicationPrimary);
-    const afterUndo = await remoteMovements(application.id), restored = await remoteVial(fixture.vialPrimary);
+    const afterUndo = await remoteMovements(application, [fixture.applicationPrimary, fixture.undoPrimary]), restored = await remoteVial(fixture.vialPrimary);
     assert(undoRow.status === 'synced' && undoRow.transportReplay === true && undone.undo_operation_id === fixture.undoPrimary,
       'Replay Undo não convergiu');
     assert(afterUndo.length === 2 && afterUndo.filter(item => item.kind === 'application').length === 1
@@ -262,7 +301,8 @@ export function createB22CRealRunner({
       localRoutineId: 'local-routine-primary', localVialId: 'local-vial-primary', scheduledDate: isoDate() });
     await runEngine(apiWithLostResponse());
     assert((await state.repository.outbox.get(fixture.undoConflict)).status === 'conflict', 'Segundo Undo com UUID diferente não virou conflict');
-    assert((await remoteMovements(application.id)).length === 2 && Number((await remoteVial(fixture.vialPrimary)).remaining_mg) === 10,
+    assert((await remoteMovements(application, [fixture.applicationPrimary, fixture.undoPrimary])).length === 2
+      && Number((await remoteVial(fixture.vialPrimary)).remaining_mg) === 10,
       'Segundo Undo alterou movimento ou saldo');
   }
 
@@ -275,20 +315,20 @@ export function createB22CRealRunner({
     const first = await runEngine(apiWithLostResponse(), proxy, uuid());
     assert(first.error && (await state.repository.outbox.get(fixture.applicationRepair)).status === 'syncing', 'Falha local não preservou estado reparável');
     const remoteBefore = await remoteApplication(fixture.applicationRepair);
-    assert((await remoteMovements(remoteBefore.id)).length === 1 && Number((await remoteVial(fixture.vialRepair)).remaining_mg) === 9,
+    assert((await remoteMovements(remoteBefore, [fixture.applicationRepair])).length === 1
+      && Number((await remoteVial(fixture.vialRepair)).remaining_mg) === 9,
       'Servidor não confirmou exatamente uma vez antes da falha local');
     await waitUntilEligible(fixture.applicationRepair); await runEngine(apiWithLostResponse());
     const repaired = await state.repository.outbox.get(fixture.applicationRepair);
     assert(repaired.status === 'synced' && repaired.transportReplay === true, 'Replay não reparou falha de persistência local');
-    assert((await remoteMovements(remoteBefore.id)).length === 1 && Number((await remoteVial(fixture.vialRepair)).remaining_mg) === 9,
+    assert((await remoteMovements(remoteBefore, [fixture.applicationRepair])).length === 1
+      && Number((await remoteVial(fixture.vialRepair)).remaining_mg) === 9,
       'Reparo local causou segundo desconto ou movimento');
   }
 
   async function markerMatches() {
     if (!state.user || !state.markerCreated) return false;
-    const result = await serviceRows('local_data_imports', `id=eq.${fixture.marker}&user_id=eq.${state.user.id}&select=id,source_snapshot`);
-    const marker = result.data?.[0]?.source_snapshot;
-    return result.data?.length === 1 && marker?.fixture === 'pepday-b22c-real-sync' && marker?.run_marker === runMarker && marker?.user_id === state.user.id;
+    try { await assertRunProvenance(); return true; } catch { return false; }
   }
   async function authMarkerMatches() {
     if (!state.user) return false;
@@ -348,7 +388,8 @@ export function createB22CRealRunner({
   }
 
   return Object.freeze({ run, _test: { state, fixture, runMarker, email, preflight, createAccount, setupRemote, setupLocal,
-    primaryScenario, localFailureRepairScenario, cleanup, verifyCleanup, markerMatches, authMarkerMatches, discoverOwnedAccount, apiWithLostResponse } });
+    primaryScenario, localFailureRepairScenario, cleanup, verifyCleanup, markerMatches, authMarkerMatches, discoverOwnedAccount,
+    assertRunProvenance, remoteApplication, remoteMovements, remoteVial, apiWithLostResponse } });
 }
 
 export async function main(options) {

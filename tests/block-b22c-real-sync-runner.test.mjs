@@ -32,10 +32,10 @@ class FakeRemote {
   }
   register(body, user) {
     if (!body.p_operation_id || !body.p_expected_user || user.id !== body.p_expected_user) return response(400, { message: 'intenção inválida' });
-    let application = this.rows('applications').find(row => row.operation_id === body.p_operation_id);
+    let application = this.rows('applications').find(row => row.operation_id === body.p_operation_id && row.user_id === user.id);
     if (application) {
-      const movement = this.rows('vial_movements').find(row => row.application_id === application.id && row.kind === 'application');
-      const vial = this.rows('vials').find(row => row.id === application.vial_id);
+      const movement = this.rows('vial_movements').find(row => row.application_id === application.id && row.kind === 'application' && row.user_id === user.id);
+      const vial = this.rows('vials').find(row => row.id === application.vial_id && row.user_id === user.id);
       return response(200, { replay: true, application, movement, vial });
     }
     const vial = this.rows('vials').find(row => row.id === body.p_vial_id && row.user_id === user.id);
@@ -112,6 +112,12 @@ function create(fake, overrides = {}) {
     uuid: () => UUIDS[index++], password: () => 'Strong-Random-In-Memory-Password-123456!', recoveryStore: recovery, ...overrides }) };
 }
 
+function isolated(fake, offset) {
+  let index = 0;
+  const values = Array.from({ length: 20 }, (_, item) => `${(item + offset).toString(16).padStart(8, '0')}-0000-4000-8000-${(item + offset).toString().padStart(12, '0')}`);
+  return create(fake, { uuid: () => values[index++] });
+}
+
 test('runner completo valida sync, replay, Undo, conflito, reparo local e zero fixtures', async () => {
   const fake = new FakeRemote(), { runner, recovery } = create(fake), result = await runner.run();
   assert.deepEqual(result, { ok: true, result: PASS_RESULT }); assert.equal(fake.users.size, 0); assert.equal([...fake.tables.values()].flat().length, 0); assert.equal(recovery.values.length, 0);
@@ -154,6 +160,43 @@ test('preflight com colisão não cria nem exclui dados preexistentes', async ()
   const fake = new FakeRemote(); fake.rows('local_data_imports').push({ id: UUIDS[1], user_id: 'existing' });
   const { runner } = create(fake), result = await runner.run(); assert.equal(result.ok, false);
   assert.equal(fake.rows('local_data_imports').length, 1); assert.equal(fake.calls.some(call => call.method === 'DELETE'), false);
+});
+
+test('cardinalidade ignora registros externos coincidentes e mantém usuário/run isolados', async () => {
+  const fake = new FakeRemote(), { runner } = isolated(fake, 201);
+  await runner._test.preflight(); await runner._test.createAccount(); await runner._test.setupRemote(); await runner._test.setupLocal();
+  const { fixture } = runner._test, externalUser = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  fake.rows('applications').push({ id: 'external-application', user_id: externalUser,
+    operation_id: fixture.applicationPrimary, routine_id: fixture.routinePrimary,
+    routine_version_id: fixture.versionPrimary, vial_id: fixture.vialPrimary });
+  fake.rows('vial_movements').push({ id: 'external-movement', user_id: externalUser,
+    operation_id: fixture.applicationPrimary, application_id: `app-${fixture.applicationPrimary}`,
+    vial_id: fixture.vialPrimary, kind: 'application', delta_mg: -999 });
+  fake.rows('vials').push({ id: fixture.vialPrimary, user_id: externalUser, remaining_mg: -999 });
+  await runner._test.primaryScenario();
+  assert.equal(fake.rows('applications').some(row => row.id === 'external-application'), true);
+  assert.equal(fake.rows('vial_movements').some(row => row.id === 'external-movement'), true);
+  assert.equal(fake.rows('vials').some(row => row.user_id === externalUser), true);
+  runner._test.state.repository.close(); await runner._test.cleanup(); await runner._test.verifyCleanup();
+});
+
+test('verificação rejeita run_marker, fixture_ids ou associação retornada divergentes', async () => {
+  const fake = new FakeRemote(), { runner } = isolated(fake, 301);
+  await runner._test.preflight(); await runner._test.createAccount(); await runner._test.setupRemote(); await runner._test.setupLocal();
+  const { fixture, state, runMarker } = runner._test;
+  const marker = fake.rows('local_data_imports').find(row => row.id === fixture.marker);
+  marker.source_snapshot.run_marker = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+  await assert.rejects(runner._test.remoteVial(fixture.vialPrimary), /Proveniência/);
+  marker.source_snapshot.run_marker = runMarker;
+  const originalVialId = marker.source_snapshot.fixture_ids.vialPrimary;
+  marker.source_snapshot.fixture_ids.vialPrimary = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  await assert.rejects(runner._test.remoteVial(fixture.vialPrimary), /Proveniência/);
+  marker.source_snapshot.fixture_ids.vialPrimary = originalVialId;
+  fake.rows('applications').push({ id: 'wrong-association', user_id: state.user.id,
+    operation_id: fixture.applicationPrimary, routine_id: fixture.routinePrimary,
+    routine_version_id: fixture.versionPrimary, vial_id: fixture.vialRepair });
+  await assert.rejects(runner._test.remoteApplication(fixture.applicationPrimary), /não pertence aos IDs/);
+  state.repository.close(); await runner._test.cleanup(); await runner._test.verifyCleanup();
 });
 
 test('saída final é única e sanitiza todas as credenciais', async () => {
