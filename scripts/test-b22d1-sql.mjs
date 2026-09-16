@@ -17,9 +17,16 @@ try{
     'supabase/migrations/202609100002_complete_legacy_import.sql',
     'supabase/migrations/202609110003_block_b1_entitlements.sql',
     'supabase/migrations/202609140004_block_b2_transactional_applications.sql',
-    'supabase/migrations/202609150005_block_b2_validation_service_role.sql',
-    'supabase/migrations/202609160006_block_b22d1_versioned_vials.sql'
+    'supabase/migrations/202609150005_block_b2_validation_service_role.sql'
   ]){currentFile=file;await db.exec(await readFile(new URL('../'+file,import.meta.url),'utf8'));}
+  currentFile='pre-D1 backfill fixture';
+  await db.exec(`insert into auth.users(id,email) values
+    ('d1f00000-0000-4000-8000-000000000001','d1-preexisting@example.invalid');
+    insert into public.vials(id,user_id,name,initial_mg,remaining_mg,water_ml,prepared_on)
+    values('d1f00000-0000-4000-8000-000000000002','d1f00000-0000-4000-8000-000000000001',
+      'Preexistente D1',10,10,2,date '2026-09-16');`);
+  currentFile='supabase/migrations/202609160006_block_b22d1_versioned_vials.sql';
+  await db.exec(await readFile(new URL('../'+currentFile,import.meta.url),'utf8'));
   currentFile='supabase/tests/block_b22d1_versioned_vials.sql';
   await db.exec(await readFile(new URL('../'+currentFile,import.meta.url),'utf8'));
   console.log('PASS: B2.2-D1 Frascos versionados, conflitos, replay, saldo e isolamento.');

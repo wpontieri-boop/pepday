@@ -2,6 +2,14 @@
 -- Todas as fixtures são revertidas no final.
 begin;
 
+-- Registro criado antes da migration recebe a versão editável inicial.
+do $$ begin
+  if (select edit_version from public.vials
+      where id='d1f00000-0000-4000-8000-000000000002')<>1 then
+    raise exception 'FAIL existing vial edit_version backfill';
+  end if;
+end $$;
+
 insert into auth.users(id,email) values
  ('d1000000-0000-4000-8000-000000000001','d1-trial@example.invalid'),
  ('d1000000-0000-4000-8000-000000000002','d1-free@example.invalid'),
@@ -50,7 +58,7 @@ do $$ declare first jsonb; replay jsonb; second jsonb; blocked boolean:=false; b
 end $$;
 
 -- 5-10: update, stale conflict durável, saldo preservado e campo proibido.
-do $$ declare base jsonb; changed jsonb; conflict_first jsonb; conflict_replay jsonb;
+do $$ declare base jsonb; changed jsonb; changed_replay jsonb; conflict_first jsonb; conflict_replay jsonb;
   later jsonb; blocked boolean:=false; before_balance numeric; begin
   select to_jsonb(v) into base from public.vials v
     where id='d1200000-0000-4000-8000-000000000001';
@@ -60,6 +68,11 @@ do $$ declare base jsonb; changed jsonb; conflict_first jsonb; conflict_replay j
   if changed->>'outcome'<>'success' or (changed->'vial'->>'edit_version')::bigint<>2
     or (changed->'vial'->>'version')::bigint<>2 or changed->'vial'->>'name'<>'Frasco editado'
     or (changed->'vial'->>'remaining_mg')::numeric<>before_balance then raise exception 'FAIL versioned update'; end if;
+  changed_replay:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000003',auth.uid(),
+    'd1200000-0000-4000-8000-000000000001',1,base,'{"cost":null,"name":"Frasco editado"}');
+  if not (changed_replay->>'replay')::boolean or changed_replay-'replay'<>changed-'replay' then
+    raise exception 'FAIL canonical JSON order or null fingerprint';
+  end if;
   conflict_first:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000004',auth.uid(),
     'd1200000-0000-4000-8000-000000000001',1,base,'{"name":"Stale"}');
   if conflict_first->>'outcome'<>'conflict' or conflict_first->>'code'<>'STALE_VERSION'
@@ -84,7 +97,7 @@ do $$ declare base jsonb; changed jsonb; conflict_first jsonb; conflict_replay j
   if not blocked then raise exception 'FAIL remaining_mg accepted'; end if;
 end $$;
 
--- 11-15: apresentação antes do movimento; depois bloqueada; B2.1 altera só version.
+-- 11-15: initial_mg é imutável; diluição só antes de movimento; B2.1 altera só version.
 select public.create_vial_versioned('d1100000-0000-4000-8000-000000000010',auth.uid(),
   'd1200000-0000-4000-8000-000000000002','Frasco transacional',10,2,date '2026-09-16',null);
 reset role;
@@ -100,11 +113,18 @@ do $$ declare base jsonb; changed jsonb; app jsonb; undone jsonb; blocked_initia
   blocked_water boolean:=false; edit_before bigint; version_before bigint; app_id uuid; begin
   select to_jsonb(v) into base from public.vials v
     where id='d1200000-0000-4000-8000-000000000002';
-  changed:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000011',auth.uid(),
-    'd1200000-0000-4000-8000-000000000002',1,base,'{"initial_mg":12,"water_ml":3}');
-  if changed->>'outcome'<>'success' or (changed->'vial'->>'initial_mg')::numeric<>12
+  begin
+    perform public.update_vial_versioned('d1100000-0000-4000-8000-000000000011',auth.uid(),
+      'd1200000-0000-4000-8000-000000000002',1,base,'{"initial_mg":12}');
+  exception when others then blocked_initial:=sqlerrm like 'Campo não permitido%'; end;
+  if not blocked_initial then raise exception 'FAIL initial_mg changed after create'; end if;
+  changed:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000012',auth.uid(),
+    'd1200000-0000-4000-8000-000000000002',1,base,'{"water_ml":3}');
+  if changed->>'outcome'<>'success' or (changed->'vial'->>'initial_mg')::numeric<>10
     or (changed->'vial'->>'water_ml')::numeric<>3
-    or (changed->'vial'->>'remaining_mg')::numeric<>10 then raise exception 'FAIL pre-movement preparation update'; end if;
+    or (changed->'vial'->>'remaining_mg')::numeric<>10
+    or (changed->'vial'->>'concentration')::numeric is distinct from 10::numeric/3
+    then raise exception 'FAIL pre-movement dilution update'; end if;
 
   select edit_version,version into edit_before,version_before from public.vials
     where id='d1200000-0000-4000-8000-000000000002';
@@ -116,18 +136,19 @@ do $$ declare base jsonb; changed jsonb; app jsonb; undone jsonb; blocked_initia
     or (select version from public.vials where id='d1200000-0000-4000-8000-000000000002')<>version_before+1
     then raise exception 'FAIL application changed edit_version'; end if;
   base:=changed->'vial';
-  changed:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000012',auth.uid(),
+  changed:=public.update_vial_versioned('d1100000-0000-4000-8000-000000000015',auth.uid(),
     'd1200000-0000-4000-8000-000000000002',edit_before,base,'{"name":"Editada após Application"}');
   if changed->>'outcome'<>'success' or (changed->'vial'->>'remaining_mg')::numeric<>9
     then raise exception 'FAIL descriptive update concurrent with application'; end if;
+  blocked_initial:=false;
   begin
     perform public.update_vial_versioned('d1100000-0000-4000-8000-000000000013',auth.uid(),
       'd1200000-0000-4000-8000-000000000002',edit_before+1,changed->'vial','{"initial_mg":13}');
-  exception when others then blocked_initial:=sqlerrm like 'Apresentação e diluição%'; end;
+  exception when others then blocked_initial:=sqlerrm like 'Campo não permitido%'; end;
   begin
     perform public.update_vial_versioned('d1100000-0000-4000-8000-000000000014',auth.uid(),
       'd1200000-0000-4000-8000-000000000002',edit_before+1,changed->'vial','{"water_ml":4}');
-  exception when others then blocked_water:=sqlerrm like 'Apresentação e diluição%'; end;
+  exception when others then blocked_water:=sqlerrm like 'Diluição não pode mudar%'; end;
   if not blocked_initial or not blocked_water then raise exception 'FAIL preparation changed after movement'; end if;
   edit_before:=(select edit_version from public.vials where id='d1200000-0000-4000-8000-000000000002');
   version_before:=(select version from public.vials where id='d1200000-0000-4000-8000-000000000002');
@@ -141,21 +162,37 @@ end $$;
 select public.create_vial_versioned('d1100000-0000-4000-8000-000000000020',auth.uid(),
   'd1200000-0000-4000-8000-000000000003','Para excluir',5,1,date '2026-09-16',null);
 reset role;
-insert into public.vial_movements(user_id,operation_id,vial_id,kind,delta_mg,balance_before,balance_after)
-values('d1000000-0000-4000-8000-000000000001','d1500000-0000-4000-8000-000000000010',
-  'd1200000-0000-4000-8000-000000000003','import',5,0,5);
+insert into public.routines(id,user_id,vial_id,name,dose_value,dose_unit,syringe_capacity,
+  frequency,start_date) values('d1300000-0000-4000-8000-000000000002',
+  'd1000000-0000-4000-8000-000000000001','d1200000-0000-4000-8000-000000000003',
+  'Histórico real D1',1,'mg',100,'daily',date '2026-09-16');
+insert into public.routine_versions(id,user_id,routine_id,version,snapshot)
+  select 'd1400000-0000-4000-8000-000000000002',r.user_id,r.id,1,to_jsonb(r)
+  from public.routines r where id='d1300000-0000-4000-8000-000000000002';
 set local role authenticated;
-do $$ declare base jsonb; removed jsonb; stale jsonb; dependency jsonb; movement_count integer; begin
+select public.register_application('d1500000-0000-4000-8000-000000000010',auth.uid(),
+  'd1300000-0000-4000-8000-000000000002','d1400000-0000-4000-8000-000000000002',
+  'd1200000-0000-4000-8000-000000000003',date '2026-09-16',null);
+reset role;
+update public.routines set status='inactive'
+  where id='d1300000-0000-4000-8000-000000000002';
+set local role authenticated;
+do $$ declare base jsonb; removed jsonb; stale jsonb; dependency jsonb;
+  movement_count integer; application_count integer; begin
   select to_jsonb(v) into base from public.vials v
     where id='d1200000-0000-4000-8000-000000000003';
   select count(*) into movement_count from public.vial_movements
     where vial_id='d1200000-0000-4000-8000-000000000003';
+  select count(*) into application_count from public.applications
+    where vial_id='d1200000-0000-4000-8000-000000000003';
+  if movement_count<>1 or application_count<>1 then raise exception 'FAIL real history fixture'; end if;
   removed:=public.soft_delete_vial_versioned('d1100000-0000-4000-8000-000000000021',auth.uid(),
     'd1200000-0000-4000-8000-000000000003',1,base);
   if removed->>'outcome'<>'success' or (removed->'vial'->>'active')::boolean
     or removed->'vial'->'deleted_at'='null'::jsonb
     or (removed->'vial'->>'edit_version')::bigint<>2
     or (select count(*) from public.vial_movements where vial_id='d1200000-0000-4000-8000-000000000003')<>movement_count
+    or (select count(*) from public.applications where vial_id='d1200000-0000-4000-8000-000000000003')<>application_count
     then raise exception 'FAIL soft delete or history preservation'; end if;
   stale:=public.soft_delete_vial_versioned('d1100000-0000-4000-8000-000000000022',auth.uid(),
     'd1200000-0000-4000-8000-000000000003',1,base);
@@ -232,7 +269,8 @@ end $$;
 reset role;
 do $$ begin
   if exists(select 1 from public.domain_mutation_operations where operation_id in
-    ('d1100000-0000-4000-8000-000000000006','d1100000-0000-4000-8000-000000000030')) then
+    ('d1100000-0000-4000-8000-000000000006','d1100000-0000-4000-8000-000000000011',
+      'd1100000-0000-4000-8000-000000000030')) then
     raise exception 'FAIL rejected operation persisted ledger';
   end if;
   if has_table_privilege('authenticated','public.vials','INSERT')

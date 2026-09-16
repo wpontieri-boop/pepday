@@ -154,7 +154,7 @@ begin
     raise exception 'Snapshot ou alteração inválida';
   end if;
   if exists(select 1 from jsonb_object_keys(p_patch) key
-    where key not in ('name','cost','prepared_on','active','initial_mg','water_ml')) then
+    where key not in ('name','cost','prepared_on','active','water_ml')) then
     raise exception 'Campo não permitido na edição de Frasco';
   end if;
   if p_patch ? 'name' and (jsonb_typeof(p_patch->'name') is distinct from 'string'
@@ -168,8 +168,6 @@ begin
   if p_patch ? 'active' and (p_patch->>'active')::boolean is not true then
     raise exception 'Use a operação de inativação do Frasco';
   end if;
-  if p_patch ? 'initial_mg' and (jsonb_typeof(p_patch->'initial_mg') is distinct from 'number'
-    or (p_patch->>'initial_mg')::numeric<=0 or (p_patch->>'initial_mg')::numeric>=1000000000) then raise exception 'Quantidade inicial inválida'; end if;
   if p_patch ? 'water_ml' and (jsonb_typeof(p_patch->'water_ml') is distinct from 'number'
     or (p_patch->>'water_ml')::numeric<=0 or (p_patch->>'water_ml')::numeric>=1000000000) then raise exception 'Diluente inválido'; end if;
 
@@ -221,12 +219,9 @@ begin
 
   select exists(select 1 from public.vial_movements
     where user_id=u and vial_id=p_vial_id) into has_movement;
-  if has_movement and ((p_patch ? 'initial_mg' and (p_patch->>'initial_mg')::numeric is distinct from current_vial.initial_mg)
-    or (p_patch ? 'water_ml' and (p_patch->>'water_ml')::numeric is distinct from current_vial.water_ml)) then
-    raise exception 'Apresentação e diluição não podem mudar após o primeiro movimento';
-  end if;
-  if p_patch ? 'initial_mg' and (p_patch->>'initial_mg')::numeric<current_vial.remaining_mg then
-    raise exception 'Quantidade inicial não pode ser menor que o saldo atual';
+  if has_movement and p_patch ? 'water_ml'
+    and (p_patch->>'water_ml')::numeric is distinct from current_vial.water_ml then
+    raise exception 'Diluição não pode mudar após o primeiro movimento';
   end if;
 
   update public.vials set
@@ -234,7 +229,6 @@ begin
     cost=case when p_patch ? 'cost' then case when jsonb_typeof(p_patch->'cost')='null' then null else (p_patch->>'cost')::numeric end else cost end,
     prepared_on=case when p_patch ? 'prepared_on' then (p_patch->>'prepared_on')::date else prepared_on end,
     active=case when p_patch ? 'active' then (p_patch->>'active')::boolean else active end,
-    initial_mg=case when p_patch ? 'initial_mg' then (p_patch->>'initial_mg')::numeric else initial_mg end,
     water_ml=case when p_patch ? 'water_ml' then (p_patch->>'water_ml')::numeric else water_ml end,
     version=version+1,edit_version=edit_version+1,updated_at=statement_timestamp()
     where user_id=u and id=p_vial_id returning * into updated;
