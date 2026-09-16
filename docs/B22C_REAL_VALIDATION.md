@@ -1,7 +1,24 @@
 # Validação real controlada — B2.2-C
 
-Este documento acompanha `scripts/test-b22c-real-sync.mjs`. A execução no
-`pepday-v3-test` permanece pendente de autorização explícita.
+Este documento acompanha `scripts/test-b22c-real-sync.mjs`. A validação real
+controlada foi concluída e aprovada no `pepday-v3-test` em 16/09/2026.
+
+## Resultado real aprovado
+
+- Application real executada com JWT da conta Auth fixture: `PASS`.
+- Resposta perdida e replay com o mesmo UUID: `PASS`.
+- Nenhum segundo desconto após o replay: `PASS`.
+- Falha local após sucesso remoto reparada pelo replay do mesmo UUID: `PASS`.
+- Undo real: `PASS`.
+- Replay do Undo com o mesmo UUID: `PASS`.
+- Segundo Undo com UUID diferente resultou no conflito esperado: `PASS`.
+- Cardinalidade de Application e movimentos: `PASS`.
+- Saldo restaurado corretamente: `PASS`.
+- Isolamento por usuário e run marker: `PASS`.
+- Cleanup de Auth e domínio: `PASS`.
+- Resultado consolidado:
+  `PASS FINAL — B2.2-C REAL SYNC/REPLAY/UNDO`.
+- **B2.2-C encerrado e aprovado.**
 
 ## Limites e segurança
 
@@ -13,9 +30,12 @@ Este documento acompanha `scripts/test-b22c-real-sync.mjs`. A execução no
   `.env`, argumentos de linha de comando ou arquivos de credenciais.
 - A senha é aleatória e existe somente em memória. Chaves, senha, access token
   e refresh token não são impressos nem incluídos no recibo de recuperação.
-- Application e Undo usam o JWT obtido pelo login normal com a anon key. A
+- Application e Undo usam o JWT obtido pelo login normal com a publishable key. A
   service role é usada somente no preflight, na criação/leitura das fixtures,
   na verificação e no hard-delete administrativo da conta fixture.
+- O runner final utiliza exclusivamente `SUPABASE_URL`,
+  `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. A variável legada
+  `SUPABASE_ANON_KEY` não é usada nesse runner.
 - O marker é um UUID aleatório por execução. Preflight, conta Auth,
   `local_data_imports.source_snapshot` e recibo local vinculam a mesma execução.
 - O cleanup recusa o hard-delete se o marker Auth divergir. Depois da criação
@@ -40,7 +60,7 @@ Este documento acompanha `scripts/test-b22c-real-sync.mjs`. A execução no
 10. Verificação remota e local de cardinalidade, saldo e estados da outbox.
 11. Cleanup em `finally` e verificação de zero vestígios.
 
-## Execução futura autorizada
+## Configuração validada do runner
 
 Em uma sessão temporária do PowerShell, sem criar arquivo `.env`:
 
@@ -52,7 +72,8 @@ node scripts/test-b22c-real-sync.mjs
 Remove-Item Env:SUPABASE_URL, Env:SUPABASE_PUBLISHABLE_KEY, Env:SUPABASE_SERVICE_ROLE_KEY
 ```
 
-O processo imprime exatamente uma linha final:
+Em eventual repetição expressamente autorizada, o processo imprime exatamente
+uma linha final:
 
 - `PASS FINAL — B2.2-C REAL SYNC/REPLAY/UNDO`; ou
 - `FAIL FINAL — <motivo sanitizado>`.

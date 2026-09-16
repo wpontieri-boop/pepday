@@ -203,6 +203,29 @@ Validação humana real concluída em 15/09/2026:
 - Isolamento entre contas: `PASS`.
 - **B2.2-A Repository Local encerrado e aprovado.**
 
+## Fase B2.2-C — encerrada e aprovada
+
+Validação real controlada concluída no `pepday-v3-test` em 16/09/2026:
+
+- Application real com JWT: `PASS`.
+- Resposta perdida e replay com o mesmo UUID: `PASS`.
+- Nenhum segundo desconto: `PASS`.
+- Falha local após sucesso remoto reparada por replay: `PASS`.
+- Undo real: `PASS`.
+- Replay do Undo: `PASS`.
+- Segundo Undo com UUID diferente resultou no conflito esperado: `PASS`.
+- Cardinalidade de Application e movimentos: `PASS`.
+- Saldo restaurado corretamente: `PASS`.
+- Isolamento por usuário e run marker: `PASS`.
+- Cleanup Auth/domínio: `PASS`.
+- Resultado final: `PASS FINAL — B2.2-C REAL SYNC/REPLAY/UNDO`.
+- O runner validado usa `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e
+  `SUPABASE_SERVICE_ROLE_KEY`; a variável legada `SUPABASE_ANON_KEY` não é
+  utilizada nesse runner.
+- As variáveis sensíveis foram removidas da sessão do PowerShell após o teste;
+  a verificação final retornou `False / False / False`.
+- **B2.2-C encerrado e aprovado.**
+
 ## Pendências
 
 ### Bloco B
@@ -211,6 +234,8 @@ Validação humana real concluída em 15/09/2026:
   alteração posterior.
 - B2.1 encerrada e aprovada; não repetir smoke, concorrência ou transporte Auth
   sem necessidade causada por alteração posterior nas RPCs ou no schema envolvido.
+- B2.2-A e B2.2-C encerrados e aprovados; não repetir a validação real do runner
+  sem necessidade causada por alteração posterior no fluxo de sincronização.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
@@ -277,11 +302,11 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Iniciar a fase B2.2 pela definição e implementação testável do repositório
-local-first e da fila offline: gravação local, operações pendentes idempotentes,
-reconexão, versionamento/timestamps e tratamento explícito de conflitos. Preservar
-as RPCs transacionais aprovadas da B2.1 como autoridade para aplicação, movimento,
-saldo e Undo, sem reprocessar o legado nem alterar FREE/TRIAL/PRO.
+Planejar e submeter à aprovação a fase B2.2-D, dedicada à sincronização remota de
+Rotinas e Frascos, versionamento e tratamento explícito de conflitos. Preservar
+o repositório local-first, a outbox offline e a sincronização Application/Undo já
+aprovados, mantendo as RPCs transacionais da B2.1 como autoridade para aplicação,
+movimento, saldo e Undo, sem reprocessar o legado nem alterar FREE/TRIAL/PRO.
 
 ## Registro deste checkpoint
 
