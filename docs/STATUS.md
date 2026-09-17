@@ -226,6 +226,34 @@ Validação real controlada concluída no `pepday-v3-test` em 16/09/2026:
   a verificação final retornou `False / False / False`.
 - **B2.2-C encerrado e aprovado.**
 
+## Fase B2.2-D1 — encerrada e aprovada
+
+Validação PostgreSQL real automatizada concluída no `pepday-v3-test` em
+17/09/2026:
+
+- Migration `202609160006_block_b22d1_versioned_vials.sql` aplicada no ambiente
+  de testes.
+- Create concorrente com `operationId` diferentes e o mesmo `vial_id`: `PASS`.
+- Espera e serialização real pelo lock em `profiles`: `PASS`.
+- Update concorrente com soft-delete: `PASS`.
+- Validação real final: `PASS FINAL — B2.2-D1 REAL CONCURRENCY`.
+- Cleanup final do runner: `PASS`, sem resíduos do run.
+- O runner final é automatizado, abre conexões PostgreSQL independentes, exige
+  sobreposição real e rejeita falso positivo sequencial.
+- Correção do cleanup de `auth.refresh_tokens.user_id`: comparação textual
+  aplicada na fonte e coberta por regressão.
+- Encerramento pendente do runner (`unsettled top-level await`): corrigido com
+  timeouts e término explícito em `PASS` ou `FAIL` sanitizado.
+- Ambiguidade PostgreSQL `unknown - unknown` no operador JSONB: corrigida com
+  casts explícitos de `text` e regressão pelo verificador completo.
+- Suíte local final: `164/164 PASS`.
+- D1 em PGlite: `PASS`.
+- Regressão B2.1: `PASS`.
+- `node --check`: `PASS`.
+- `git diff --check`: `PASS`.
+- `SUPABASE_DB_URL` removida do ambiente após a execução real.
+- **B2.2-D1 Backend versionado de Frascos encerrado e aprovado.**
+
 ## Pendências
 
 ### Bloco B
@@ -234,8 +262,9 @@ Validação real controlada concluída no `pepday-v3-test` em 16/09/2026:
   alteração posterior.
 - B2.1 encerrada e aprovada; não repetir smoke, concorrência ou transporte Auth
   sem necessidade causada por alteração posterior nas RPCs ou no schema envolvido.
-- B2.2-A e B2.2-C encerrados e aprovados; não repetir a validação real do runner
-  sem necessidade causada por alteração posterior no fluxo de sincronização.
+- B2.2-A, B2.2-C e B2.2-D1 encerrados e aprovados; não repetir suas validações
+  reais sem necessidade causada por alteração posterior no fluxo ou backend
+  envolvido.
 - Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
   calculadora, sem duplicar frascos ou alterar saldos indevidamente.
 - Implementar sincronização local-first, fila offline, reconexão, controle de
@@ -302,11 +331,12 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Planejar e submeter à aprovação a fase B2.2-D, dedicada à sincronização remota de
-Rotinas e Frascos, versionamento e tratamento explícito de conflitos. Preservar
-o repositório local-first, a outbox offline e a sincronização Application/Undo já
-aprovados, mantendo as RPCs transacionais da B2.1 como autoridade para aplicação,
-movimento, saldo e Undo, sem reprocessar o legado nem alterar FREE/TRIAL/PRO.
+Planejar e submeter à aprovação a fase B2.2-D2, dedicada ao backend versionado de
+Rotinas e às `routine_versions` imutáveis. Preservar o backend versionado de
+Frascos aprovado no D1, o repositório local-first, a outbox offline e a
+sincronização Application/Undo, mantendo as RPCs transacionais da B2.1 como
+autoridade para aplicação, movimento, saldo e Undo, sem reprocessar o legado nem
+alterar FREE/TRIAL/PRO.
 
 ## Registro deste checkpoint
 

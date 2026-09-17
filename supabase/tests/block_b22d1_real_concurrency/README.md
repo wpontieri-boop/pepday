@@ -8,6 +8,28 @@ Defina somente `SUPABASE_DB_URL` na sessão atual, usando a conexão PostgreSQL 
 
 Resultado esperado: `PASS FINAL — B2.2-D1 REAL CONCURRENCY`.
 
+## Fechamento aprovado — 17/09/2026
+
+A validação real automatizada foi concluída no `pepday-v3-test` com:
+
+- `PASS FINAL — B2.2-D1 REAL CONCURRENCY`;
+- create concorrente com `operationId` diferentes e o mesmo `vial_id`: `PASS`;
+- espera e serialização real pelo lock em `profiles`: `PASS`;
+- update concorrente com soft-delete: `PASS`;
+- cleanup final confirmado sem resíduos do run;
+- `SUPABASE_DB_URL` removida do ambiente após a execução.
+
+Antes do resultado final, o pacote recebeu três correções permanentes e suas
+regressões: `auth.refresh_tokens.user_id` passou a ser comparado como texto no
+cleanup; todos os caminhos do runner passaram a terminar explicitamente, sem
+`unsettled top-level await`; e a comparação JSONB do replay recebeu casts
+explícitos de `text`, eliminando o erro PostgreSQL `unknown - unknown`.
+
+A validação local final registrou suíte Node `164/164 PASS`, D1 PGlite `PASS`,
+regressão B2.1 `PASS`, `node --check` `PASS` e `git diff --check` `PASS`.
+O B2.2-D1 está encerrado e aprovado; não repetir esta validação real sem mudança
+posterior no backend versionado de Frascos ou no próprio pacote de concorrência.
+
 ## Gerar um run isolado
 
 No repositório, execute `node scripts/prepare-b22d1-real-validation.mjs`. O comando cria em `%TEMP%` uma pasta com oito SQLs e `run.json`. Cada execução usa `run_marker`, usuário, Frasco e quatro `operationId` novos. O recibo não contém segredo.
