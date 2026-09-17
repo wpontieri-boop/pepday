@@ -31,6 +31,14 @@ export function sanitizeError(error) {
     .replace(/[\r\n]+/g, ' ').slice(0, 500);
 }
 
+export async function withSqlContext({ scenario, step, operation }, action) {
+  try {
+    return await action();
+  } catch (error) {
+    throw new Error(`cenário: ${scenario}; etapa: ${step}; operação SQL lógica: ${operation}; erro: ${sanitizeError(error)}`);
+  }
+}
+
 export function withTimeout(promise, timeoutMs, label, onTimeout = () => {}) {
   return new Promise((resolve, reject) => {
     let finished = false;
@@ -169,15 +177,23 @@ export async function executeRealValidation({ Client, connectionString, delayMs 
         reason => ({ status: 'rejected', reason }))));
     const failedConnection = connections.find(result => result.status === 'rejected');
     if (failedConnection) throw failedConnection.reason;
-    await inspectAndRecoverOldRun(adminDb);
-    await verifyOldRunGone(adminDb);
-    await adminDb.query(await read('00_preflight.sql'), undefined, 'preflight');
-    await adminDb.query(await read('10_prepare.sql'), undefined, 'prepare');
-    await runOverlapped(sessionADb, sessionBDb,
-      await read('20_create_session_a.sql'), await read('21_create_session_b.sql'), delayMs);
-    await runOverlapped(sessionADb, sessionBDb,
-      await read('30_update_delete_session_a.sql'), await read('31_update_delete_session_b.sql'), delayMs);
-    const verified = resultRows(await adminDb.query(await read('90_verify.sql'), undefined, 'verificação'));
+    await withSqlContext({ scenario: 'preflight', step: 'recuperar run anterior', operation: 'inspecionar e limpar marker conhecido' },
+      () => inspectAndRecoverOldRun(adminDb));
+    await withSqlContext({ scenario: 'preflight', step: 'confirmar recuperação', operation: 'verificar ausência do marker conhecido' },
+      () => verifyOldRunGone(adminDb));
+    await withSqlContext({ scenario: 'preflight', step: 'validar estrutura e colisões', operation: '00_preflight.sql' },
+      async () => adminDb.query(await read('00_preflight.sql'), undefined, 'preflight'));
+    await withSqlContext({ scenario: 'fixtures', step: 'criar dados isolados', operation: '10_prepare.sql' },
+      async () => adminDb.query(await read('10_prepare.sql'), undefined, 'prepare'));
+    await withSqlContext({ scenario: 'create concorrente', step: 'executar sessões A e B sobrepostas', operation: 'create_vial_versioned' },
+      async () => runOverlapped(sessionADb, sessionBDb,
+        await read('20_create_session_a.sql'), await read('21_create_session_b.sql'), delayMs));
+    await withSqlContext({ scenario: 'update x soft-delete', step: 'executar sessões A e B sobrepostas', operation: 'update_vial_versioned + soft_delete_vial_versioned' },
+      async () => runOverlapped(sessionADb, sessionBDb,
+        await read('30_update_delete_session_a.sql'), await read('31_update_delete_session_b.sql'), delayMs));
+    const verified = resultRows(await withSqlContext(
+      { scenario: 'verificação final', step: 'validar espera, cardinalidade, ledger, replay e saldo', operation: '90_verify.sql' },
+      async () => adminDb.query(await read('90_verify.sql'), undefined, 'verificação')));
     if (!verified.some(row => String(row.veredito ?? '').startsWith('PASS — lock real observado'))) {
       throw new Error('90_verify não retornou o veredito esperado.');
     }
@@ -187,13 +203,17 @@ export async function executeRealValidation({ Client, connectionString, delayMs 
     await Promise.all(states.map((state, index) => rollbackQuietly(
       [adminDb, sessionADb, sessionBDb][index], state, Math.min(timeouts.queryMs, 5000))));
     try {
-      const marker = await adminDb.query(`select count(*)::int n from public.local_data_imports
+      const marker = await withSqlContext(
+        { scenario: 'cleanup', step: 'comprovar procedência', operation: 'localizar fixture pelo marker e IDs' },
+        () => adminDb.query(`select count(*)::int n from public.local_data_imports
         where id=$1 and user_id=$2 and source_hash=$3
           and source_snapshot->>'run_marker'=$4`, [generated.values.MARKER_ID,
         generated.values.USER_ID, generated.values.SOURCE_HASH, generated.values.RUN_MARKER],
-      'localização da fixture para cleanup');
+        'localização da fixture para cleanup'));
       if (Number(marker.rows[0].n) === 1) {
-        const cleaned = resultRows(await adminDb.query(await read('99_cleanup.sql'), undefined, 'cleanup'));
+        const cleaned = resultRows(await withSqlContext(
+          { scenario: 'cleanup', step: 'remover fixtures e confirmar zero', operation: '99_cleanup.sql' },
+          async () => adminDb.query(await read('99_cleanup.sql'), undefined, 'cleanup')));
         if (!cleaned.some(row => Number(row.total_fixtures) === 0
           && String(row.resultado ?? '').startsWith('PASS — cleanup'))) {
           throw new Error('Cleanup não confirmou zero fixtures.');

@@ -22,7 +22,7 @@ const outputDir = join(parent, 'run');
 const db = new PGlite();
 
 try {
-  await generatePackage({ outputDir });
+  const generated = await generatePackage({ outputDir });
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create schema auth;
     create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb not null default '{}');
@@ -46,6 +46,20 @@ try {
   try { await db.exec(await read('90_verify.sql')); }
   catch (error) { sequentialRejected = /lock real .* não observado|execução sequencial/i.test(error.message); }
   assert(sequentialRejected, '90_verify aceitou A/B sequenciais.');
+  await db.exec(`update public.local_data_imports set source_snapshot=
+    jsonb_set(jsonb_set(jsonb_set(jsonb_set(source_snapshot,
+      '{evidence,create_a}',source_snapshot#>'{evidence,create_a}'||jsonb_build_object(
+        'lock_acquired_at','2026-09-17T12:00:00.000Z','sleep_finished_at','2026-09-17T12:00:12.000Z'),true),
+      '{evidence,create_b}',source_snapshot#>'{evidence,create_b}'||jsonb_build_object(
+        'started_at','2026-09-17T12:00:02.000Z','finished_at','2026-09-17T12:00:12.100Z','wait_ms',10100),true),
+      '{evidence,update_a}',source_snapshot#>'{evidence,update_a}'||jsonb_build_object(
+        'lock_acquired_at','2026-09-17T12:01:00.000Z','sleep_finished_at','2026-09-17T12:01:12.000Z'),true),
+      '{evidence,delete_b}',source_snapshot#>'{evidence,delete_b}'||jsonb_build_object(
+        'started_at','2026-09-17T12:01:02.000Z','finished_at','2026-09-17T12:01:12.100Z','wait_ms',10100),true)
+    where id='${generated.values.MARKER_ID}';`);
+  const positive = await db.exec(await read('90_verify.sql'));
+  assert(positive.some(result => result.rows?.some(row => String(row.veredito ?? '').startsWith('PASS — lock real observado'))),
+    '90_verify não aceitou evidências A/B válidas.');
   await db.exec(await read('99_cleanup.sql'));
   const remaining = await db.query(`select
     (select count(*) from auth.users)+

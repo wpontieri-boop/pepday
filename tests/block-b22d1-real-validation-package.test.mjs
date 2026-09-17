@@ -49,6 +49,14 @@ test('SQL exige participação A/B, duração mínima, vencedor fixo e cardinali
   assert.match(verify, /remaining_mg=10/);
 });
 
+test('verificador dá tipo explícito aos operandos JSONB da comparação de replay', async () => {
+  const verify = await readFile(new URL('../supabase/tests/block_b22d1_real_concurrency/90_verify.sql.template', import.meta.url), 'utf8');
+  assert.doesNotMatch(verify, /->\s*'[^']+'\s*-\s*'[^']+'/,
+    'expressão JSONB deixou os dois operandos de subtração como unknown');
+  assert.match(verify, /db\s*->\s*\('result'::text\)\)\s*-\s*\('replay'::text\)/);
+  assert.match(verify, /db\s*->\s*\('replay_result'::text\)\)\s*-\s*\('replay'::text\)/);
+});
+
 test('cleanup é guardado por marker/metadata/IDs e não contém exclusão ampla de domínio', async () => {
   const cleanup = await readFile(new URL('../supabase/tests/block_b22d1_real_concurrency/99_cleanup.sql.template', import.meta.url), 'utf8');
   assert.match(cleanup, /pepday_b22d1_run_marker/);

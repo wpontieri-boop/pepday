@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { executeRealValidation, runOverlapped, sanitizeError, validateDatabaseUrl,
-  withTimeout } from '../scripts/test-b22d1-real-concurrency.mjs';
+  withSqlContext, withTimeout } from '../scripts/test-b22d1-real-concurrency.mjs';
 
 const validUrl = 'postgresql://postgres:secret@db.fsbqpyyprtymwrmzsacp.supabase.co:5432/postgres';
 
@@ -35,6 +35,21 @@ test('mensagens de erro removem URL, senha e tokens', () => {
   assert.doesNotMatch(sanitized, /\n/);
 });
 
+test('erro SQL futuro identifica cenário, etapa e operação sem expor credenciais', async () => {
+  await assert.rejects(withSqlContext({
+    scenario: 'create concorrente',
+    step: 'sessões A/B',
+    operation: 'create_vial_versioned',
+  }, async () => { throw new Error(`operator is not unique: unknown - unknown ${validUrl} token=secreto`); }), error => {
+    assert.match(error.message, /cenário: create concorrente/);
+    assert.match(error.message, /etapa: sessões A\/B/);
+    assert.match(error.message, /operação SQL lógica: create_vial_versioned/);
+    assert.match(error.message, /operator is not unique: unknown - unknown/);
+    assert.doesNotMatch(error.message, /secret|secreto|fsbqpyyprtymwrmzsacp/);
+    return true;
+  });
+});
+
 test('Promise que nunca resolve termina em timeout explícito', async () => {
   await assert.rejects(withTimeout(new Promise(() => {}), 10, 'teste pendente'),
     /Timeout em teste pendente/);
@@ -52,7 +67,7 @@ test('conexão encerrada com query pendente produz FAIL em vez de top-level awai
     connectionString: validUrl,
     delayMs: 0,
     timeouts: { connectMs: 10, queryMs: 10, closeMs: 10 },
-  }), /falha principal: Timeout em admin|falha principal: Timeout em/);
+  }), /falha principal: cenário: preflight; etapa: recuperar run anterior; operação SQL lógica: inspecionar e limpar marker conhecido; erro: Timeout em admin/);
 });
 
 test('falha antes de connect não enfileira rollback eterno no cliente desconectado', async () => {

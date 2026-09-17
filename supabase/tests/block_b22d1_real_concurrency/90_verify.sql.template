@@ -28,7 +28,8 @@ begin
     or (db#>>'{result,replay}')::boolean
     or (db#>>'{replay_result,outcome}')<>'conflict'
     or not (db#>>'{replay_result,replay}')::boolean
-    or (db->'result'-'replay') is distinct from (db->'replay_result'-'replay') then
+    or ((db -> ('result'::text)) - ('replay'::text))
+      is distinct from ((db -> ('replay_result'::text)) - ('replay'::text)) then
     raise exception 'VERIFY FAIL: update/delete ou replay divergente';
   end if;
   if (db->>'wait_ms')::numeric<7000
