@@ -56,5 +56,7 @@ test('cleanup é guardado por marker/metadata/IDs e não contém exclusão ampla
   assert.match(cleanup, /dados inesperados associados/);
   assert.doesNotMatch(cleanup, /delete\s+from\s+public\./i);
   assert.match(cleanup, /delete from auth\.users where id='__USER_ID__' and email='__FIXTURE_EMAIL__'/i);
+  assert.match(cleanup, /auth\.refresh_tokens where user_id=\$1::text/);
+  assert.doesNotMatch(cleanup, /auth\.refresh_tokens where user_id=\$1['\s]/);
   assert.match(cleanup, /total_fixtures/);
 });

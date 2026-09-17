@@ -28,7 +28,8 @@ try {
     create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb not null default '{}');
     create table auth.identities(user_id uuid references auth.users(id) on delete cascade);
     create table auth.sessions(user_id uuid references auth.users(id) on delete cascade);
-    create table auth.refresh_tokens(user_id uuid references auth.users(id) on delete cascade);
+    -- Supabase Auth real usa varchar em refresh_tokens.user_id.
+    create table auth.refresh_tokens(user_id text);
     create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth to authenticated,anon;

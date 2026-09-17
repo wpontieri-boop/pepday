@@ -45,7 +45,7 @@ do $$ declare n bigint:=0; c bigint; begin
     execute 'select count(*) from auth.sessions where user_id=$1' into c using '__USER_ID__'::uuid; n:=n+c;
   end if;
   if to_regclass('auth.refresh_tokens') is not null then
-    execute 'select count(*) from auth.refresh_tokens where user_id=$1' into c using '__USER_ID__'::uuid; n:=n+c;
+    execute 'select count(*) from auth.refresh_tokens where user_id=$1::text' into c using '__USER_ID__'::uuid; n:=n+c;
   end if;
   perform set_config('pepday.d1.auth_internal_remaining',n::text,false);
 end $$;

@@ -2,6 +2,12 @@
 
 Este pacote comprova concorrência real das RPCs versionadas de Frascos. Ele é exclusivo do `pepday-v3-test`; não execute em produção. A migration `202609160006_block_b22d1_versioned_vials.sql` deve ser aplicada uma única vez antes dos cenários.
 
+## Runner automatizado (preferencial)
+
+Defina somente `SUPABASE_DB_URL` na sessão atual, usando a conexão PostgreSQL direta ou pooler do projeto `fsbqpyyprtymwrmzsacp`, e execute `node scripts/test-b22d1-real-concurrency.mjs`. O runner abre duas conexões independentes, dispara A/B em paralelo, executa o verificador, faz cleanup guardado e imprime uma única linha final. A URL/senha nunca é impressa nem persistida. O runner também inspeciona primeiro o run conhecido `72ed54ae-4295-454e-8597-a21d1c505691`; ele só limpa eventual resíduo quando marker, conta Auth e todos os IDs provam a procedência.
+
+Resultado esperado: `PASS FINAL — B2.2-D1 REAL CONCURRENCY`.
+
 ## Gerar um run isolado
 
 No repositório, execute `node scripts/prepare-b22d1-real-validation.mjs`. O comando cria em `%TEMP%` uma pasta com oito SQLs e `run.json`. Cada execução usa `run_marker`, usuário, Frasco e quatro `operationId` novos. O recibo não contém segredo.
