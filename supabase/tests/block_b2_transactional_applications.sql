@@ -61,7 +61,7 @@ insert into public.routines(id,user_id,vial_id,name,dose_value,dose_unit,syringe
 update public.routines set status='inactive'
   where user_id='22222222-2222-4222-8222-222222222222'
     and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000008';
-update public.routines set deleted_at=now()
+update public.routines set status='inactive',deleted_at=now()
   where user_id='22222222-2222-4222-8222-222222222222'
     and id='bbbbbbbb-bbbb-4bbb-8bbb-000000000009';
 
