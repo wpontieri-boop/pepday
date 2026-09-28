@@ -14,7 +14,7 @@ test('landing principal contém a arquitetura comercial aprovada',async()=>{
     'Por que criamos o PepDay',
     'PEPDAY FREE',
     'PEPDAY PRO ANUAL',
-    'Prova social',
+    'Construído para problemas reais',
     'Começar grátis agora'
   ]) assert.match(html,new RegExp(text,'i'));
 });
@@ -28,11 +28,12 @@ test('landing separa FREE e PRO com preços aprovados',async()=>{
   assert.match(html,/Rotinas e frascos/);
 });
 
-test('landing não inventa depoimentos como se fossem reais',async()=>{
+test('landing não publica depoimento fictício e mantém template para relatos reais',async()=>{
   const html=await read('site/index.html');
-  assert.match(html,/Relatos reais entram aqui/i);
-  assert.match(html,/não publicaremos frases fictícias como se fossem clientes/i);
-  assert.match(html,/Depoimento real de usuário/);
+  assert.match(html,/sem inventar experiências de clientes/i);
+  assert.match(html,/id="testimonialTemplate"/);
+  assert.match(html,/Relato publicado com autorização/);
+  assert.doesNotMatch(html,/“[^”]{8,}”\s*<small>[^<]*(cliente|usuário)/i);
 });
 
 test('landing mantém linguagem de cálculo e organização, sem recomendação de tratamento',async()=>{
@@ -40,6 +41,17 @@ test('landing mantém linguagem de cálculo e organização, sem recomendação 
   assert.match(html,/não recomenda doses, tratamentos ou protocolos/i);
   assert.match(html,/Você informa seus próprios valores/i);
   assert.doesNotMatch(html,/dose ideal|protocolo recomendado|tratamento indicado/i);
+});
+
+test('seringa U-100 mostra escala completa e marcador do resultado sem recomendar dose',async()=>{
+  const [html,css]=await Promise.all([read('site/index.html'),read('site/site.css')]);
+  assert.match(html,/Seringa U-100 com marcação visual em 20 UI/);
+  assert.match(html,/left:0%"><b>0<\/b>/);
+  assert.match(html,/left:100%"><b>100<\/b>/);
+  assert.match(html,/class="ms-target" style="left:20%"><span>20 UI<\/span>/);
+  assert.match(html,/valores informados por você/i);
+  assert.match(css,/\.marketing-syringe/);
+  assert.match(css,/\.ms-target/);
 });
 
 test('landing usa tema claro e mockups visuais do próprio produto',async()=>{

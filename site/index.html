@@ -90,7 +90,21 @@
     <div class="feature-grid">
       <article class="feature big">
         <div class="feature-copy"><span>FREE</span><h3>Calculadora matemática</h3><p>Converta mg, mcg, mL e UI e visualize o resultado em uma seringa U-100.</p></div>
-        <div class="visual calc-visual"><b>20 UI</b><div class="syringe-line"><i></i></div><small>Resultado visual</small></div>
+        <div class="visual calc-visual">
+          <div class="calc-value"><small>EXEMPLO DE RESULTADO</small><b>20 UI</b></div>
+          <div class="marketing-syringe" aria-label="Seringa U-100 com marcação visual em 20 UI">
+            <div class="ms-needle"></div>
+            <div class="ms-flange"></div>
+            <div class="ms-body">
+              <div class="ms-liquid" style="width:20%"></div>
+              <div class="ms-scale"><i class="major" style="left:0%"><b>0</b></i><i class="" style="left:2%"></i><i class="" style="left:4%"></i><i class="" style="left:6%"></i><i class="" style="left:8%"></i><i class="major" style="left:10%"><b>10</b></i><i class="" style="left:12%"></i><i class="" style="left:14%"></i><i class="" style="left:16%"></i><i class="" style="left:18%"></i><i class="major" style="left:20%"><b>20</b></i><i class="" style="left:22%"></i><i class="" style="left:24%"></i><i class="" style="left:26%"></i><i class="" style="left:28%"></i><i class="major" style="left:30%"><b>30</b></i><i class="" style="left:32%"></i><i class="" style="left:34%"></i><i class="" style="left:36%"></i><i class="" style="left:38%"></i><i class="major" style="left:40%"><b>40</b></i><i class="" style="left:42%"></i><i class="" style="left:44%"></i><i class="" style="left:46%"></i><i class="" style="left:48%"></i><i class="major" style="left:50%"><b>50</b></i><i class="" style="left:52%"></i><i class="" style="left:54%"></i><i class="" style="left:56%"></i><i class="" style="left:58%"></i><i class="major" style="left:60%"><b>60</b></i><i class="" style="left:62%"></i><i class="" style="left:64%"></i><i class="" style="left:66%"></i><i class="" style="left:68%"></i><i class="major" style="left:70%"><b>70</b></i><i class="" style="left:72%"></i><i class="" style="left:74%"></i><i class="" style="left:76%"></i><i class="" style="left:78%"></i><i class="major" style="left:80%"><b>80</b></i><i class="" style="left:82%"></i><i class="" style="left:84%"></i><i class="" style="left:86%"></i><i class="" style="left:88%"></i><i class="major" style="left:90%"><b>90</b></i><i class="" style="left:92%"></i><i class="" style="left:94%"></i><i class="" style="left:96%"></i><i class="" style="left:98%"></i><i class="major" style="left:100%"><b>100</b></i></div>
+              <div class="ms-target" style="left:20%"><span>20 UI</span></div>
+            </div>
+            <div class="ms-flange"></div>
+            <div class="ms-plunger"></div>
+          </div>
+          <div class="syringe-explain"><strong>Veja exatamente onde o resultado cai na escala U-100.</strong><span>A marcação representa o cálculo feito com os valores informados por você.</span></div>
+        </div>
       </article>
       <article class="feature"><span>PRO</span><h3>Rotinas</h3><p>Organize frequências, dias e registros em uma agenda clara.</p><div class="mini-list"><i>Hoje</i><b>Rotina A</b><b>Rotina B</b></div></article>
       <article class="feature"><span>PRO</span><h3>Frascos</h3><p>Acompanhe saldo, histórico e previsão de término.</p><div class="meter"><i style="width:64%"></i></div><small>Saldo visual do frasco</small></article>
@@ -190,17 +204,20 @@
     <p class="data-note">Se o teste ou a assinatura terminar, seus dados continuam preservados. Ao voltar ao PRO, os recursos são liberados novamente.</p>
   </section>
 
-  <section class="proof section">
+  <section class="trust-proof section">
     <div class="section-heading narrow">
-      <div class="eyebrow">PROVA SOCIAL</div>
-      <h2>Relatos reais entram aqui — sem inventar experiência.</h2>
-      <p>Esta seção já está pronta para receber depoimentos autorizados de usuários do PepDay. Até termos relatos reais, não publicaremos frases fictícias como se fossem clientes.</p>
+      <div class="eyebrow">CONSTRUÍDO PARA PROBLEMAS REAIS</div>
+      <h2>Menos dúvida operacional. Mais clareza para organizar o que você já definiu.</h2>
+      <p>Enquanto reunimos depoimentos reais autorizados, mostramos apenas benefícios verificáveis do produto — sem inventar experiências de clientes.</p>
     </div>
-    <div class="proof-placeholder">
-      <div>“Depoimento real de usuário”<small>Nome ou iniciais • com autorização</small></div>
-      <div>“Depoimento real de usuário”<small>Nome ou iniciais • com autorização</small></div>
-      <div>“Depoimento real de usuário”<small>Nome ou iniciais • com autorização</small></div>
+    <div class="trust-proof-grid">
+      <article><b>Visualização da seringa</b><p>O resultado calculado aparece também na escala U-100 para facilitar a leitura do ponto correspondente.</p></article>
+      <article><b>Histórico preservado</b><p>Registros anteriores continuam disponíveis para consulta sem serem reescritos silenciosamente.</p></article>
+      <article><b>Dados continuam seus</b><p>O término do teste ou da assinatura não apaga seus dados; o acesso pode ser retomado depois.</p></article>
     </div>
+    <template id="testimonialTemplate">
+      <blockquote><p></p><footer><span class="testimonial-name"></span><span class="testimonial-consent">Relato publicado com autorização.</span></footer></blockquote>
+    </template>
   </section>
 
   <section class="final-cta section">

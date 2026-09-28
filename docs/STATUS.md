@@ -491,9 +491,19 @@ A primeira versão estrutural de `/site/` já contém Hero, problema, solução,
 como funciona, mockups visuais do próprio PepDay, história do produto, FREE x PRO,
 prova social preparada para relatos reais autorizados e CTA final. Depoimentos
 fictícios não serão publicados como experiência real. Documento oficial:
-`docs/LANDING-MARKETING.md`. Testes direcionados da landing: `6/6 PASS`;
-regressão completa: `263/263 PASS`. Smoke local: Home `200`, `/cartao/` `200`
-e `/site/` `200`.
+`docs/LANDING-MARKETING.md`.
+
+Refinamento comercial posterior: o Hero ficou mais compacto, cards de problema
+ganharam maior presença, o plano anual foi reforçado visualmente e o CTA final ficou
+mais evidente. O bloco da Calculadora passou a usar uma seringa U-100 visual completa,
+com escala numerada de 0 a 100 UI, preenchimento do exemplo e marcador destacado em
+20 UI. A comunicação deixa explícito que a marcação representa o cálculo feito com os
+valores informados pelo próprio usuário e não recomenda dose. Os placeholders de
+depoimentos foram removidos da página visível e substituídos por benefícios
+verificáveis; um template interno permanece preparado para relatos reais autorizados.
+Testes direcionados da landing: `7/7 PASS`; regressão completa: `264/264 PASS`.
+Smoke local: `/site/ = 200`, seringa presente, escala até 100 UI, alvo 20 UI e
+nenhum depoimento fictício publicado.
 
 ## Registro deste checkpoint
 
