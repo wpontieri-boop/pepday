@@ -5,8 +5,8 @@ const title = document.getElementById('proGateTitle');
 const message = document.getElementById('proGateMessage');
 const start = document.getElementById('proGateStart');
 const close = document.getElementById('proGateClose');
-const accessControl=globalThis.PepDayAccess;
-const currentAccess=()=>accessControl?.snapshot?.()||Object.freeze({status:'free',pro:false,signedIn:false});
+const accessControl=()=>globalThis.PepDayAccess;
+const currentAccess=()=>accessControl()?.snapshot?.()||Object.freeze({status:'free',pro:false,signedIn:false});
 
 function setProtectedVisibility() {
   const allowed = proGateDecision(currentAccess()).allowed;
@@ -35,14 +35,14 @@ function openDialog() {
   else dialog.setAttribute('open','');
 }
 
-accessControl?.subscribe?.(setProtectedVisibility);
+accessControl()?.subscribe?.(setProtectedVisibility);
 // Eventos DOM são somente notificações; o conteúdo de detail é deliberadamente ignorado.
 document.addEventListener('pepday:entitlement',setProtectedVisibility);
 document.addEventListener('pepday:pro-required',openDialog);
 
 document.addEventListener('click',event=>{
   const action=event.target.closest?.('[data-pro-action]');
-  if(!action || accessControl?.requirePro?.(action.dataset.proAction||'interface'))return;
+  if(!action || accessControl()?.requirePro?.(action.dataset.proAction||'interface'))return;
   event.preventDefault();event.stopImmediatePropagation();
 },true);
 

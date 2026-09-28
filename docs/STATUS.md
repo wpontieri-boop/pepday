@@ -381,6 +381,14 @@ que já registrou conflito. Conflitos de eventos históricos continuam sem resol
 automática. Smoke Chrome local carregou a tela e o módulo de hidratação; suíte
 direcionada `13/13 PASS` e regressão completa `222/222 PASS`.
 
+No QA manual em dois navegadores, o Perfil autenticado/PRO ficou correto, mas o
+gate de Frascos/Rotinas podia permanecer no estado de login quando `pro-gate.mjs`
+era avaliado antes de `account-ui.mjs` publicar `globalThis.PepDayAccess`.
+O gate passou a consultar a autoridade dinamicamente em cada decisão, sem congelar
+uma referência ausente no carregamento. O cache V3 foi incrementado para evitar
+entrega do módulo antigo. Regressão do gate: `19/19 PASS`; suíte completa:
+`223/223 PASS`.
+
 Próximo gate: QA final de homologação com uma conta real no navegador, validando
 hidratação e as duas escolhas de conflito ponta a ponta. A automação administrativa
 desse smoke não foi incorporada porque a ferramenta bloqueou a orquestração de

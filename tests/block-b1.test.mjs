@@ -14,6 +14,12 @@ const appSource=readFileSync(new URL('../app.js',import.meta.url),'utf8');
 const serviceWorker=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
 const devServer=readFileSync(new URL('../scripts/dev-server.mjs',import.meta.url),'utf8');
 
+test('gate PRO lê PepDayAccess dinamicamente e não congela estado antes do módulo da conta',()=>{
+  assert.match(gateSource,/const accessControl=\(\)=>globalThis\.PepDayAccess/);
+  assert.match(gateSource,/accessControl\(\)\?\.requirePro/);
+  assert.doesNotMatch(gateSource,/const accessControl=globalThis\.PepDayAccess/);
+});
+
 test('FREE sem login mantém calculadora livre e bloqueia somente ação PRO',()=>{
   const access=normalizeEntitlement(null);
   assert.equal(access.status,'free');assert.equal(access.pro,false);assert.equal(access.signedIn,false);
