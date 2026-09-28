@@ -435,6 +435,18 @@ O advisor de performance apontou inicialmente a FK nova sem índice; a migration
 incremental adicionou `billing_events_subscription_received_idx` e removeu esse
 achado. Os avisos de performance restantes são anteriores a este delta.
 
+O receptor `mercado-pago-webhook` também foi preparado localmente como Edge
+Function pública somente no transporte (`verify_jwt=false`), mas protegida pela
+assinatura HMAC oficial do Mercado Pago. A função valida `x-signature` antes de
+ler/processar o corpo, consulta o recurso canônico em `/preapproval/{id}` ou
+`/authorized_payments/{id}`, resolve a assinatura interna pelo ID do provedor ou
+`external_reference` PepDay e somente então chama `apply_billing_event`. Status
+`authorized` de uma assinatura nova, sem pagamento aprovado, não libera PRO.
+Segredos ficam exclusivamente em variáveis da Edge Function; nenhuma credencial
+foi adicionada ao repositório. Testes do webhook: `10/10 PASS`; regressão completa:
+`239/239 PASS`. Deploy funcional e validação real aguardam credenciais/plan IDs
+do Mercado Pago de testes.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
