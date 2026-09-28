@@ -19,3 +19,9 @@ enabled = true
 verify_jwt = false
 # Worker interno: autenticação por segredo próprio da função.
 entrypoint = "./functions/brevo-email-worker/index.mjs"
+
+[functions.fcm-push-worker]
+enabled = true
+verify_jwt = false
+# Worker interno: autenticação por segredo próprio da função.
+entrypoint = "./functions/fcm-push-worker/index.mjs"
