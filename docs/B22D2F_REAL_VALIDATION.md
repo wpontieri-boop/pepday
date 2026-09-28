@@ -2,7 +2,7 @@
 
 ## Estado em 2026-09-27 (Mac, America/Los_Angeles)
 
-**PENDENTE de PASS PostgreSQL real.** D2-B/C/D estão em `04befe7`.
+**PASS PostgreSQL real em 2026-09-28.** D2-B/C/D estão em `04befe7`.
 O Mac foi atualizado por fast-forward de `4233e36` para esse checkpoint:
 nenhuma alteração local e nenhuma divergência exclusiva do Mac.
 `main`, V2.9 e produção não foram alterados.
@@ -83,9 +83,9 @@ lock. Depois usa evidências explicitamente sintéticas, apenas na instância
 PGlite descartável, para exercitar o verificador completo e sua rejeição a um
 conflito incorreto. Essas evidências nunca são enviadas ao Supabase.
 
-## Próximo passo
+## Resultado final
 
-Disponibilizar a conexão direta de teste no Mac, executar o runner, revisar as
-seis provas de bloqueio e cleanup, e só então registrar D2-F como PASS. Não
-reaplicar migrations D2-B/C/D nem avançar para a integração de Rotinas enquanto
-esse checkpoint estiver pendente.
+Em 2026-09-28, no PC da loja, o runner foi executado pelo Session Pooler com TLS
+verificado e três conexões PostgreSQL independentes. Resultado:
+`PASS FINAL D2-F — 6 cenários com lock observado e cleanup zero`.
+D2-F está encerrado. Não reaplicar migrations D2-B/C/D sem necessidade.

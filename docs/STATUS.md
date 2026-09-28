@@ -331,15 +331,14 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Concluir B2.2-D2-F com conexões PostgreSQL simultâneas no `pepday-v3-test`.
-D2-A/B/C/D estão implementados e enviados até `04befe7`. O pacote de concorrência
-D2-F foi preparado no Mac; as regressões locais passaram, mas a tentativa via
-conector não teve sobreposição e foi corretamente rejeitada. Cleanup confirmado
-com zero fixtures. Falta disponibilizar `SUPABASE_DB_URL` no ambiente para o
-runner direto; D2-F ainda não está aprovado. Detalhes e critérios em
-[B22D2F_REAL_VALIDATION.md](B22D2F_REAL_VALIDATION.md).
+B2.2-D2-F está encerrado e aprovado no `pepday-v3-test`. Em 2026-09-28 o runner
+direto abriu três conexões PostgreSQL independentes pelo Session Pooler com TLS
+verificado e concluiu `PASS FINAL D2-F`: seis cenários com lock real observado,
+replay/conflitos/versionamento validados e cleanup com zero fixtures.
 
-Preservar D1, B2.1, repositório local-first, outbox, FREE/TRIAL/PRO, V2.9 e produção.
+O próximo passo do Bloco B é integrar Rotina ↔ Frasco e os pontos aprovados da
+Calculadora sobre o backend versionado já validado, preservando a fonte local-first,
+a outbox, FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 
