@@ -39,6 +39,8 @@ function entityRpc(operation){
   const p=operation.payload||{},e=p.entity,user=p.expectedUserId;
   ensure(user,'Conta remota ausente.','REMOTE_USER_REQUIRED');
   if(operation.entityType==='vial'){
+    if(operation.type==='adjustment')return ['adjust_vial_balance_versioned',{p_operation_id:operation.operationId,p_expected_user:user,p_vial_id:operation.entityId,
+      p_expected_balance:Number(p.expectedBalance),p_new_balance:Number(p.newBalance)}];
     if(operation.type==='create'){
       ensure(e,'Frasco local ausente.');
       return ['create_vial_versioned',{p_operation_id:operation.operationId,p_expected_user:user,p_vial_id:operation.entityId,
@@ -93,7 +95,7 @@ export function createSyncApi({client,config,fetchImpl=globalThis.fetch,clock=()
     if(data?.outcome==='conflict')throw new SyncApiError('Conflito remoto.',{status:409,code:data.code||'CONFLICT'});
     if(operation.entityType==='vial'){
       if(data?.outcome!=='success'||!data?.vial?.id)throw new SyncApiError('Resposta RPC de frasco incompleta.',{status:502,code:'INVALID_RPC_RESPONSE'});
-      return {replay:Boolean(data.replay),vial:data.vial};
+      return {replay:Boolean(data.replay),vial:data.vial,movement:data.movement??null};
     }
     if(operation.entityType==='routine'){
       if(data?.outcome!=='success'||!data?.routine?.id||!data?.routine_version_id)throw new SyncApiError('Resposta RPC de rotina incompleta.',{status:502,code:'INVALID_RPC_RESPONSE'});

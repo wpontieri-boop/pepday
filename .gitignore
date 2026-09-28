@@ -5,3 +5,4 @@ config.local.json
 node_modules/
 test-output/
 *.dump
+supabase/.temp/

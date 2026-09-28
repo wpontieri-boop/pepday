@@ -93,7 +93,7 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
       if(storeName==='routines'&&entity?.vialId){
         const vial=await tx.vials.get(scope,entity.vialId),vialRef=vial?.data?.remoteRef;
         payload.remoteVialId=vialRef?.id||entity.vialId;
-        if(!vialRef?.id){const vialPrior=await priorEntityOperation(tx,scope,'vial',entity.vialId);if(vialPrior&&!dependencies.includes(vialPrior.operationId))dependencies.push(vialPrior.operationId);else if(!vialPrior)blockedReason=blockedReason||'remote-vial-prerequisite'}
+        if(vialRef?.status!=='synced'||!vialRef?.id){const vialPrior=await priorEntityOperation(tx,scope,'vial',entity.vialId);if(vialPrior&&!dependencies.includes(vialPrior.operationId))dependencies.push(vialPrior.operationId);else if(!vialPrior)blockedReason=blockedReason||'remote-vial-prerequisite'}
       }
       const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,
         type:operationType,entityType,entityId:id,payload,baseVersion:previous?.localRevision||null,dependencies,blockedReason}});
@@ -125,6 +125,25 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
     meta:collection(database,getScope,'meta'),
     migrationReceipts:collection(database,getScope,'migrationReceipts'),
     outbox,
+    async adjustVialBalanceWithOutbox(id,newBalance,{operationId}={}){
+      const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Ajuste de saldo exige conta autenticada.');
+      const vialId=assertId(id),balance=Number(newBalance);
+      if(!Number.isFinite(balance)||balance<0)throw new Error('Saldo inválido.');
+      return database.transaction(['vials','outbox','meta'],'readwrite',async tx=>{
+        const previous=await tx.vials.get(scope,vialId);if(!previous)throw new Error('Frasco não encontrado.');
+        const before=Number(previous.data?.remainingMg),initial=Number(previous.data?.initialMg);
+        if(!Number.isFinite(before)||!Number.isFinite(initial)||balance>initial)throw new Error('Saldo inválido.');
+        if(balance===before)return {entity:dataFrom(previous),outbox:null,noop:true};
+        const prior=await priorEntityOperation(tx,scope,'vial',vialId),ref=previous.data?.remoteRef||null,dependencies=[];
+        let blockedReason=null;if(ref?.status!=='synced'||!ref?.id){if(prior)dependencies.push(prior.operationId);else blockedReason='remote-vial-prerequisite'}
+        const entity={...previous.data,remainingMg:balance,remoteRef:ref?{...ref,status:'pending'}:ref,
+          history:[{date:new Date(repositoryClock()).toISOString(),type:'adjust',before,after:balance},...(previous.data?.history||[])]};
+        await tx.vials.put(recordFor(scope,vialId,entity,previous));
+        const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,type:'adjustment',entityType:'vial',entityId:vialId,
+          payload:{expectedUserId:scope.slice(5),localVialId:vialId,expectedBalance:before,newBalance:balance},baseVersion:previous.localRevision||null,dependencies,blockedReason}});
+        return {entity:clone(entity),outbox:queued,noop:false};
+      });
+    },
     async enqueueApplicationIntent({operationId,routine,vial,scheduledDate}){
       const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Application exige conta autenticada.');
       const rr=routine?.remoteRef,vr=vial?.remoteRef,remote=rr?.status==='synced'&&vr?.status==='synced'&&rr.id&&rr.versionId&&vr.id;
@@ -184,6 +203,11 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
           await stores.vials.put({...recordFor(accountScope,localVialId,vialData,priorVial),syncState:'synced'});
         }else if(queued.entityType==='vial'){
           const vial=response?.vial;if(!vial?.id||vial.edit_version==null||vial.version==null)invalid();
+          if(queued.type==='adjustment'){
+            const changed=Number(queued.payload?.expectedBalance)!==Number(queued.payload?.newBalance);
+            if(changed&&!response?.movement?.id)invalid();
+            if(response?.movement?.id)await putConfirmed('vialMovements',response.movement.id,response.movement);
+          }
           if(queued.type!=='delete'){
             const localId=queued.entityId,prior=await stores.vials.get(accountScope,localId);if(!prior)invalid();
             const current=prior.data||{},data={...current,id:localId,name:vial.name??current.name,

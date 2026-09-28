@@ -1,6 +1,6 @@
 export const OUTBOX_STATUSES=Object.freeze(['pending','syncing','synced','failed','conflict']);
 const STATUS_SET=new Set(OUTBOX_STATUSES);
-const NON_COMPACTABLE=new Set(['application','undo']);
+const NON_COMPACTABLE=new Set(['application','undo','adjustment']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const clone=value=>value==null?value:structuredClone(value);

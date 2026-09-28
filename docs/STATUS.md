@@ -344,11 +344,17 @@ fabricar saldo ou histórico. A Calculadora também preserva nome, dose, unidade
 seringa, mg e mL no fluxo Salvar → Rotina → novo Frasco. Regressão local:
 `199/199 PASS`.
 
-Próximo gate: validação real controlada desse transporte de entidades no
-`pepday-v3-test` com Auth/JWT e cleanup guardado. O ajuste manual de saldo e a
-alteração da quantidade inicial do Frasco permanecem explicitamente fora desse
-transporte até existir operação remota própria; não devem ser sincronizados por
-uma edição genérica. Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
+O ajuste manual de saldo ganhou operação remota própria
+`adjust_vial_balance_versioned`: registra `vial_movements.kind='adjustment'`, usa
+saldo esperado para detectar conflito, replay idempotente e não altera
+`edit_version`. A validação PostgreSQL real no `pepday-v3-test` passou em
+2026-09-28: ajuste 10→7, replay, `STALE_BALANCE`, ajuste 7→8, dois movimentos,
+versionamento correto e cleanup zero. Regressão completa: `205/205 PASS`.
+
+Próximo gate: validação real controlada do transporte HTTP/Auth/JWT de Frascos e
+Rotinas, incluindo create/edit/delete e encadeamento Frasco → Rotina. A alteração
+da quantidade inicial do Frasco continua explicitamente fora da edição genérica
+até existir regra própria. Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 

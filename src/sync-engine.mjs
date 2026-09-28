@@ -1,4 +1,4 @@
-const SUPPORTED=Object.freeze(['application','undo','create','edit','delete']);
+const SUPPORTED=Object.freeze(['application','undo','adjustment','create','edit','delete']);
 const waitCode=error=>String(error?.code||'SYNC_ERROR').slice(0,80);
 function category(error){
   const status=Number(error?.status||0),code=waitCode(error),message=String(error?.message||'').toLowerCase();
