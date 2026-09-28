@@ -172,6 +172,30 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
       const scope=assertAccountScope(accountScope),id='sync-leader';
       await database.write('meta',async store=>{const row=await store.get(scope,id);if(row?.data?.ownerId===ownerId)await store.delete(scope,id)});
     },
+    async resolveEntityConflict(operationId,{choice,newOperationId=null,newRoutineVersionId=null}={}){
+      const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Conflito exige conta autenticada.');
+      if(!['remote','local'].includes(choice)){const error=new Error('Escolha de conflito inválida.');error.code='INVALID_CONFLICT_CHOICE';throw error}
+      return database.transaction(['outbox','meta'],'readwrite',async stores=>{
+        const row=await stores.outbox.get(scope,assertId(operationId));
+        if(!row||row.status!=='conflict'){const error=new Error('Conflito não encontrado.');error.code='CONFLICT_NOT_FOUND';throw error}
+        if(!['vial','routine'].includes(row.entityType)){const error=new Error('Este conflito não admite resolução manual.');error.code='UNSUPPORTED_CONFLICT';throw error}
+        const remote=row.conflictData?.remote,remoteVersion=Number(row.conflictData?.remote_version??(row.entityType==='vial'?remote?.edit_version:remote?.version));
+        if(!remote||!Number.isFinite(remoteVersion)||remoteVersion<1){const error=new Error('Snapshot remoto do conflito indisponível.');error.code='CONFLICT_REMOTE_REQUIRED';throw error}
+        row.status='synced';row.resolution=choice;row.resolvedAt=outboxNow();row.lastErrorCode=null;row.nextAttemptAt=null;
+        const archived=clone(row.conflictData);row.conflictData=null;row.updatedAt=outboxNow();await stores.outbox.put(row);
+        if(choice==='remote')return {resolved:clone(row),replacement:null,remote:archived.remote};
+        const payload={...(row.payload||{}),base:clone(remote),expectedVersion:remoteVersion};
+        if(row.entityType==='routine'){
+          if(!newRoutineVersionId){const error=new Error('Nova versão da rotina obrigatória.');error.code='ROUTINE_VERSION_REQUIRED';throw error}
+          payload.routineVersionId=newRoutineVersionId;
+        }
+        const queued=await enqueueOutboxInTransaction({stores,accountScope:scope,now:outboxNow(),input:{
+          operationId:newOperationId,type:row.type,entityType:row.entityType,entityId:row.entityId,payload,
+          baseVersion:row.baseVersion??null,dependencies:[...(row.dependencies||[])],blockedReason:null
+        }});
+        return {resolved:clone(row),replacement:queued,remote:archived.remote};
+      });
+    },
     async persistRemoteConfirmation({accountScope,operationId,workerId,response}){
       const ensureScope=()=>{if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}};
       ensureScope();

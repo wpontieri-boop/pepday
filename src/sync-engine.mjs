@@ -20,7 +20,8 @@ export function createSyncEngine({repository,api,coordinator,online=()=>globalTh
     const kind=category(error);
     if(kind==='auth'||kind==='entitlement')paused=true;
     await repository.outbox.settle(op.operationId,{workerId,outcome:kind==='conflict'?'conflict':kind==='permanent'?'permanent':'temporary',
-      errorCode:waitCode(error),retryAfterMs:error?.retryAfterMs??(kind==='temporary'?backoff(op.attemptCount):0)});
+      errorCode:waitCode(error),retryAfterMs:error?.retryAfterMs??(kind==='temporary'?backoff(op.attemptCount):0),
+      conflictData:kind==='conflict'?(error?.details??null):null});
   }
   async function transmit(op,token,scope){
     let response;

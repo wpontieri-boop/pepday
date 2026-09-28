@@ -147,7 +147,7 @@ export function createSyncOutbox({database,getAccountScope,clock=()=>Date.now(),
         await store.put(row);return clone(row);
       });
     },
-    async settle(operationId,{workerId,outcome,errorCode=null,retryAfterMs=null,transportConfirmed=false,replay=false}={}){
+    async settle(operationId,{workerId,outcome,errorCode=null,retryAfterMs=null,transportConfirmed=false,replay=false,conflictData=null}={}){
       if(!['success','temporary','conflict','permanent'].includes(outcome))fail('INVALID_OUTCOME','Resultado de transporte inválido.');
       const accountScope=scope(),now=clock(),nowText=iso(now);
       return database.write('outbox',async store=>{
@@ -155,10 +155,10 @@ export function createSyncOutbox({database,getAccountScope,clock=()=>Date.now(),
         if(!row||row.status!=='syncing'||row.leaseOwner!==workerId)fail('LEASE_LOST','Lease ausente ou pertencente a outro worker.');
         if(millis(row.leaseExpiresAt)<=now)fail('LEASE_EXPIRED','Lease expirado; a operação deve ser recuperada antes de concluir.');
         if(outcome==='success'&&!transportConfirmed)fail('TRANSPORT_CONFIRMATION_REQUIRED','Confirmação explícita do transporte obrigatória.');
-        if(outcome==='success'){row.status='synced';row.transportReplay=Boolean(replay);row.nextAttemptAt=null;row.lastErrorCode=null}
-        if(outcome==='temporary'){row.status='pending';row.nextAttemptAt=iso(now+(retryAfterMs??baseBackoffMs*Math.min(2**Math.max(0,row.attemptCount-1),64)));row.lastErrorCode=errorCode||'TEMPORARY'}
-        if(outcome==='conflict'){row.status='conflict';row.nextAttemptAt=null;row.lastErrorCode=errorCode||'CONFLICT'}
-        if(outcome==='permanent'){row.status='failed';row.nextAttemptAt=null;row.lastErrorCode=errorCode||'PERMANENT'}
+        if(outcome==='success'){row.status='synced';row.transportReplay=Boolean(replay);row.nextAttemptAt=null;row.lastErrorCode=null;row.conflictData=null}
+        if(outcome==='temporary'){row.status='pending';row.nextAttemptAt=iso(now+(retryAfterMs??baseBackoffMs*Math.min(2**Math.max(0,row.attemptCount-1),64)));row.lastErrorCode=errorCode||'TEMPORARY';row.conflictData=null}
+        if(outcome==='conflict'){row.status='conflict';row.nextAttemptAt=null;row.lastErrorCode=errorCode||'CONFLICT';row.conflictData=clone(conflictData)}
+        if(outcome==='permanent'){row.status='failed';row.nextAttemptAt=null;row.lastErrorCode=errorCode||'PERMANENT';row.conflictData=null}
         row.leaseOwner=null;row.leaseExpiresAt=null;row.updatedAt=nowText;await store.put(row);return clone(row);
       });
     },

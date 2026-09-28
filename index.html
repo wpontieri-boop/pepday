@@ -216,6 +216,11 @@
           <div id="syncState" class="account-sync hidden" role="status" aria-live="polite">
             <strong id="syncLabel">SINCRONIZANDO</strong>
             <p class="muted" id="syncDescription">Conferindo alterações pendentes…</p>
+            <div id="syncConflictReview" class="account-details sync-conflicts hidden">
+              <strong>REVISAR CONFLITOS</strong>
+              <p class="muted">Nada será sobrescrito automaticamente. Escolha qual versão deve prevalecer.</p>
+              <div id="syncConflictList" class="stack"></div>
+            </div>
           </div>
           <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
           <form id="accountProfileForm" class="hidden">

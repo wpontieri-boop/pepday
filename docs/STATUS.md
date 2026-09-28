@@ -369,13 +369,24 @@ convertidos para o formato local e persistidos atomicamente antes da retomada da
 fila. Entidades com operação local pending/syncing/failed/conflict não são
 sobrescritas pelo snapshot remoto. Histórico local de Frasco e doseHistory/done
 da Rotina são preservados; histórico confirmado remoto é incorporado sem
-duplicação. O cache V3 inclui o novo módulo. Regressão completa: `216/216 PASS`.
+duplicação. O cache V3 inclui o novo módulo.
 
-Próximo gate: validar no navegador de homologação a hidratação em conta real e os
-novos estados do Perfil; depois implementar o tratamento visível dos conflitos que
-exigem decisão do usuário, sem alterar produção. A alteração da quantidade inicial
-do Frasco continua fora da edição genérica. Preservar FREE/TRIAL/PRO, histórico
-imutável, V2.9 e produção.
+O tratamento explícito de conflitos de Frascos/Rotinas também foi fechado no
+Perfil: conflitos preservam o snapshot remoto retornado pelo backend, ficam
+visíveis ao usuário e nunca usam “último vence”. “Usar versão da conta” encerra
+a intenção local conflitante e força nova hidratação confirmada; “Manter deste
+aparelho” cria um novo operationId sobre a versão remota atual (e novo
+routineVersionId para Rotinas), preservando a intenção local sem reutilizar o UUID
+que já registrou conflito. Conflitos de eventos históricos continuam sem resolução
+automática. Smoke Chrome local carregou a tela e o módulo de hidratação; suíte
+direcionada `13/13 PASS` e regressão completa `222/222 PASS`.
+
+Próximo gate: QA final de homologação com uma conta real no navegador, validando
+hidratação e as duas escolhas de conflito ponta a ponta. A automação administrativa
+desse smoke não foi incorporada porque a ferramenta bloqueou a orquestração de
+chave elevada; nenhuma credencial foi gravada no repositório. Produção, V2.9 e
+`main` permanecem intocados. A alteração da quantidade inicial do Frasco continua
+fora da edição genérica.
 
 ## Registro deste checkpoint
 

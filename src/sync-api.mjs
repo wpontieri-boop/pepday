@@ -5,8 +5,9 @@ export function parseRetryAfter(value,now=Date.now()){
   const date=Date.parse(raw);return Number.isFinite(date)?Math.max(0,date-now):null;
 }
 export class SyncApiError extends Error{
-  constructor(message,{status=0,code='SYNC_ERROR',retryAfterMs=null}={}){
+  constructor(message,{status=0,code='SYNC_ERROR',retryAfterMs=null,details=null}={}){
     super(message||'Falha de sincronização.');this.name='SyncApiError';this.status=status;this.code=code;this.retryAfterMs=retryAfterMs;
+    this.details=details==null?null:structuredClone(details);
   }
 }
 async function safeJson(response){try{return await response.json()}catch{return null}}
@@ -91,8 +92,8 @@ export function createSyncApi({client,config,fetchImpl=globalThis.fetch,clock=()
     },body:JSON.stringify(args)})}catch(error){throw new SyncApiError('Falha de rede.',{status:0,code:error?.code||'NETWORK_ERROR'})}
     const data=await safeJson(response);
     if(!response.ok)throw new SyncApiError(data?.message||`HTTP ${response.status}`,{status:response.status,code:data?.code||`HTTP_${response.status}`,
-      retryAfterMs:parseRetryAfter(response.headers.get('Retry-After'),clock())});
-    if(data?.outcome==='conflict')throw new SyncApiError('Conflito remoto.',{status:409,code:data.code||'CONFLICT'});
+      retryAfterMs:parseRetryAfter(response.headers.get('Retry-After'),clock()),details:data});
+    if(data?.outcome==='conflict')throw new SyncApiError('Conflito remoto.',{status:409,code:data.code||'CONFLICT',details:data});
     if(operation.entityType==='vial'){
       if(data?.outcome!=='success'||!data?.vial?.id)throw new SyncApiError('Resposta RPC de frasco incompleta.',{status:502,code:'INVALID_RPC_RESPONSE'});
       return {replay:Boolean(data.replay),vial:data.vial,movement:data.movement??null};

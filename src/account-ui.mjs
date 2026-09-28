@@ -60,6 +60,27 @@ async function renderSyncState(){
   const rows=await repository.outbox.list();if(repository!==currentRepository)return;
   const summary=summarizeSync(rows,{online:navigator.onLine!==false,paused:Boolean(syncEngine?.paused),running:Boolean(syncEngine?.running)});
   el('syncLabel').textContent=summary.label;el('syncDescription').textContent=summary.description;hide('syncState',false);
+  const conflicts=rows.filter(row=>row.status==='conflict'),list=el('syncConflictList');list.replaceChildren();
+  for(const row of conflicts){
+    const item=document.createElement('div');item.className='sync-conflict-item';
+    const title=document.createElement('strong');title.textContent=(row.entityType==='vial'?'Frasco':row.entityType==='routine'?'Rotina':'Alteração')+' com conflito';
+    const detail=document.createElement('p');detail.className='muted';
+    detail.textContent=row.conflictData?.remote
+      ?'A versão da conta mudou antes desta alteração ser sincronizada. Escolha qual versão deve prevalecer.'
+      :'Este conflito precisa de revisão e não pode ser resolvido automaticamente.';
+    const code=document.createElement('div');code.className='sync-conflict-code';code.textContent='Código: '+(row.lastErrorCode||'CONFLICT');
+    item.append(title,detail,code);
+    if(['vial','routine'].includes(row.entityType)&&row.conflictData?.remote){
+      const actions=document.createElement('div');actions.className='account-actions';
+      for(const [choice,label,klass] of [['remote','Usar versão da conta','ghost'],['local','Manter deste aparelho','secondary']]){
+        const button=document.createElement('button');button.type='button';button.className=klass;
+        button.dataset.conflictOperation=row.operationId;button.dataset.conflictChoice=choice;button.textContent=label;actions.append(button);
+      }
+      item.append(actions);
+    }
+    list.append(item);
+  }
+  hide('syncConflictReview',conflicts.length===0);
 }
 function startSync(repository){
   stopSync();currentRepository=repository||null;if(!repository){renderSyncState();return}
@@ -73,6 +94,23 @@ function startSync(repository){
 window.addEventListener('pepday:outbox-ready',()=>syncEngine?.trigger().finally(()=>renderSyncState().catch(()=>{})));
 window.addEventListener('online',()=>renderSyncState().catch(()=>{}));
 window.addEventListener('offline',()=>renderSyncState().catch(()=>{}));
+el('syncConflictList').addEventListener('click',event=>{
+  const button=event.target.closest?.('button[data-conflict-operation]');if(!button||busy)return;
+  run(async()=>{
+    const repository=currentRepository;if(!repository)throw new Error('Repositório da conta indisponível.');
+    const operationId=button.dataset.conflictOperation,choice=button.dataset.conflictChoice,row=await repository.outbox.get(operationId);
+    if(!row||row.status!=='conflict')throw new Error('Este conflito já foi resolvido.');
+    const options={choice};
+    if(choice==='local'){
+      options.newOperationId=crypto.randomUUID();
+      if(row.entityType==='routine')options.newRoutineVersionId=crypto.randomUUID();
+    }
+    await repository.resolveEntityConflict(operationId,options);
+    if(choice==='remote'){status('Versão da conta escolhida. Atualizando os dados confirmados…');await refresh();return}
+    status('Versão deste aparelho escolhida. A alteração foi recriada sobre a versão atual da conta.');
+    await syncEngine?.trigger();await renderSyncState();
+  });
+});
 async function run(action) {
   if (busy) return;
   busy=true; enableMethods();
