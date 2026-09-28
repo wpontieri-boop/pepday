@@ -363,11 +363,19 @@ de 1 dia antes do término. Mensagens antigas prometendo sincronização em bloc
 futuro foram removidas, e o servidor local/cache V3 passaram a incluir os módulos
 de sync usados pelo Perfil. Regressão completa: `214/214 PASS`.
 
-Próximo gate: validar no navegador de homologação os novos estados do Perfil e,
-sem alterar produção, fechar a integração dos dados locais/importados à fonte usada
-pelas telas e o tratamento visível dos conflitos que exigem decisão do usuário.
-A alteração da quantidade inicial do Frasco continua fora da edição genérica.
-Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
+A fonte confirmada da conta passou a hidratar o repositório local em 2026-09-28:
+Frascos, Rotinas, versões, Applications e movimentos são lidos via sessão/RLS,
+convertidos para o formato local e persistidos atomicamente antes da retomada da
+fila. Entidades com operação local pending/syncing/failed/conflict não são
+sobrescritas pelo snapshot remoto. Histórico local de Frasco e doseHistory/done
+da Rotina são preservados; histórico confirmado remoto é incorporado sem
+duplicação. O cache V3 inclui o novo módulo. Regressão completa: `216/216 PASS`.
+
+Próximo gate: validar no navegador de homologação a hidratação em conta real e os
+novos estados do Perfil; depois implementar o tratamento visível dos conflitos que
+exigem decisão do usuário, sem alterar produção. A alteração da quantidade inicial
+do Frasco continua fora da edição genérica. Preservar FREE/TRIAL/PRO, histórico
+imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 

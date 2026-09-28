@@ -237,6 +237,53 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
         ensureScope();return clone(queued);
       });
     },
+    async hydrateConfirmedSnapshot(snapshot={}){
+      const scope=getScope();if(!scope.startsWith('user:'))throw new Error('Hidratação da conta exige usuário autenticado.');
+      const groups=['vials','routines','routineVersions','applications','vialMovements'];
+      for(const name of groups)if(!Array.isArray(snapshot[name]||[]))throw new Error(`Snapshot remoto inválido: ${name}.`);
+      return database.transaction([...groups,'outbox'],'readwrite',async stores=>{
+        const rows=await stores.outbox.getAllByScope(scope);
+        const protectedEntities=new Set(rows.filter(row=>['pending','syncing','failed','conflict'].includes(row.status)
+          && ['vial','routine'].includes(row.entityType)).map(row=>`${row.entityType}:${row.entityId}`));
+        const result={vials:0,routines:0,routineVersions:0,applications:0,vialMovements:0,skipped:0,deleted:0};
+        for(const storeName of ['vials','routines']){
+          const entityType=entityTypeFor(storeName);
+          for(const item of snapshot[storeName]||[]){
+            const id=assertId(item?.id),key=`${entityType}:${id}`,prior=await stores[storeName].get(scope,id);
+            if(protectedEntities.has(key)){result.skipped++;continue}
+            if(item.deleted===true){
+              if(prior?.data?.remoteRef?.status==='synced'){await stores[storeName].delete(scope,id);result.deleted++}
+              continue;
+            }
+            if(!item?.data||item.data.id!==id)throw new Error(`Snapshot remoto inválido em ${storeName}.`);
+            let data=clone(item.data);
+            if(storeName==='vials'&&prior?.data){
+              const oldHistory=Array.isArray(prior.data.history)?prior.data.history:[],newHistory=Array.isArray(data.history)?data.history:[];
+              const keyed=new Map();
+              for(const entry of [...oldHistory,...newHistory]){
+                const key=entry?.id||JSON.stringify([entry?.type,entry?.date,entry?.amountMg,entry?.operationId,entry?.applicationId]);
+                if(!keyed.has(key))keyed.set(key,clone(entry));
+              }
+              data.history=[...keyed.values()];
+            }
+            if(storeName==='routines'&&prior?.data){
+              const oldDone=Array.isArray(prior.data.done)?prior.data.done:[],newDone=Array.isArray(data.done)?data.done:[];
+              data.done=[...new Set([...oldDone,...newDone])].sort();
+              if(Array.isArray(prior.data.doseHistory)&&prior.data.doseHistory.length)data.doseHistory=clone(prior.data.doseHistory);
+            }
+            await stores[storeName].put({...recordFor(scope,id,data,prior),syncState:'synced'});result[storeName]++;
+          }
+        }
+        for(const storeName of ['routineVersions','applications','vialMovements']){
+          for(const item of snapshot[storeName]||[]){
+            const id=assertId(item?.id);if(!item?.data||item.data.id!==id)throw new Error(`Snapshot remoto inválido em ${storeName}.`);
+            const prior=await stores[storeName].get(scope,id);
+            await stores[storeName].put({...recordFor(scope,id,item.data,prior),syncState:'synced'});result[storeName]++;
+          }
+        }
+        return result;
+      });
+    },
     async importLegacy({receiptId,sourceHash,routines,vials,validateSource=()=>true}){
       const scope=getScope();
       assertId(receiptId);

@@ -7,6 +7,7 @@ import { createSyncApi } from './sync-api.mjs';
 import { createSyncEngine } from './sync-engine.mjs';
 import { createTabCoordinator } from './tab-coordinator.mjs';
 import { summarizeSync } from './sync-status.mjs';
+import { readConfirmedSnapshot } from './remote-snapshot.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
@@ -93,7 +94,6 @@ async function refresh() {
   }
   const repository=await repositoryScope?.signedIn(session.session.user.id);
   if(current!==generation)return;
-  startSync(repository);
   hide('accountSignedIn',false); // Sair continua acessível mesmo se o banco estiver indisponível.
   status('Conferindo sua conta…');
   try {
@@ -101,10 +101,26 @@ async function refresh() {
     if (current !== generation) return;
     if (next.status !== 'signed_in') { hide('accountSignedIn'); hide('accountSignedOut',false); return; }
     state=next;
+    let hydrationDelayed=false;
+    if(repository?.accountScope===`user:${next.user.id}`){
+      try{
+        const snapshot=await readConfirmedSnapshot(cloud.client,next.user.id);
+        if(current!==generation)return;
+        await repository.hydrateConfirmedSnapshot(snapshot);
+        if(current!==generation)return;
+        window.dispatchEvent(new CustomEvent('pepday:sync-confirmed',{detail:{accountScope:repository.accountScope,source:'remote-hydration'}}));
+      }catch(error){
+        hydrationDelayed=true;
+        console.warn('PepDay snapshot remoto adiado:',error?.code||error?.name||'erro');
+      }
+    }
+    startSync(repository);
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete = next.profile.is_adult_confirmed && next.profile.terms_accepted_at && next.profile.privacy_accepted_at;
     publishAccess({...next.entitlement,signedIn:true},Boolean(complete));
-    status('Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');
+    status(hydrationDelayed
+      ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
+      :'Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');
     hide('accountProfileForm',Boolean(complete));
     if (!complete) {
       el('accountName').value=next.profile.name || '';
