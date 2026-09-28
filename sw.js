@@ -1,8 +1,8 @@
 // Cache exclusivo da homologação V3.0. Não remove o cache da V2.9.
 const SCOPE_PATH=new URL(self.registration.scope).pathname;
-const CACHE='pepday-v3-profile-sync-6-'+SCOPE_PATH;
-const ASSETS=['./','./index.html','./style.css','./account.css','./app.js',
-  './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
+const CACHE='pepday-v3-profile-sync-7-'+SCOPE_PATH;
+const ASSETS=['./','./index.html','./cartao/','./style.css','./account.css','./app.js',
+  './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/acquisition.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
   './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs',
   './src/local-db.mjs','./src/pepday-repository.mjs','./src/local-data-migration.mjs','./src/sync-outbox.mjs',
   './src/sync-api.mjs','./src/sync-engine.mjs','./src/tab-coordinator.mjs','./src/sync-status.mjs','./src/remote-snapshot.mjs',
@@ -25,7 +25,7 @@ self.addEventListener('fetch',event=>{
   // Auth, API e conteúdo privado nunca entram no cache da aplicação.
   if(url.origin!==scope.origin || url.search || request.headers.has('Authorization'))return;
   if(request.mode==='navigate' && PUBLIC_ASSETS.has(url.href)){
-    event.respondWith(fetch(request).catch(()=>caches.open(CACHE).then(cache=>cache.match('./index.html'))));
+    event.respondWith(fetch(request).catch(()=>caches.open(CACHE).then(cache=>cache.match(request).then(hit=>hit||cache.match('./index.html')))));
   }else if(PUBLIC_ASSETS.has(url.href)){
     event.respondWith(caches.open(CACHE).then(cache=>cache.match(request)).then(hit=>hit||fetch(request)));
   }

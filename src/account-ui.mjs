@@ -8,6 +8,7 @@ import { createSyncEngine } from './sync-engine.mjs';
 import { createTabCoordinator } from './tab-coordinator.mjs';
 import { summarizeSync } from './sync-status.mjs';
 import { readConfirmedSnapshot } from './remote-snapshot.mjs';
+import { captureCardAcquisition, claimPendingCardAcquisition } from './acquisition.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
@@ -18,6 +19,7 @@ Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false
 const repositoryScope=globalThis.PepDayRepositoryScope;
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
+if(new URL(location.href).searchParams.get('from')==='cartao')captureCardAcquisition();
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
 function status(text) { el('accountStatus').textContent = text; }
 function publishAccess(raw, profileComplete=false) {
@@ -161,6 +163,7 @@ async function refresh() {
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete = next.profile.is_adult_confirmed && next.profile.terms_accepted_at && next.profile.privacy_accepted_at;
     publishAccess({...next.entitlement,signedIn:true},Boolean(complete));
+    if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
       :'Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');

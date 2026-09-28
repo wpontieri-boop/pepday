@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07131f">
+  <meta name="description" content="PepDay PRO — acesso pelo cartão PepDay.">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <title>PepDay PRO</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07131f;--card:#0a1c2b;--cyan:#46d8ff;--text:#eefaff;--muted:#a8c0cc}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#12334a 0,#07131f 48%);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);display:grid;place-items:center;padding:24px}
+    main{width:min(560px,100%);background:linear-gradient(180deg,#0b2030,#081722);border:1px solid #24546b;border-radius:28px;padding:28px;box-shadow:0 30px 90px #0008;text-align:center}
+    .brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:22px}.brand img{width:52px;height:52px}.brand b{font-size:28px;letter-spacing:.04em}.brand span{color:var(--cyan)}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#46d8ff17;color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:.08em}
+    h1{font-size:34px;line-height:1.05;margin:14px 0 12px}p{color:var(--muted);line-height:1.55}
+    .benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:22px 0}.benefits div{padding:12px;border:1px solid #1d4356;border-radius:14px;background:#081722}
+    a{display:block;width:100%;padding:15px 18px;border-radius:14px;background:linear-gradient(90deg,#34c9f5,#56e6ff);color:#04131b;text-decoration:none;font-weight:900;margin-top:8px}
+    small{display:block;color:#7fa0af;line-height:1.5;margin-top:14px}@media(max-width:520px){main{padding:22px}.benefits{grid-template-columns:1fr}h1{font-size:29px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand"><img src="../icon.svg" alt=""><b>PEP<span>DAY</span></b></div>
+  <div class="tag">ACESSO PELO CARTÃO</div>
+  <h1>Seu PepDay começa aqui.</h1>
+  <p>Calcule, organize rotinas, acompanhe frascos e mantenha seu histórico sincronizado em um só lugar.</p>
+  <div class="benefits">
+    <div>✓ Calculadora mg, mcg, mL e UI</div>
+    <div>✓ Rotinas e frascos</div>
+    <div>✓ Histórico e previsão de término</div>
+    <div>✓ Alertas de reposição</div>
+  </div>
+  <a id="openPepDay" href="../?from=cartao">Abrir PepDay</a>
+  <small>A origem deste acesso é registrada apenas para medir a campanha do cartão. Ela não libera PRO nem desconto sozinha.</small>
+</main>
+<script type="module">
+  import {captureCardAcquisition} from '../src/acquisition.mjs';
+  captureCardAcquisition();
+</script>
+</body>
+</html>

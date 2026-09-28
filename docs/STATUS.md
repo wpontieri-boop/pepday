@@ -462,6 +462,18 @@ não chama `apply_billing_event` e não ativa PRO. O retorno de cobrança contin
 dependente do webhook confirmado. Testes direcionados do checkout: `12/12 PASS`;
 regressão completa: `251/251 PASS`.
 
+A fundação de aquisição pelo cartão/QR também foi implementada. A landing está em
+`/cartao/`, registra localmente a origem fixa `card / qr / cartao-v1` e leva o
+usuário ao app sem prometer benefício automático. Após login e cadastro completo,
+`claim_card_acquisition()` grava a atribuição first-touch server-side; uma segunda
+tentativa não sobrescreve a primeira. A atribuição é analítica e NÃO concede desconto
+ou PRO por si só. Migration aplicada apenas no `pepday-v3-test`:
+`20260928205127_block_c_acquisition_attribution.sql`.
+Validação real: `PASS FINAL BLOCO C AQUISICAO — first-touch cartão/QR +
+idempotência + rollback zero`. Smoke local: `/cartao/ = 200`; testes direcionados
+`6/6 PASS`; regressão completa `257/257 PASS`. O QR físico definitivo continua
+pendente do domínio final para não fixar o cartão em URL de homologação.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
