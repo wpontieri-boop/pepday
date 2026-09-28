@@ -42,10 +42,10 @@ function enableMethods() {
   el('accountSaveProfile').disabled = busy || !legalReady();
   el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
 }
-function clearPrivateUi() {
+function clearPrivateUi({preserveAccess=false}={}) {
   state = null; importErrors=[]; importMode='import'; currentRepository=null;
   el('accountIdentity').textContent = '';
-  publishAccess(null);
+  if(!preserveAccess)publishAccess(null);
   el('accountProfileForm').reset();
   el('accountCode').value = '';
   el('accountImportConsent').checked = false;
@@ -119,13 +119,14 @@ async function run(action) {
 }
 async function refresh() {
   const current = ++generation;
-  stopSync();clearPrivateUi();
+  stopSync();clearPrivateUi({preserveAccess:true});
   repositoryScope?.suspend();
   if (!cloud) { await repositoryScope?.signedOut(); return; }
   const session = await cloud.account.session();
   if (current !== generation) return;
   hide('accountSignedOut',Boolean(session?.session));
   if (!session?.session) {
+    publishAccess(null);
     await repositoryScope?.signedOut();
     if(current!==generation)return;
     status('Entre para acessar sua conta. A calculadora funciona sem login.'); return;
@@ -137,7 +138,7 @@ async function refresh() {
   try {
     const next = await loadAccountState(cloud.client,cloud.account);
     if (current !== generation) return;
-    if (next.status !== 'signed_in') { hide('accountSignedIn'); hide('accountSignedOut',false); return; }
+    if (next.status !== 'signed_in') { publishAccess(null); hide('accountSignedIn'); hide('accountSignedOut',false); return; }
     state=next;
     let hydrationDelayed=false;
     if(repository?.accountScope===`user:${next.user.id}`){
@@ -280,8 +281,8 @@ try {
     el('accountTerms').disabled=false; el('accountPrivacy').disabled=false; hide('legalStatus');
   }
   // Nunca aguardar chamadas Supabase dentro do callback de Auth (evita deadlock).
-  cloud.account.onChange(()=>{
-    ++generation; clearPrivateUi();
+  cloud.account.onChange((_event,session)=>{
+    ++generation; clearPrivateUi({preserveAccess:Boolean(session)});
     setTimeout(()=>refresh().catch(error=>status(accountError(error))),0);
   });
   refresh().catch(error=>status(accountError(error)));

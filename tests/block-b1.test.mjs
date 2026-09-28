@@ -20,6 +20,13 @@ test('gate PRO lê PepDayAccess dinamicamente e não congela estado antes do mó
   assert.doesNotMatch(gateSource,/const accessControl=globalThis\.PepDayAccess/);
 });
 
+test('reconexão preserva último entitlement confirmado até confirmar logout',()=>{
+  assert.match(accountUiSource,/clearPrivateUi\(\{preserveAccess=false\}=\{\}\)/);
+  assert.match(accountUiSource,/clearPrivateUi\(\{preserveAccess:true\}\)/);
+  assert.match(accountUiSource,/if \(!session\?\.session\) \{\s*publishAccess\(null\)/);
+  assert.match(accountUiSource,/onChange\(\(_event,session\)=>\{\s*\+\+generation; clearPrivateUi\(\{preserveAccess:Boolean\(session\)\}\)/);
+});
+
 test('FREE sem login mantém calculadora livre e bloqueia somente ação PRO',()=>{
   const access=normalizeEntitlement(null);
   assert.equal(access.status,'free');assert.equal(access.pro,false);assert.equal(access.signedIn,false);

@@ -389,6 +389,14 @@ uma referência ausente no carregamento. O cache V3 foi incrementado para evitar
 entrega do módulo antigo. Regressão do gate: `19/19 PASS`; suíte completa:
 `223/223 PASS`.
 
+No mesmo QA, a transição offline→online expôs um segundo caso: `refresh()` e o
+callback de Auth limpavam o entitlement confirmado antes de reconfirmar a sessão,
+fazendo Frascos/Rotinas parecerem FREE/deslogados enquanto o Perfil ainda mostrava
+a conta ativa. A limpeza passou a preservar temporariamente o último entitlement
+confirmado enquanto existe sessão e a zerá-lo somente quando a ausência de sessão
+é confirmada. O cache V3 foi incrementado novamente. Regressão do bloco:
+`20/20 PASS`; suíte completa: `224/224 PASS`.
+
 Próximo gate: QA final de homologação com uma conta real no navegador, validando
 hidratação e as duas escolhas de conflito ponta a ponta. A automação administrativa
 desse smoke não foi incorporada porque a ferramenta bloqueou a orquestração de
