@@ -408,6 +408,33 @@ de rolagem. O cache V3 foi incrementado para entregar o `app.js` atualizado.
 Teste direcionado de Rotinas/Frascos: `8/8 PASS`; suíte completa: `224/224 PASS`.
 A alteração da quantidade inicial do Frasco continua fora da edição genérica.
 
+## Bloco C — Billing Foundation / Mercado Pago
+
+A fundação server-side de billing foi iniciada em 2026-09-28, ainda sem credenciais
+Mercado Pago e sem integração de checkout no navegador. O modelo mantém o princípio
+aprovado de que retorno/redirecionamento do frontend nunca concede PRO.
+
+Migrations aplicadas somente no `pepday-v3-test`:
+- `20260928202253_block_c_billing_foundation.sql`;
+- `20260928202509_block_c_billing_indexes.sql`.
+
+A tabela `billing_events` funciona como ledger mínimo e idempotente, sem armazenar
+payload bruto, e não possui acesso para `anon` ou `authenticated`. A RPC
+`apply_billing_event` é `SECURITY DEFINER`, mas EXECUTE foi concedido somente a
+`service_role`; o advisor de segurança não a listou como executável por usuário
+logado. O motor normalizado cobre aprovação, pendência, rejeição, falha de renovação,
+cancelamento, reativação, pausa e expiração. Falha de renovação mantém PRO por 3 dias;
+cancelamento mantém o período já pago; replay é idempotente e evento cronologicamente
+antigo é marcado como stale.
+
+Validação real após aplicação no projeto de testes:
+`PASS FINAL BLOCO C BILLING FOUNDATION — aprovação + idempotência + stale +
+cancelamento + reativação + tolerância 3 dias + privilégios`.
+Teste local do contrato: `5/5 PASS`; regressão completa: `229/229 PASS`.
+O advisor de performance apontou inicialmente a FK nova sem índice; a migration
+incremental adicionou `billing_events_subscription_received_idx` e removeu esse
+achado. Os avisos de performance restantes são anteriores a este delta.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
