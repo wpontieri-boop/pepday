@@ -9,6 +9,9 @@
 #accountPanel :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #accountPanel .account-email{overflow-wrap:anywhere}
 #accountPanel .account-details{padding:12px;background:var(--bg);border-radius:12px}
+#accountPanel .account-sync{padding:12px;margin:12px 0;background:var(--bg);border:1px solid #1e4356;border-radius:12px}
+#accountPanel .account-sync strong{display:block;font-size:13px;letter-spacing:.05em}
+#accountPanel .account-sync p{margin:6px 0 0}
 #planCard #planDescription{color:var(--muted);line-height:1.5}
 #planCard .account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 #planCard .account-actions button{flex:1;min-width:180px;margin-top:0}

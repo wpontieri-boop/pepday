@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { createAccountService } from '../src/account.mjs';
-import { normalizeEntitlement, proGateDecision, entitlementPresentation } from '../src/entitlement.mjs';
+import { normalizeEntitlement, proGateDecision, entitlementPresentation, trialExpiryNotice } from '../src/entitlement.mjs';
 import { createAccessController } from '../src/access-control.mjs';
 
 const migration=readFileSync(new URL('../supabase/migrations/202609110003_block_b1_entitlements.sql',import.meta.url),'utf8');
@@ -58,6 +58,15 @@ test('segundo clique e novo login não renovam o prazo persistido da conta',()=>
   }
 });
 
+test('avisos do trial usam somente server_now e aparecem a três dias e um dia',()=>{
+  const base={status:'trial',pro:true,source:'trial',trial_used:true,trial_available:false,
+    ends_at:'2026-09-18T12:00:00Z'};
+  assert.equal(trialExpiryNotice(normalizeEntitlement({...base,server_now:'2026-09-14T12:00:00Z'},{signedIn:true})),null);
+  assert.equal(trialExpiryNotice(normalizeEntitlement({...base,server_now:'2026-09-15T12:00:01Z'},{signedIn:true}))?.level,'three-days');
+  assert.equal(trialExpiryNotice(normalizeEntitlement({...base,server_now:'2026-09-17T12:00:01Z'},{signedIn:true}))?.level,'one-day');
+  assert.match(entitlementPresentation(normalizeEntitlement({...base,server_now:'2026-09-17T12:00:01Z'},{signedIn:true})).description,/menos de 1 dia/i);
+});
+
 test('trial expirado bloqueia gate e informa preservação',()=>{
   const access=normalizeEntitlement({status:'pro_expired',pro:false,source:'trial',trial_used:true,
     trial_available:false,started_at:'2026-09-01T00:00:00Z',ends_at:'2026-09-08T00:00:00Z'},{signedIn:true});
@@ -105,7 +114,7 @@ test('módulos B1 estão disponíveis no servidor local e no cache versionado da
     assert.match(serviceWorker,new RegExp(asset.replace(/[./]/g,'\\$&')));
     assert.match(devServer,new RegExp(asset.replace(/[./]/g,'\\$&')));
   }
-  assert.match(serviceWorker,/pepday-v3-b22c-sync/);
+  assert.match(serviceWorker,/pepday-v3-profile-sync/);
 });
 
 class TestCustomEvent extends Event {constructor(type,options={}){super(type);this.detail=options.detail}}

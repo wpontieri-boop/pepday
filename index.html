@@ -213,6 +213,10 @@
         </div>
         <div id="accountSignedIn" class="hidden">
           <p class="account-email" id="accountIdentity"></p>
+          <div id="syncState" class="account-sync hidden" role="status" aria-live="polite">
+            <strong id="syncLabel">SINCRONIZANDO</strong>
+            <p class="muted" id="syncDescription">Conferindo alterações pendentes…</p>
+          </div>
           <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
           <form id="accountProfileForm" class="hidden">
             <h3>Complete seu cadastro</h3>

@@ -354,14 +354,20 @@ Migrations do checkpoint: `20260928173930` e `20260928175036`, ambas alinhadas
 no histórico remoto do projeto de teste. Verificação final: zero contas fixture,
 zero perfis/operações órfãs e regressão completa `208/208 PASS`.
 
-Próximo gate: integrar no Perfil o estado real de conta, entitlement e sincronização
-local-first. O engine/outbox já suporta fila offline, retry, reconexão e conflitos;
-agora a interface deve refletir esse estado, remover mensagens antigas de
-“sincronização no próximo bloco”, manter `get_entitlement()` como autoridade do
-servidor e usar qualquer cache offline apenas como informação. Incluir também os
-avisos aprovados de 3 dias e 1 dia antes do fim do trial. A alteração da quantidade
-inicial do Frasco continua fora da edição genérica. Preservar FREE/TRIAL/PRO,
-histórico imutável, V2.9 e produção.
+O gate de Perfil/entitlement/sincronização local-first foi implementado em
+2026-09-28. O Perfil agora resume a outbox real como sincronizado, sincronizando,
+offline, pausado ou atenção, preservando os dados locais e sem transformar estado
+local em autorização. `get_entitlement()` e `server_now` continuam sendo a
+autoridade do servidor; o trial ganhou avisos informativos de até 3 dias e menos
+de 1 dia antes do término. Mensagens antigas prometendo sincronização em bloco
+futuro foram removidas, e o servidor local/cache V3 passaram a incluir os módulos
+de sync usados pelo Perfil. Regressão completa: `214/214 PASS`.
+
+Próximo gate: validar no navegador de homologação os novos estados do Perfil e,
+sem alterar produção, fechar a integração dos dados locais/importados à fonte usada
+pelas telas e o tratamento visível dos conflitos que exigem decisão do usuário.
+A alteração da quantidade inicial do Frasco continua fora da edição genérica.
+Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 

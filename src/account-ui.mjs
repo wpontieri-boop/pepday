@@ -6,11 +6,12 @@ import { createAccessController } from './access-control.mjs';
 import { createSyncApi } from './sync-api.mjs';
 import { createSyncEngine } from './sync-engine.mjs';
 import { createTabCoordinator } from './tab-coordinator.mjs';
+import { summarizeSync } from './sync-status.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false, syncEngine=null;
+let access=normalizeEntitlement(null), declinedTrial=false, syncEngine=null, currentRepository=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -41,7 +42,7 @@ function enableMethods() {
   el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
 }
 function clearPrivateUi() {
-  state = null; importErrors=[]; importMode='import';
+  state = null; importErrors=[]; importMode='import'; currentRepository=null;
   el('accountIdentity').textContent = '';
   publishAccess(null);
   el('accountProfileForm').reset();
@@ -50,16 +51,27 @@ function clearPrivateUi() {
   el('accountImportSummary').textContent = '';
   el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
-  ['accountSignedIn','accountProfileForm','accountImport','accountImportReview'].forEach(id => hide(id));
+  ['accountSignedIn','accountProfileForm','accountImport','accountImportReview','syncState'].forEach(id => hide(id));
 }
 function stopSync(){syncEngine?.stop();syncEngine=null}
-function startSync(repository){
-  stopSync();if(!repository)return;
-  const api=createSyncApi({client:cloud.client,config}),coordinator=createTabCoordinator({repository});
-  syncEngine=createSyncEngine({repository,api,coordinator,onConfirmed:detail=>window.dispatchEvent(new CustomEvent('pepday:sync-confirmed',{detail}))});
-  syncEngine.start().catch(error=>console.warn('PepDay sync adiada:',error?.code||error?.name||'erro'));
+async function renderSyncState(){
+  const repository=currentRepository;if(!repository){hide('syncState');return}
+  const rows=await repository.outbox.list();if(repository!==currentRepository)return;
+  const summary=summarizeSync(rows,{online:navigator.onLine!==false,paused:Boolean(syncEngine?.paused),running:Boolean(syncEngine?.running)});
+  el('syncLabel').textContent=summary.label;el('syncDescription').textContent=summary.description;hide('syncState',false);
 }
-window.addEventListener('pepday:outbox-ready',()=>syncEngine?.trigger());
+function startSync(repository){
+  stopSync();currentRepository=repository||null;if(!repository){renderSyncState();return}
+  const api=createSyncApi({client:cloud.client,config}),coordinator=createTabCoordinator({repository});
+  syncEngine=createSyncEngine({repository,api,coordinator,onConfirmed:detail=>{
+    window.dispatchEvent(new CustomEvent('pepday:sync-confirmed',{detail}));renderSyncState().catch(()=>{});
+  }});
+  renderSyncState().catch(()=>{});
+  syncEngine.start().then(()=>renderSyncState()).catch(error=>{console.warn('PepDay sync adiada:',error?.code||error?.name||'erro');renderSyncState().catch(()=>{})});
+}
+window.addEventListener('pepday:outbox-ready',()=>syncEngine?.trigger().finally(()=>renderSyncState().catch(()=>{})));
+window.addEventListener('online',()=>renderSyncState().catch(()=>{}));
+window.addEventListener('offline',()=>renderSyncState().catch(()=>{}));
 async function run(action) {
   if (busy) return;
   busy=true; enableMethods();
@@ -92,7 +104,7 @@ async function refresh() {
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete = next.profile.is_adult_confirmed && next.profile.terms_accepted_at && next.profile.privacy_accepted_at;
     publishAccess({...next.entitlement,signedIn:true},Boolean(complete));
-    status('Conta conectada. Os dados locais ainda não estão sincronizados.');
+    status('Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');
     hide('accountProfileForm',Boolean(complete));
     if (!complete) {
       el('accountName').value=next.profile.name || '';
@@ -192,7 +204,7 @@ el('accountReviewImport').addEventListener('click',()=>hide('accountImportReview
 el('accountImportConsent').addEventListener('change',enableMethods);
 el('accountKeepCloud').addEventListener('click',()=>{
   if(!state) return; later.add(state.user.id); hide('accountImport');
-  status('Dados da conta mantidos. A cópia local não foi enviada nem substituída. A sincronização das telas será disponibilizada no próximo bloco.');
+  status('Dados da conta mantidos. A cópia local não foi enviada nem substituída. A sincronização continua respeitando suas escolhas e o estado local.');
 });
 el('accountImportLater').addEventListener('click',()=>{if(state)later.add(state.user.id);hide('accountImport');});
 el('accountStageImport').addEventListener('click',()=>{
@@ -201,7 +213,7 @@ el('accountStageImport').addEventListener('click',()=>{
   run(async()=>{
     const result=await completeLegacyImport(cloud.client,localStorage,{consent:true,expectedUserId:userId,mode:importMode});
     if (current!==generation) return;
-    status(result.status==='empty'?'Não há dados locais para guardar.':'Importação concluída e conferida. Cópia local e histórico legado preservados. A sincronização contínua será disponibilizada no próximo bloco.');
+    status(result.status==='empty'?'Não há dados locais para guardar.':'Importação concluída e conferida. Cópia local e histórico legado preservados. Alterações futuras seguem a sincronização local-first.');
     hide('accountImport'); later.add(userId);
   });
 });

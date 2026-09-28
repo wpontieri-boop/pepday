@@ -36,15 +36,26 @@ export function proGateDecision(access) {
   });
 }
 
+export function trialExpiryNotice(access) {
+  const normalized = normalizeEntitlement(access, { signedIn: access?.signedIn === true });
+  if (normalized.status !== 'trial' || !normalized.pro || !normalized.endsAt || !normalized.serverNow) return null;
+  const remainingMs = new Date(normalized.endsAt).getTime() - new Date(normalized.serverNow).getTime();
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) return null;
+  if (remainingMs <= 86400000) return Object.freeze({ level:'one-day', message:'Seu teste PRO termina em menos de 1 dia.' });
+  if (remainingMs <= 259200000) return Object.freeze({ level:'three-days', message:'Seu teste PRO termina em até 3 dias.' });
+  return null;
+}
+
 export function entitlementPresentation(access, locale = 'pt-BR') {
   const normalized = normalizeEntitlement(access, { signedIn: access?.signedIn === true });
+  const notice = trialExpiryNotice(normalized);
   const end = normalized.endsAt
     ? new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(normalized.endsAt))
     : null;
-  if (normalized.status === 'trial' && normalized.pro) return {
-    label: 'PEPDAY PRO — TESTE GRÁTIS',
-    description: end ? `Teste PRO ativo até ${end}. Nenhum cartão foi solicitado.` : 'Teste PRO ativo por 7 dias. Nenhum cartão foi solicitado.'
-  };
+  if (normalized.status === 'trial' && normalized.pro) {
+    const base = end ? `Teste PRO ativo até ${end}. Nenhum cartão foi solicitado.` : 'Teste PRO ativo por 7 dias. Nenhum cartão foi solicitado.';
+    return { label:'PEPDAY PRO — TESTE GRÁTIS', description:notice ? `${base} ${notice.message}` : base };
+  }
   if (normalized.status === 'pro_active' && normalized.pro) return {
     label: 'PEPDAY PRO ATIVO',
     description: end ? `Acesso PRO ativo até ${end}.` : 'Acesso PRO ativo.'
