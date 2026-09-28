@@ -52,3 +52,27 @@ test('tooltip de Rotinas reutiliza interação visual responsiva',async()=>{
   assert.match(css,/:is\(#routineForm,#vialForm\) \.field-help\[data-open="true"\] \.field-tooltip/);
   assert.match(css,/@media\(max-width:520px\).*#routineForm,#vialForm/s);
 });
+
+test('Calculadora pré-preenche Rotina e novo Frasco sem perder os valores informados',async()=>{
+  const js=await read('app.js');
+  assert.match(js,/lastCalc=\{name:[^}]*doseUnit:\$\('#doseUnit'\)\.value[^}]*syringeCapacity/);
+  assert.match(js,/rDose'\)\.value=r\?\.doseValue\?\?calc\?\.dose\?\?''/);
+  assert.match(js,/rDoseUnit'\)\.value=r\?\.doseUnit\|\|calc\?\.doseUnit\|\|'mg'/);
+  assert.match(js,/rSyringe'\)\.value=String\(r\?\.syringeCapacity\|\|calc\?\.syringeCapacity\|\|100\)/);
+  assert.match(js,/let calc=!v&&vialReturnToRoutine\?lastCalc:null/);
+  assert.match(js,/vName'\)\.value=v\?\.name\|\|calc\?\.name\|\|''/);
+  assert.match(js,/vMg'\)\.value=v\?\.initialMg\?\?calc\?\.mg\?\?''/);
+  assert.match(js,/vWater'\)\.value=v\?\.waterMl\?\?calc\?\.water\?\?''/);
+});
+
+test('Rotina e Frasco disparam sync e confirmação remota recarrega Rotinas e destrava Application',async()=>{
+  const js=await read('app.js');
+  assert.match(js,/saveRoutineWithOutbox[^]*pepday:outbox-ready/);
+  assert.match(js,/saveVialWithDraftAndOutbox[^]*pepday:outbox-ready/);
+  const confirmed=js.slice(js.indexOf("window.addEventListener('pepday:sync-confirmed'"),js.indexOf("$('#calculate').onclick"));
+  assert.match(confirmed,/repository\.routines\.list\(\)/);
+  assert.match(confirmed,/item\.type==='application'&&item\.blockedReason==='remote-prerequisites'/);
+  assert.match(confirmed,/repository\.outbox\.resolvePrerequisites/);
+  assert.match(confirmed,/routines=nextRoutines/);
+  assert.match(confirmed,/if\(unblocked\)window\.dispatchEvent\(new CustomEvent\('pepday:outbox-ready'/);
+});

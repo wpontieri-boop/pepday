@@ -227,9 +227,10 @@ test('logout durante envio não grava em device e login posterior repara a conta
   assert.equal((await f.repository.outbox.get(op.operationId)).status,'synced');assert.deepEqual(await f.repository.confirmedCounts(),{applications:1,vialMovements:1});await f.close();
 });
 
-test('tipos Rotina/Frasco permanecem pending no B2.2-C',async()=>{
+test('falha temporária preserva operações Rotina/Frasco para retry',async()=>{
   const f=await fixture('types');for(const type of ['create','edit'])await f.repository.outbox.enqueue({operationId:uuid(),type,entityType:type==='create'?'routine':'vial',entityId:type,payload:{},dependencies:[]});
-  await f.engine({send:async()=>{throw new Error('não deve enviar')},refreshSession:async()=>{}}).start();assert.deepEqual((await f.repository.outbox.list()).map(x=>x.status),['pending','pending']);await f.close();
+  let sends=0;await f.engine({send:async()=>{sends++;throw new SyncApiError('rede',{status:0,code:'NETWORK'})},refreshSession:async()=>{}}).start();
+  const rows=await f.repository.outbox.list();assert.equal(sends,2);assert.deepEqual(rows.map(x=>x.status),['pending','pending']);assert.deepEqual(rows.map(x=>x.attemptCount),[1,1]);await f.close();
 });
 
 test('sync-api usa HTTP bruto, JWT da sessão e mesmo operationId sem expor credenciais',async()=>{

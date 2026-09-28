@@ -153,9 +153,18 @@ window.toggleDone=toggleDone;
 
 window.addEventListener('pepday:sync-confirmed',async event=>{
  const repository=localRepository,token=scopeGeneration;if(!repository||event.detail?.accountScope!==repository.accountScope)return;
- const [nextApplications,nextOutbox,nextVials]=await Promise.all([repository.applications.list(),repository.outbox.list(),repository.vials.list()]);
+ const [nextRoutines,nextApplications,loadedOutbox,nextVials]=await Promise.all([repository.routines.list(),repository.applications.list(),repository.outbox.list(),repository.vials.list()]);
  if(token!==scopeGeneration||repository!==localRepository)return;
- confirmedApplications=nextApplications;outboxOperations=nextOutbox;vials=nextVials;renderLocalData();
+ let nextOutbox=loadedOutbox,unblocked=false;
+ for(const operation of loadedOutbox.filter(item=>item.type==='application'&&item.blockedReason==='remote-prerequisites')){
+   const routine=nextRoutines.find(item=>item.id===operation.payload?.localRoutineId),vial=nextVials.find(item=>item.id===operation.payload?.localVialId),remote=confirmedRemoteRefs(routine,vial);
+   if(!remote)continue;
+   await repository.outbox.resolvePrerequisites(operation.operationId,{payload:{...operation.payload,...remote}});unblocked=true;
+ }
+ if(unblocked)nextOutbox=await repository.outbox.list();
+ if(token!==scopeGeneration||repository!==localRepository)return;
+ routines=nextRoutines;confirmedApplications=nextApplications;outboxOperations=nextOutbox;vials=nextVials;renderLocalData();
+ if(unblocked)window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}));
 });
 
 $('#calculate').onclick=()=>{
@@ -165,7 +174,7 @@ $('#calculate').onclick=()=>{
  if(doseMg>mg){alert('A quantidade informada é maior que o conteúdo total do frasco. Confira os valores.');return}
  let conc=mg/water, ml=doseMg/conc, ui=ml*100, doses=mg/doseMg;
  let syringeCapacity=+$('#syringe').value;
- lastCalc={name:$('#pepName').value||'Minha rotina',mg,water,dose,doseMg,ml,ui,conc,doses,syringeCapacity};
+ lastCalc={name:$('#pepName').value||'Minha rotina',mg,water,dose,doseUnit:$('#doseUnit').value,doseMg,ml,ui,conc,doses,syringeCapacity};
  $('#uiResult').textContent=br(ui,2)+' UI'; $('#mlResult').textContent=br(ml,4)+' mL'; $('#concResult').textContent=br(conc,3)+' mg/mL'; $('#dosesResult').textContent=br(doses,1);
  $('#fill').style.width=Math.min((ui/syringeCapacity)*100,100)+'%';
  $('#syringeNote').textContent=ui<=syringeCapacity
@@ -202,9 +211,9 @@ function openRoutine(calc=null,r=null){
  $('#routineForm').classList.remove('hidden'); editing=r?r.id:null; $('#routineFormTitle').textContent=r?'Editar rotina':'Nova rotina';
  $('#rName').value=r?.name||calc?.name||'';
  fillRoutineVials(r?.vialId||'');
- $('#rDose').value=r?.doseValue??'';
- $('#rDoseUnit').value=r?.doseUnit||'mg';
- $('#rSyringe').value=String(r?.syringeCapacity||100);
+ $('#rDose').value=r?.doseValue??calc?.dose??'';
+ $('#rDoseUnit').value=r?.doseUnit||calc?.doseUnit||'mg';
+ $('#rSyringe').value=String(r?.syringeCapacity||calc?.syringeCapacity||100);
  $('#rRefillAt').value=String(r?.refillAt||3);
  $('#frequency').value=r?.frequency||'daily'; $('#startDate').value=r?.start||isoToday(); $('#rTime').value=r?.time||'';
  $$('#weekdaysBox input').forEach(c=>c.checked=(r?.weekdays||[]).includes(+c.value)); toggleWeekdays(); calcRoutinePreview();
@@ -295,13 +304,14 @@ $('#saveRoutine').onclick=async()=>{
  if(!(await localOperation(()=>repository.saveRoutineWithOutbox(obj,{operationId:crypto.randomUUID(),type:editing?'edit':'create'}))).ok)return false;
  if(editing)routines=routines.map(x=>x.id===editing?obj:x); else routines.push(obj);
  $('#routineForm').classList.add('hidden');renderRoutines();renderToday();renderVials();
+ window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}));
 };
 function renderRoutines(){
  let box=$('#routineList');if(localDataState!=='ready'){box.innerHTML=`<div class="card empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return} if(!routines.length){box.innerHTML='<div class="card empty"><p>Você ainda não salvou nenhuma rotina.</p></div>';return}
  box.innerHTML=routines.map(r=>{let v=vials.find(x=>x.id===r.vialId);return `<div class="routine"><div><h4>${esc(r.name)}</h4><p>${br(r.doseValue,3)} ${r.doseUnit} por aplicação • ${freqLabel(r)}${v?` • ${esc(v.name)}`:''}</p></div><div><div class="value">${br(r.ui,2)} UI</div><button onclick="editR('${r.id}')">Editar</button> <button onclick="delR('${r.id}')">Excluir</button></div></div>`}).join('');
 }
 window.editR=id=>openRoutine(null,routines.find(x=>x.id===id));
-window.delR=async id=>{if(!requirePro('routine:delete')||localDataState!=='ready')return false;if(confirm('Excluir esta rotina?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.deleteRoutineWithOutbox(id,{operationId:crypto.randomUUID()}))).ok)return false;routines=routines.filter(x=>x.id!==id);renderRoutines()}};
+window.delR=async id=>{if(!requirePro('routine:delete')||localDataState!=='ready')return false;if(confirm('Excluir esta rotina?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.deleteRoutineWithOutbox(id,{operationId:crypto.randomUUID()}))).ok)return false;routines=routines.filter(x=>x.id!==id);renderRoutines();window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}))}};
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function vialPct(v){return v.initialMg>0?Math.max(0,Math.min(100,(v.remainingMg/v.initialMg)*100)):0}
 
@@ -470,7 +480,7 @@ function renderVials(){
    </div>`;
  }).join('');
 }
-function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create')||localDataState!=='ready')return false;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||'';$('#vMg').value=v?.initialMg??'';$('#vWater').value=v?.waterMl??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
+function openVial(v=null){if(!requirePro(v?'vial:edit':'vial:create')||localDataState!=='ready')return false;let calc=!v&&vialReturnToRoutine?lastCalc:null;editingVial=v?.id||null;$('#vialForm').classList.remove('hidden');$('#vialFormTitle').textContent=v?'Editar frasco':'Novo frasco';$('#vName').value=v?.name||calc?.name||'';$('#vMg').value=v?.initialMg??calc?.mg??'';$('#vWater').value=v?.waterMl??calc?.water??'';$('#vDate').value=v?.date||isoToday();$('#vCost').value=v?.cost??'';return true}
 async function returnToRoutineFromVial(vialId=null){
  if(!vialReturnToRoutine)return false;
  let repository=await requireLocalRepository();if(!repository)return false;
@@ -498,9 +508,10 @@ $('#saveVial').onclick=async()=>{
  if(!saved.ok)return false;
  if(editingVial)vials=vials.map(x=>x.id===editingVial?savedVial:x);else vials.push(savedVial);
  $('#vialForm').classList.add('hidden');renderVials();await returnToRoutineFromVial(savedVialId);
+ window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}));
 };
 window.editVial=id=>openVial(vials.find(x=>x.id===id));
-window.deleteVial=async id=>{if(!requirePro('vial:delete')||localDataState!=='ready')return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.deleteVialWithOutbox(id,{operationId:crypto.randomUUID()}))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials()}};
+window.deleteVial=async id=>{if(!requirePro('vial:delete')||localDataState!=='ready')return false;if(routines.some(r=>r.vialId===id)){alert('Este frasco está vinculado a uma rotina. Remova ou altere o vínculo antes de excluí-lo.');return}if(confirm('Excluir este frasco e seu histórico?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.deleteVialWithOutbox(id,{operationId:crypto.randomUUID()}))).ok)return false;vials=vials.filter(x=>x.id!==id);renderVials();window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}))}};
 window.adjustVial=async id=>{if(!requirePro('vial:adjust-balance')||localDataState!=='ready')return false;let v=vials.find(x=>x.id===id);if(!v)return false;let raw=prompt(`Saldo atual: ${br(v.remainingMg,3)} mg\nInforme o novo saldo em mg:`,v.remainingMg);if(raw===null)return;let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n)||n<0||n>v.initialMg){alert('Informe um saldo entre 0 e a quantidade inicial do frasco.');return}let repository=await requireLocalRepository();if(!repository)return false;let before=v.remainingMg,next={...v,remainingMg:n,remoteRef:null,history:[{date:new Date().toISOString(),type:'adjust',before,after:n},...(v.history||[])]};if(!(await localOperation(()=>repository.saveVialWithOutbox(next,{operationId:crypto.randomUUID(),type:'edit'}))).ok)return false;vials=vials.map(item=>item.id===id?next:item);renderVials()};
 window.showVialHistory=id=>{
  if(!requirePro('vial:view-history')||localDataState!=='ready')return false;

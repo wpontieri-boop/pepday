@@ -336,9 +336,19 @@ direto abriu três conexões PostgreSQL independentes pelo Session Pooler com TL
 verificado e concluiu `PASS FINAL D2-F`: seis cenários com lock real observado,
 replay/conflitos/versionamento validados e cleanup com zero fixtures.
 
-O próximo passo do Bloco B é integrar Rotina ↔ Frasco e os pontos aprovados da
-Calculadora sobre o backend versionado já validado, preservando a fonte local-first,
-a outbox, FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
+A integração local Rotina ↔ Frasco e os pontos aprovados da Calculadora foram
+ligados à outbox versionada: create/edit/delete agora usam as RPCs de Frasco e
+Rotina, dependências são respeitadas, confirmações remotas atualizam `remoteRef`
+e `routineVersions`, e Application aguardando pré-requisitos é destravada sem
+fabricar saldo ou histórico. A Calculadora também preserva nome, dose, unidade,
+seringa, mg e mL no fluxo Salvar → Rotina → novo Frasco. Regressão local:
+`199/199 PASS`.
+
+Próximo gate: validação real controlada desse transporte de entidades no
+`pepday-v3-test` com Auth/JWT e cleanup guardado. O ajuste manual de saldo e a
+alteração da quantidade inicial do Frasco permanecem explicitamente fora desse
+transporte até existir operação remota própria; não devem ser sincronizados por
+uma edição genérica. Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 

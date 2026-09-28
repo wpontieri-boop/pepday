@@ -62,28 +62,54 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
   const outbox=createSyncOutbox({database,getAccountScope:getScope,...outboxOptions});
   const repositoryClock=outboxOptions.clock||Date.now;
   const outboxNow=()=>new Date(repositoryClock()).toISOString();
+  const randomUUID=()=>{const fn=outboxOptions.cryptoProvider?.randomUUID||globalThis.crypto?.randomUUID;if(!fn)throw new Error('UUID seguro indisponível.');return fn.call(outboxOptions.cryptoProvider||globalThis.crypto)};
+  const entityTypeFor=storeName=>storeName==='vials'?'vial':'routine';
+  const remoteVersion=(storeName,ref)=>storeName==='vials'?ref?.editVersion:ref?.version;
+  function entityPayload(storeName,scope,entity,previous){
+    const ref=previous?.data?.remoteRef||null;
+    return {expectedUserId:scope.startsWith('user:')?scope.slice(5):null,entity:clone(entity),
+      base:clone(ref?.snapshot||null),expectedVersion:remoteVersion(storeName,ref)||null,
+      routineVersionId:storeName==='routines'?randomUUID():null};
+  }
+  async function priorEntityOperation(tx,scope,entityType,entityId){
+    const rows=await tx.outbox.getAllByScope(scope);
+    return rows.filter(row=>row.entityType===entityType&&row.entityId===entityId&&['pending','syncing'].includes(row.status))
+      .sort((a,b)=>b.sequence-a.sequence)[0]||null;
+  }
   async function saveEntityWithOutbox(storeName,entity,{operationId,type,draft=null,clearDraft=false}={}){
-    const scope=getScope(),id=assertId(entity?.id),stores=[storeName,'outbox','meta'];
+    const scope=getScope(),id=assertId(entity?.id),entityType=entityTypeFor(storeName),stores=[storeName,'outbox','meta'];
+    if(storeName==='routines')stores.push('vials');
     if(draft||clearDraft)stores.push('drafts');
     return database.transaction(stores,'readwrite',async tx=>{
-      const previous=await tx[storeName].get(scope,id),next=recordFor(scope,id,entity,previous);
-      await tx[storeName].put(next);
+      const previous=await tx[storeName].get(scope,id),operationType=type||(previous?'edit':'create'),prior=await priorEntityOperation(tx,scope,entityType,id);
+      const next=recordFor(scope,id,entity,previous);await tx[storeName].put(next);
       if(draft){const priorDraft=await tx.drafts.get(scope,assertId(draft.id));await tx.drafts.put(recordFor(scope,draft.id,draft,priorDraft))}
       if(clearDraft)await tx.drafts.delete(scope,'routine-form');
+      const payload=entityPayload(storeName,scope,entity,previous),dependencies=[];
+      let blockedReason=null;
+      if(operationType!=='create'&&prior&&!(prior.type==='create'&&prior.status==='pending'&&prior.attemptCount===0)){
+        dependencies.push(prior.operationId);blockedReason='remote-prerequisites';
+      }else if(operationType!=='create'&&!payload.base)blockedReason='remote-prerequisites';
+      if(storeName==='routines'&&entity?.vialId){
+        const vial=await tx.vials.get(scope,entity.vialId),vialRef=vial?.data?.remoteRef;
+        payload.remoteVialId=vialRef?.id||entity.vialId;
+        if(!vialRef?.id){const vialPrior=await priorEntityOperation(tx,scope,'vial',entity.vialId);if(vialPrior&&!dependencies.includes(vialPrior.operationId))dependencies.push(vialPrior.operationId);else if(!vialPrior)blockedReason=blockedReason||'remote-vial-prerequisite'}
+      }
       const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,
-        type:type||(previous?'edit':'create'),entityType:storeName==='vials'?'vial':'routine',entityId:id,
-        payload:entity,baseVersion:previous?.localRevision||null,dependencies:[]}});
+        type:operationType,entityType,entityId:id,payload,baseVersion:previous?.localRevision||null,dependencies,blockedReason}});
       return {entity:clone(entity),outbox:queued};
     });
   }
   async function deleteEntityWithOutbox(storeName,id,{operationId,dependencies=[]}={}){
-    const scope=getScope(),entityId=assertId(id);
+    const scope=getScope(),entityId=assertId(id),entityType=entityTypeFor(storeName);
     return database.transaction([storeName,'outbox','meta'],'readwrite',async tx=>{
-      const previous=await tx[storeName].get(scope,entityId);
+      const previous=await tx[storeName].get(scope,entityId),prior=await priorEntityOperation(tx,scope,entityType,entityId),payload=entityPayload(storeName,scope,null,previous);
       await tx[storeName].delete(scope,entityId);
+      const nextDependencies=[...dependencies];let blockedReason=null;
+      if(prior&&!(prior.type==='create'&&prior.status==='pending'&&prior.attemptCount===0)){nextDependencies.push(prior.operationId);blockedReason='remote-prerequisites'}
+      else if(!payload.base)blockedReason='remote-prerequisites';
       const queued=await enqueueOutboxInTransaction({stores:tx,accountScope:scope,now:outboxNow(),input:{operationId,type:'delete',
-        entityType:storeName==='vials'?'vial':'routine',entityId,payload:null,
-        baseVersion:previous?.localRevision||null,dependencies}});
+        entityType,entityId,payload,baseVersion:previous?.localRevision||null,dependencies:[...new Set(nextDependencies)],blockedReason}});
       return {entity:previous?dataFrom(previous):null,outbox:queued};
     });
   }
@@ -130,27 +156,61 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
     async persistRemoteConfirmation({accountScope,operationId,workerId,response}){
       const ensureScope=()=>{if(activeScope!==accountScope){const error=new Error('Escopo mudou durante a sincronização.');error.code='STALE_SCOPE';throw error}};
       ensureScope();
-      const application=response?.application,movement=response?.movement,vial=response?.vial;
-      if(!application?.id||!movement?.id||!vial?.id||vial.remaining_mg==null){const error=new Error('Resposta remota incompleta.');error.code='INVALID_CONFIRMATION';throw error}
-      return database.transaction(['applications','vialMovements','vials','outbox'],'readwrite',async stores=>{
+      return database.transaction(['applications','vialMovements','vials','routines','routineVersions','outbox'],'readwrite',async stores=>{
         ensureScope();
         const queued=await stores.outbox.get(accountScope,operationId);
         const ensureLease=()=>{
           if(!queued||queued.status!=='syncing'||queued.leaseOwner!==workerId){const error=new Error('Lease perdida.');error.code='LEASE_LOST';throw error}
           if(Date.parse(queued.leaseExpiresAt)<=repositoryClock()){const error=new Error('Lease expirado.');error.code='LEASE_EXPIRED';throw error}
         };
+        const invalid=()=>{const error=new Error('Resposta remota incompleta.');error.code='INVALID_CONFIRMATION';throw error};
+        const putConfirmed=async(name,id,value)=>{const prior=await stores[name].get(accountScope,id);await stores[name].put({...recordFor(accountScope,id,value,prior),syncState:'synced'});return prior};
+        const unblockDependents=async(snapshot,version)=>{
+          const rows=await stores.outbox.getAllByScope(accountScope);
+          for(const row of rows){
+            if(row.status!=='pending'||row.blockedReason!=='remote-prerequisites'||row.entityType!==queued.entityType||row.entityId!==queued.entityId||!row.dependencies?.includes(operationId))continue;
+            row.payload={...(row.payload||{}),base:clone(snapshot),expectedVersion:version};row.blockedReason=null;row.updatedAt=outboxNow();await stores.outbox.put(row);
+          }
+        };
         ensureLease();
-        const putConfirmed=async(name,value)=>{const prior=await stores[name].get(accountScope,value.id);await stores[name].put({...recordFor(accountScope,value.id,value,prior),syncState:'synced'})};
-        const applicationData={...application,localRoutineId:queued.payload?.localRoutineId||application.localRoutineId||null};
-        await putConfirmed('applications',applicationData);await putConfirmed('vialMovements',movement);
-        const localVialId=queued.payload?.localVialId||vial.id,priorVial=await stores.vials.get(accountScope,localVialId);
-        const vialData={...(priorVial?.data||{}),id:localVialId,remoteRef:{status:'synced',id:vial.id},remainingMg:Number(vial.remaining_mg)};
-        await stores.vials.put({...recordFor(accountScope,localVialId,vialData,priorVial),syncState:'synced'});
+        if(queued.entityType==='application'){
+          const application=response?.application,movement=response?.movement,vial=response?.vial;
+          if(!application?.id||!movement?.id||!vial?.id||vial.remaining_mg==null)invalid();
+          const applicationData={...application,localRoutineId:queued.payload?.localRoutineId||application.localRoutineId||null};
+          await putConfirmed('applications',application.id,applicationData);await putConfirmed('vialMovements',movement.id,movement);
+          const localVialId=queued.payload?.localVialId||vial.id,priorVial=await stores.vials.get(accountScope,localVialId),oldRef=priorVial?.data?.remoteRef||{};
+          const snapshot=oldRef.snapshot?{...oldRef.snapshot,remaining_mg:Number(vial.remaining_mg)}:oldRef.snapshot;
+          const vialData={...(priorVial?.data||{}),id:localVialId,remoteRef:{...oldRef,status:'synced',id:vial.id,...(snapshot?{snapshot}: {})},remainingMg:Number(vial.remaining_mg)};
+          await stores.vials.put({...recordFor(accountScope,localVialId,vialData,priorVial),syncState:'synced'});
+        }else if(queued.entityType==='vial'){
+          const vial=response?.vial;if(!vial?.id||vial.edit_version==null||vial.version==null)invalid();
+          if(queued.type!=='delete'){
+            const localId=queued.entityId,prior=await stores.vials.get(accountScope,localId);if(!prior)invalid();
+            const current=prior.data||{},data={...current,id:localId,name:vial.name??current.name,
+              initialMg:vial.initial_mg==null?current.initialMg:Number(vial.initial_mg),remainingMg:vial.remaining_mg==null?current.remainingMg:Number(vial.remaining_mg),
+              waterMl:vial.water_ml==null?current.waterMl:Number(vial.water_ml),date:vial.prepared_on??current.date,cost:vial.cost==null?(current.cost??0):Number(vial.cost),active:vial.active??current.active,
+              remoteRef:{status:'synced',id:vial.id,version:Number(vial.version),editVersion:Number(vial.edit_version),snapshot:clone(vial)}};
+            await stores.vials.put({...recordFor(accountScope,localId,data,prior),syncState:'synced'});
+          }
+          await unblockDependents(vial,Number(vial.edit_version));
+        }else if(queued.entityType==='routine'){
+          const routine=response?.routine,versionId=response?.routineVersionId;if(!routine?.id||routine.version==null||!versionId)invalid();
+          if(queued.type!=='delete'){
+            const localId=queued.entityId,prior=await stores.routines.get(accountScope,localId);if(!prior)invalid();
+            const current=prior.data||{},data={...current,id:localId,name:routine.name??current.name,doseValue:routine.dose_value==null?current.doseValue:Number(routine.dose_value),
+              doseUnit:routine.dose_unit??current.doseUnit,syringeCapacity:routine.syringe_capacity==null?current.syringeCapacity:Number(routine.syringe_capacity),
+              frequency:routine.frequency??current.frequency,weekdays:Array.isArray(routine.weekdays)?routine.weekdays:current.weekdays,start:routine.start_date??current.start,
+              time:routine.time_of_day??current.time,refillAt:routine.refill_at==null?current.refillAt:Number(routine.refill_at),
+              remoteRef:{status:'synced',id:routine.id,versionId,version:Number(routine.version),snapshot:clone(routine)}};
+            await stores.routines.put({...recordFor(accountScope,localId,data,prior),syncState:'synced'});
+          }
+          const versionData={id:versionId,routineId:queued.entityId,remoteRoutineId:routine.id,version:Number(routine.version),snapshot:clone(routine)};
+          await putConfirmed('routineVersions',versionId,versionData);await unblockDependents(routine,Number(routine.version));
+        }else invalid();
         ensureLease();ensureScope();
         queued.status='synced';queued.transportReplay=Boolean(response.replay);queued.nextAttemptAt=null;queued.lastErrorCode=null;
-        queued.leaseOwner=null;queued.leaseExpiresAt=null;queued.updatedAt=new Date().toISOString();await stores.outbox.put(queued);
-        ensureScope();
-        return clone(queued);
+        queued.leaseOwner=null;queued.leaseExpiresAt=null;queued.updatedAt=outboxNow();await stores.outbox.put(queued);
+        ensureScope();return clone(queued);
       });
     },
     async importLegacy({receiptId,sourceHash,routines,vials,validateSource=()=>true}){
