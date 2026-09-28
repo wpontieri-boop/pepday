@@ -541,6 +541,29 @@ explicitamente que “cartão/QR” significa conta atribuída, não scan anôni
 Testes direcionados do painel: `6/6 PASS`; regressão completa: `270/270 PASS`;
 smoke local de `/site/admin/` e do módulo RPC: `200`.
 
+A fundação de e-mails transacionais via Brevo também foi preparada, sem ativar envio.
+Migrations aplicadas somente no `pepday-v3-test`:
+`20260928220752_block_c_brevo_email_outbox.sql` e
+`20260928221031_block_c_brevo_email_indexes.sql`. O outbox é backend-only, com
+RLS, sem leitura direta nem mesmo por `service_role`; as operações passam por RPCs
+service-role-only de enqueue, claim e conclusão. O registro guarda apenas user_id,
+tipo do evento, dedupe e metadados de entrega — não armazena endereço de e-mail,
+nome, rotina, frasco ou dado de saúde.
+
+O worker `brevo-email-worker` está preparado em código, mas NÃO foi implantado nem
+ativado porque ainda não existem `BREVO_API_KEY`, templates e segredo interno
+configurados. Ele exige segredo próprio antes de reivindicar eventos, resolve o
+destinatário somente no backend, escolhe template por variável de ambiente, usa o
+endpoint fixo do Brevo e implementa retry/backoff sem logar destinatário, payload ou
+segredos. O segredo interno é comparado por SHA-256.
+
+Validação SQL real do outbox:
+`PASS FINAL BLOCO C BREVO OUTBOX — enqueue + dedupe + claim lock + complete +
+rollback + privilégios`. Testes direcionados Brevo: `10/10 PASS`; regressão
+completa: `280/280 PASS`. O advisor de performance deixou de apontar o FK novo do
+outbox após o índice; o índice aparece como não usado apenas porque acabou de ser
+criado. Os demais FKs sem índice são anteriores a este delta.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
