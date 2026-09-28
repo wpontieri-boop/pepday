@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07131f">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="../../icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./admin.css">
+  <title>PepDay Admin — Aquisição</title>
+</head>
+<body>
+<header>
+  <a class="brand" href="../"><img src="../../icon.svg" alt=""><b>PEP<span>DAY</span></b></a>
+  <div><small>PAINEL PRIVADO</small><strong>Aquisição & Conversão</strong></div>
+</header>
+<main>
+  <section class="card auth-card" id="authCard">
+    <div class="eyebrow">ACESSO ADMINISTRATIVO</div>
+    <h1>Entre com sua conta PepDay</h1>
+    <p>O painel mostra apenas números agregados. Nenhum nome, e-mail, rotina, frasco ou dado sensível é exibido.</p>
+    <form id="emailForm">
+      <label>E-mail<input id="email" type="email" autocomplete="email" required></label>
+      <button type="submit">Enviar código</button>
+    </form>
+    <form id="codeForm" class="hidden">
+      <label>Código de 6 dígitos<input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <button type="submit">Confirmar código</button>
+    </form>
+    <p class="status" id="authStatus" role="status"></p>
+  </section>
+
+  <section class="dashboard hidden" id="dashboard">
+    <div class="dash-head">
+      <div>
+        <div class="eyebrow">FUNIL DE AQUISIÇÃO</div>
+        <h1>PepDay em números</h1>
+        <p>Contas, cartão/QR, trial e conversão paga. Dados agregados do ambiente de homologação.</p>
+      </div>
+      <div class="head-actions">
+        <button class="ghost" id="refresh" type="button">Atualizar</button>
+        <button class="ghost" id="logout" type="button">Sair</button>
+      </div>
+    </div>
+
+    <div class="window-picker" aria-label="Período">
+      <button type="button" data-days="7">7 dias</button>
+      <button type="button" data-days="30" class="active">30 dias</button>
+      <button type="button" data-days="90">90 dias</button>
+    </div>
+
+    <div class="metrics">
+      <article><small>NOVAS CONTAS</small><strong id="newAccounts">—</strong><span>no período</span></article>
+      <article class="accent"><small>CARTÃO / QR</small><strong id="cardAccounts">—</strong><span>contas atribuídas</span></article>
+      <article><small>OUTRAS ORIGENS</small><strong id="otherAccounts">—</strong><span>novas contas</span></article>
+      <article><small>TRIALS INICIADOS</small><strong id="trialsStarted">—</strong><span id="cardTrials">— via cartão</span></article>
+      <article class="pro"><small>CONVERSÕES PRO</small><strong id="paidConversions">—</strong><span id="cardPaid">— via cartão</span></article>
+      <article><small>PRO PAGOS ATIVOS</small><strong id="paidActive">—</strong><span>agora</span></article>
+    </div>
+
+    <section class="card funnel">
+      <div><small>CARTÃO → TRIAL</small><strong id="cardTrialRate">—%</strong></div>
+      <div class="arrow">→</div>
+      <div><small>CARTÃO → PRO PAGO</small><strong id="cardPaidRate">—%</strong></div>
+    </section>
+
+    <section class="card note">
+      <h2>O que estamos medindo</h2>
+      <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
+      <p>Ainda não contamos scans anônimos do QR antes da criação da conta. Por isso este painel não chama esse número de “scans”.</p>
+      <p id="generatedAt" class="muted"></p>
+    </section>
+  </section>
+</main>
+<script src="../../vendor/supabase-2.116.0.js"></script>
+<script type="module" src="./admin.mjs"></script>
+</body>
+</html>

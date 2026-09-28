@@ -520,8 +520,26 @@ limpa do Chrome sem login e sem dados pessoais. Foram adicionadas
 `site/assets/calculator-u100-real.png` (Calculadora com resultado e seringa U-100)
 e `site/assets/home-real.png` (Home do PepDay). O Hero usa a tela real da
 Calculadora e a seção de demonstração usa a Home real, mantendo apenas um mockup
-conceitual de Frascos por enquanto. Testes direcionados continuam `7/7 PASS` e a
-regressão completa permanece `264/264 PASS`.
+conceitual de Frascos por enquanto. Testes direcionados continuam `7/7 PASS`.
+
+A fundação do painel administrativo de aquisição também foi implementada. A migration
+`20260928215536_block_c_admin_acquisition_metrics.sql` está aplicada apenas no
+`pepday-v3-test`. A RPC `get_admin_acquisition_metrics(7|30|90)` exige sessão
+autenticada e `profiles.role='admin'`, retornando somente contagens agregadas:
+novas contas, contas atribuídas a cartão/QR, outras origens, trials, conversões pagas,
+PRO pagos ativos e taxas cartão→trial/cartão→PRO. Nenhum nome, e-mail, UUID de cliente,
+rotina, frasco ou dado sensível é retornado.
+
+Sua conta de homologação foi promovida para `admin` somente no projeto de teste.
+Validação SQL real: `PASS FINAL BLOCO C ADMIN METRICS — admin agregado + sem PII +
+usuário comum bloqueado`. O advisor de segurança sinaliza a RPC por ser
+`SECURITY DEFINER` executável por `authenticated`; neste caso isso é intencional e
+foi validado porque a própria função rejeita qualquer conta sem role admin antes de
+consultar/retornar métricas. A tela privada está em `/site/admin/`, compartilha a
+sessão Supabase da V3, usa login por código com `shouldCreateUser:false` e explica
+explicitamente que “cartão/QR” significa conta atribuída, não scan anônimo.
+Testes direcionados do painel: `6/6 PASS`; regressão completa: `270/270 PASS`;
+smoke local de `/site/admin/` e do módulo RPC: `200`.
 
 ## Registro deste checkpoint
 
