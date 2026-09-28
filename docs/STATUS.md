@@ -482,6 +482,19 @@ regra promocional ser definida. Cache V3 incrementado para entregar a nova landi
 Teste da aquisição permanece `6/6 PASS`; regressão completa `257/257 PASS`; smoke
 local `/cartao/ = 200` com a nova comunicação.
 
+A landing principal de marketing foi definida como padrão separado da landing curta
+do cartão. Durante homologação ela vive em `/site/`; no domínio final poderá assumir
+a raiz pública, mantendo o app/PWA em rota própria. Direção visual: landing clara,
+clean e estilo SaaS; app interno permanece dark premium.
+
+A primeira versão estrutural de `/site/` já contém Hero, problema, solução, recursos,
+como funciona, mockups visuais do próprio PepDay, história do produto, FREE x PRO,
+prova social preparada para relatos reais autorizados e CTA final. Depoimentos
+fictícios não serão publicados como experiência real. Documento oficial:
+`docs/LANDING-MARKETING.md`. Testes direcionados da landing: `6/6 PASS`;
+regressão completa: `263/263 PASS`. Smoke local: Home `200`, `/cartao/` `200`
+e `/site/` `200`.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
