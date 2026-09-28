@@ -62,7 +62,10 @@ export function createB2Automation({ env = process.env, fetchImpl = fetch, uuid 
     });
     const data = await responseJson(response);
     const result = { ok: response.ok, status: response.status, duration_ms: Math.round(performance.now() - started), data };
-    if (!response.ok && !allowFailure) throw new Error(`HTTP ${response.status} em ${method} ${path.split('?')[0]}`);
+    if (!response.ok && !allowFailure) {
+      const detail = data?.message || data?.msg || data?.error_description || data?.error || '';
+      throw new Error(`HTTP ${response.status} em ${method} ${path.split('?')[0]}${detail ? `: ${detail}` : ''}`);
+    }
     return result;
   }
   const admin = (path, options) => http(`/auth/v1/admin${path}`, { key: serviceKey, ...options });
@@ -296,7 +299,7 @@ export function createB2Automation({ env = process.env, fetchImpl = fetch, uuid 
       try { await admin(`/users/${user.id}`, { method: 'DELETE' }); }
       catch (error) { failures.push(error); }
     }
-    if (failures.length) throw new Error(`${failures.length} conta(s) Auth não puderam ser removidas`);
+    if (failures.length) throw new Error(`${failures.length} conta(s) Auth não puderam ser removidas: ${failures.map(error => safeReason(error, secrets)).join(' | ')}`);
   }
 
   async function discoverOwnedAccounts() {

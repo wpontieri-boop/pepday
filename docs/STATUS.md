@@ -265,10 +265,11 @@ Validação PostgreSQL real automatizada concluída no `pepday-v3-test` em
 - B2.2-A, B2.2-C e B2.2-D1 encerrados e aprovados; não repetir suas validações
   reais sem necessidade causada por alteração posterior no fluxo ou backend
   envolvido.
-- Completar a integração Rotina ↔ Frasco, incluindo os pontos previstos na
-  calculadora, sem duplicar frascos ou alterar saldos indevidamente.
-- Implementar sincronização local-first, fila offline, reconexão, controle de
-  versão/timestamps e tratamento explícito de conflitos.
+- A integração Rotina ↔ Frasco e os pontos aprovados da Calculadora estão concluídos,
+  incluindo dependências de outbox, `remoteRef` e versionamento remoto.
+- Concluir a exposição do estado local-first na interface: status de sincronização,
+  reconexão, conflitos e retomada já suportados pelo engine devem aparecer de forma
+  coerente no Perfil e nos fluxos funcionais.
 - Definir entitlement PRO offline/local-first sem substituir a autoridade de
   `get_entitlement()` e das datas do servidor.
 - Implementar avisos de três dias e um dia antes do fim do trial.
@@ -331,30 +332,36 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-B2.2-D2-F está encerrado e aprovado no `pepday-v3-test`. Em 2026-09-28 o runner
-direto abriu três conexões PostgreSQL independentes pelo Session Pooler com TLS
-verificado e concluiu `PASS FINAL D2-F`: seis cenários com lock real observado,
-replay/conflitos/versionamento validados e cleanup com zero fixtures.
+B2.2-D2-F permanece encerrado e aprovado no `pepday-v3-test`, com concorrência
+PostgreSQL real, lock observado, replay/conflitos/versionamento e cleanup zero.
 
-A integração local Rotina ↔ Frasco e os pontos aprovados da Calculadora foram
-ligados à outbox versionada: create/edit/delete agora usam as RPCs de Frasco e
-Rotina, dependências são respeitadas, confirmações remotas atualizam `remoteRef`
-e `routineVersions`, e Application aguardando pré-requisitos é destravada sem
-fabricar saldo ou histórico. A Calculadora também preserva nome, dose, unidade,
-seringa, mg e mL no fluxo Salvar → Rotina → novo Frasco. Regressão local:
-`199/199 PASS`.
+A integração local Rotina ↔ Frasco, os pontos aprovados da Calculadora e o ajuste
+manual versionado de saldo também estão concluídos: create/edit/delete usam RPCs
+versionadas, dependências da outbox são respeitadas, confirmações remotas atualizam
+`remoteRef`/versões e o ajuste de saldo usa `adjust_vial_balance_versioned`.
 
-O ajuste manual de saldo ganhou operação remota própria
-`adjust_vial_balance_versioned`: registra `vial_movements.kind='adjustment'`, usa
-saldo esperado para detectar conflito, replay idempotente e não altera
-`edit_version`. A validação PostgreSQL real no `pepday-v3-test` passou em
-2026-09-28: ajuste 10→7, replay, `STALE_BALANCE`, ajuste 7→8, dois movimentos,
-versionamento correto e cleanup zero. Regressão completa: `205/205 PASS`.
+B2.2-D4 foi encerrado em 2026-09-28 com validação real HTTP/Auth/JWT:
+`PASS FINAL B2.2-D4 — HTTP/Auth/JWT Frasco → Rotina create/edit/delete + RLS + cleanup zero`.
+O runner validou duas contas Auth reais, isolamento RLS, replay de criação, vínculo
+Frasco → Rotina, edição versionada, soft-delete em ordem segura e três versões
+imutáveis da Rotina. A exclusão administrativa da conta também foi endurecida:
+as FKs internas de domínio usam `ON DELETE CASCADE` para o cleanup da conta, e o
+guard `pepday_assert_version_keeps_current_routine()` passou a executar como
+`SECURITY DEFINER` com grants restritos a `postgres`. O helper interno
+`rls_auto_enable()` também teve EXECUTE público revogado.
 
-Próximo gate: validação real controlada do transporte HTTP/Auth/JWT de Frascos e
-Rotinas, incluindo create/edit/delete e encadeamento Frasco → Rotina. A alteração
-da quantidade inicial do Frasco continua explicitamente fora da edição genérica
-até existir regra própria. Preservar FREE/TRIAL/PRO, histórico imutável, V2.9 e produção.
+Migrations do checkpoint: `20260928173930` e `20260928175036`, ambas alinhadas
+no histórico remoto do projeto de teste. Verificação final: zero contas fixture,
+zero perfis/operações órfãs e regressão completa `208/208 PASS`.
+
+Próximo gate: integrar no Perfil o estado real de conta, entitlement e sincronização
+local-first. O engine/outbox já suporta fila offline, retry, reconexão e conflitos;
+agora a interface deve refletir esse estado, remover mensagens antigas de
+“sincronização no próximo bloco”, manter `get_entitlement()` como autoridade do
+servidor e usar qualquer cache offline apenas como informação. Incluir também os
+avisos aprovados de 3 dias e 1 dia antes do fim do trial. A alteração da quantidade
+inicial do Frasco continua fora da edição genérica. Preservar FREE/TRIAL/PRO,
+histórico imutável, V2.9 e produção.
 
 ## Registro deste checkpoint
 
