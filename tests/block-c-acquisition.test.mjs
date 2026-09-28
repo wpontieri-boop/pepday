@@ -28,11 +28,13 @@ test('captura posterior não sobrescreve primeiro acesso',()=>{
   assert.deepEqual({...second},{...first});
 });
 
-test('landing /cartao registra origem sem prometer desconto ou PRO automático',async()=>{
+test('landing /cartao registra origem e comunica benefício sem inventar percentual',async()=>{
   const html=await read('cartao/index.html');
   assert.match(html,/captureCardAcquisition\(\)/);
   assert.match(html,/href="\.\.\/\?from=cartao"/);
-  assert.match(html,/não libera PRO nem desconto sozinha/i);
+  assert.match(html,/BENEFÍCIO EXCLUSIVO DO CARTÃO/);
+  assert.match(html,/Condições exclusivas poderão ser disponibilizadas para este acesso/);
+  assert.match(html,/descubra as condições exclusivas disponíveis para você/i);
   assert.doesNotMatch(html,/\d+%\s*(off|desconto)/i);
 });
 

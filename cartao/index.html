@@ -14,7 +14,9 @@
     .brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:22px}.brand img{width:52px;height:52px}.brand b{font-size:28px;letter-spacing:.04em}.brand span{color:var(--cyan)}
     .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#46d8ff17;color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:.08em}
     h1{font-size:34px;line-height:1.05;margin:14px 0 12px}p{color:var(--muted);line-height:1.55}
-    .benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:22px 0}.benefits div{padding:12px;border:1px solid #1d4356;border-radius:14px;background:#081722}
+    .benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin:18px 0}.benefits div{padding:12px;border:1px solid #1d4356;border-radius:14px;background:#081722}
+    .card-benefit{margin:18px 0;padding:14px 16px;border:1px solid #2f7795;border-radius:16px;background:#46d8ff0d;color:#dff8ff;font-weight:700;line-height:1.45}
+    .card-benefit span{display:block;margin-top:4px;color:var(--cyan);font-size:13px;font-weight:700}
     a{display:block;width:100%;padding:15px 18px;border-radius:14px;background:linear-gradient(90deg,#34c9f5,#56e6ff);color:#04131b;text-decoration:none;font-weight:900;margin-top:8px}
     small{display:block;color:#7fa0af;line-height:1.5;margin-top:14px}@media(max-width:520px){main{padding:22px}.benefits{grid-template-columns:1fr}h1{font-size:29px}}
   </style>
@@ -22,9 +24,10 @@
 <body>
 <main>
   <div class="brand"><img src="../icon.svg" alt=""><b>PEP<span>DAY</span></b></div>
-  <div class="tag">ACESSO PELO CARTÃO</div>
+  <div class="tag">BENEFÍCIO EXCLUSIVO DO CARTÃO</div>
   <h1>Seu PepDay começa aqui.</h1>
   <p>Calcule, organize rotinas, acompanhe frascos e mantenha seu histórico sincronizado em um só lugar.</p>
+  <div class="card-benefit">Você chegou pelo cartão PepDay.<span>Condições exclusivas poderão ser disponibilizadas para este acesso.</span></div>
   <div class="benefits">
     <div>✓ Calculadora mg, mcg, mL e UI</div>
     <div>✓ Rotinas e frascos</div>
@@ -32,7 +35,7 @@
     <div>✓ Alertas de reposição</div>
   </div>
   <a id="openPepDay" href="../?from=cartao">Abrir PepDay</a>
-  <small>A origem deste acesso é registrada apenas para medir a campanha do cartão. Ela não libera PRO nem desconto sozinha.</small>
+  <small>Acesse o PepDay pelo seu cartão e descubra as condições exclusivas disponíveis para você.</small>
 </main>
 <script type="module">
   import {captureCardAcquisition} from '../src/acquisition.mjs';

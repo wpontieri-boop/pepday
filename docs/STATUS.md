@@ -474,6 +474,14 @@ idempotência + rollback zero`. Smoke local: `/cartao/ = 200`; testes direcionad
 `6/6 PASS`; regressão completa `257/257 PASS`. O QR físico definitivo continua
 pendente do domínio final para não fixar o cartão em URL de homologação.
 
+Refinamento comercial da landing do cartão: o selo passou para “BENEFÍCIO EXCLUSIVO
+DO CARTÃO”, foi adicionada uma faixa explicando que condições exclusivas poderão ser
+disponibilizadas para esse acesso e o rodapé técnico foi substituído por uma chamada
+comercial. Nenhum percentual, desconto ou vantagem específica foi inventado antes da
+regra promocional ser definida. Cache V3 incrementado para entregar a nova landing.
+Teste da aquisição permanece `6/6 PASS`; regressão completa `257/257 PASS`; smoke
+local `/cartao/ = 200` com a nova comunicação.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
