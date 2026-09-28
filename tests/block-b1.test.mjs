@@ -113,13 +113,15 @@ test('gate reutilizável protege entradas de Rotinas/Frascos e mantém abas vis�
   assert.match(appSource,/proScreens\.has\(id\).*requirePro/);
 });
 
-test('interface expõe os quatro estados e ações explícitas sem pagamento',()=>{
+test('interface mantém trial explícito sem cartão e separa a oferta comercial',()=>{
   for(const label of ['PEPDAY FREE','PEPDAY PRO — TESTE GRÁTIS','PEPDAY PRO ATIVO','PEPDAY PRO EXPIRADO']){
     assert.match(readFileSync(new URL('../src/entitlement.mjs',import.meta.url),'utf8'),new RegExp(label));
   }
   assert.match(html,/>Começar 7 dias grátis</);
   assert.match(html,/>Agora não</);
-  assert.doesNotMatch(html,/Mercado Pago|comprar|pagamento/i);
+  assert.match(html,/id="proOffer"/);
+  assert.match(html,/R\$ 14,90/);
+  assert.match(html,/R\$ 99,90/);
 });
 
 test('módulos B1 estão disponíveis no servidor local e no cache versionado da V3',()=>{

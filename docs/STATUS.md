@@ -447,6 +447,21 @@ foi adicionada ao repositório. Testes do webhook: `10/10 PASS`; regressão comp
 `239/239 PASS`. Deploy funcional e validação real aguardam credenciais/plan IDs
 do Mercado Pago de testes.
 
+A tela comercial e o início seguro do checkout também foram preparados. O Perfil
+agora pode exibir “Escolha seu PepDay PRO”, com mensal de R$ 14,90 e anual de
+R$ 99,90 destacado como “Mais vantajoso”, economia anual de R$ 78,90, benefícios
+e aviso de preservação dos dados. PRO expirado recebe um caminho explícito para
+“Ver planos”.
+
+A Edge Function `mercado-pago-checkout` valida o JWT do usuário diretamente no
+Supabase Auth, exige cadastro/aceites completos, escolhe o plan ID exclusivamente
+por configuração server-side, cria `external_reference` interna, usa
+`payer_email` da sessão autenticada e chama `POST /preapproval`. O frontend
+recebe apenas o `init_point` HTTPS validado do Mercado Pago; não grava entitlement,
+não chama `apply_billing_event` e não ativa PRO. O retorno de cobrança continua
+dependente do webhook confirmado. Testes direcionados do checkout: `12/12 PASS`;
+regressão completa: `251/251 PASS`.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,

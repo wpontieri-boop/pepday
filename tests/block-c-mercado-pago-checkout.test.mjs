@@ -1,0 +1,102 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import {
+  PLANS,
+  canCreateCheckout,
+  checkoutExternalReference,
+  checkoutPlanId,
+  normalizeCheckoutRequest,
+  validCheckoutUrl,
+} from '../supabase/functions/mercado-pago-checkout/checkout-core.mjs';
+
+const read=name=>readFile(new URL(`../${name}`,import.meta.url),'utf8');
+
+test('planos comerciais mantêm preços aprovados',()=>{
+  assert.equal(PLANS.monthly.price,14.90);
+  assert.equal(PLANS.annual.price,99.90);
+});
+
+test('checkout aceita somente plano conhecido e request_id UUID v4',()=>{
+  const requestId=randomUUID();
+  assert.deepEqual(normalizeCheckoutRequest({plan:'monthly',request_id:requestId}),{plan:'monthly',requestId});
+  assert.equal(normalizeCheckoutRequest({plan:'vip',request_id:requestId}),null);
+  assert.equal(normalizeCheckoutRequest({plan:'annual',request_id:'123'}),null);
+});
+
+test('external_reference não aceita IDs arbitrários e inclui plano',()=>{
+  const subscriptionId=randomUUID();
+  assert.equal(checkoutExternalReference(subscriptionId,'annual'),`pepday:${subscriptionId}:annual`);
+  assert.equal(checkoutExternalReference('x','annual'),null);
+  assert.equal(checkoutExternalReference(subscriptionId,'vip'),null);
+});
+
+test('plan id vem somente de configuração server-side',()=>{
+  assert.equal(checkoutPlanId('monthly',{monthlyPlanId:'m',annualPlanId:'a'}),'m');
+  assert.equal(checkoutPlanId('annual',{monthlyPlanId:'m',annualPlanId:'a'}),'a');
+  assert.equal(checkoutPlanId('vip',{monthlyPlanId:'m',annualPlanId:'a'}),'');
+});
+
+test('checkout URL aceita somente HTTPS do domínio Mercado Pago',()=>{
+  assert.equal(validCheckoutUrl('https://www.mercadopago.com.br/subscriptions/checkout?id=1'),true);
+  assert.equal(validCheckoutUrl('https://mercadopago.com/subscriptions/checkout?id=1'),true);
+  assert.equal(validCheckoutUrl('http://www.mercadopago.com.br/x'),false);
+  assert.equal(validCheckoutUrl('https://mercadopago.com.br.evil.example/x'),false);
+});
+
+test('assinatura paga ativa não abre nova assinatura paralela',()=>{
+  assert.equal(canCreateCheckout({status:'pro_active',provider_subscription_id:'abc'}),false);
+  assert.equal(canCreateCheckout({status:'pro_expired',provider_subscription_id:'abc'}),true);
+  assert.equal(canCreateCheckout({status:'trial',provider_subscription_id:null}),true);
+});
+
+test('Edge Function valida JWT do usuário antes de criar preapproval',async()=>{
+  const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
+  assert.ok(index.indexOf('authenticatedUser')<index.indexOf('"https://api.mercadopago.com/preapproval"'));
+  assert.match(index,/\/auth\/v1\/user/);
+  assert.match(index,/payer_email:user\.email/);
+  assert.match(index,/external_reference:externalReference/);
+  assert.match(index,/preapproval_plan_id:planId/);
+  assert.match(index,/"X-Idempotency-Key":request\.requestId/);
+  assert.match(index,/PEPDAY_BILLING_RETURN_URL/);
+});
+
+test('checkout não grava entitlement nem status de assinatura antes do webhook',async()=>{
+  const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
+  assert.doesNotMatch(index,/update\s+public\.subscriptions/i);
+  assert.doesNotMatch(index,/status\s*:\s*['"]pro_active['"]/i);
+  assert.doesNotMatch(index,/\/rest\/v1\/rpc\/apply_billing_event/);
+  assert.match(index,/checkout_url:checkout\.init_point/);
+});
+
+test('tela comercial exibe mensal, anual e preservação de dados',async()=>{
+  const html=await read('index.html');
+  assert.match(html,/id="proOffer"/);
+  assert.match(html,/Escolha seu PepDay PRO/);
+  assert.match(html,/R\$ 14,90/);
+  assert.match(html,/R\$ 99,90/);
+  assert.match(html,/Economize R\$ 78,90 por ano/);
+  assert.match(html,/Seus dados permanecem salvos mesmo se o teste ou a assinatura terminar/);
+});
+
+test('UI chama somente Edge Function autenticada e valida URL antes de redirecionar',async()=>{
+  const account=await read('src/account-ui.mjs');
+  assert.match(account,/functions\.invoke\('mercado-pago-checkout'/);
+  assert.match(account,/request_id:crypto\.randomUUID\(\)/);
+  assert.match(account,/safeCheckoutUrl\(data\?\.checkout_url\)/);
+  assert.match(account,/location\.assign\(checkoutUrl\)/);
+  assert.doesNotMatch(account,/subscriptions[^\n]*update/i);
+});
+
+test('PRO expirado oferece caminho explícito para os planos',async()=>{
+  const gate=await read('src/pro-gate.mjs');
+  assert.match(gate,/commercial \? 'Ver planos'/);
+  assert.match(gate,/decision\.reason==='expired'[^]*proOffer/);
+});
+
+test('configuração das duas Edge Functions não delega autorização ao frontend',async()=>{
+  const config=await read('supabase/config.toml');
+  assert.match(config,/\[functions\.mercado-pago-webhook\][^]*verify_jwt = false/);
+  assert.match(config,/\[functions\.mercado-pago-checkout\][^]*verify_jwt = false[^]*mercado-pago-checkout\/index\.mjs/);
+});

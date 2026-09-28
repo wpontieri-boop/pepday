@@ -4,6 +4,12 @@ enabled = true
 verify_jwt = false
 # Webhook externo: autenticação é a assinatura HMAC do Mercado Pago.
 entrypoint = "./functions/mercado-pago-webhook/index.mjs"
+
+[functions.mercado-pago-checkout]
+enabled = true
+verify_jwt = false
+# A função valida o JWT do usuário diretamente no Supabase Auth.
+entrypoint = "./functions/mercado-pago-checkout/index.mjs"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/mercado-pago-webhook/*.html" ]

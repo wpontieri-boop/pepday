@@ -29,6 +29,9 @@ function publishAccess(raw, profileComplete=false) {
   el('planDescription').textContent=presentation.description;
   const canOffer=access.signedIn && profileComplete && access.status==='free' && access.trialAvailable && !declinedTrial;
   hide('trialActions',!canOffer);
+  const showCommercial=access.signedIn && profileComplete && access.status!=='pro_active';
+  hide('proOffer',!showCommercial);
+  if(!showCommercial&&el('billingStatus'))el('billingStatus').textContent='';
 }
 function legalReady() {
   return Boolean(config.termsVersion && config.privacyVersion && config.termsUrl && config.privacyUrl &&
@@ -41,6 +44,7 @@ function enableMethods() {
   el('accountSendCode').disabled = busy || !methods.email;
   el('accountSaveProfile').disabled = busy || !legalReady();
   el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
+  document.querySelectorAll('[data-pro-plan]').forEach(button=>button.disabled=busy);
 }
 function clearPrivateUi({preserveAccess=false}={}) {
   state = null; importErrors=[]; importMode='import'; currentRepository=null;
@@ -233,6 +237,47 @@ el('accountProfileForm').addEventListener('submit',event=>{
     await refresh();
   });
 });
+function showProPlans(){
+  document.querySelector('nav [data-go="profile"]')?.click();
+  requestAnimationFrame(()=>el('proOffer')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+
+function safeCheckoutUrl(value){
+  try{
+    const url=new URL(String(value||''));
+    return url.protocol==='https:'&&(
+      url.hostname==='mercadopago.com'||
+      url.hostname.endsWith('.mercadopago.com')||
+      url.hostname==='mercadopago.com.br'||
+      url.hostname.endsWith('.mercadopago.com.br')
+    )?url.href:null;
+  }catch{return null}
+}
+
+el('proOffer').addEventListener('click',event=>{
+  const button=event.target.closest?.('button[data-pro-plan]');
+  if(!button||busy)return;
+  const plan=button.dataset.proPlan;
+  run(async()=>{
+    if(!state)throw new Error('Entre na sua conta antes de assinar o PepDay PRO.');
+    el('billingStatus').textContent='Preparando checkout seguro…';
+    const {data,error}=await cloud.client.functions.invoke('mercado-pago-checkout',{
+      body:{plan,request_id:crypto.randomUUID()}
+    });
+    if(error){
+      el('billingStatus').textContent='Não foi possível abrir o checkout agora. Tente novamente.';
+      throw error;
+    }
+    const checkoutUrl=safeCheckoutUrl(data?.checkout_url);
+    if(!checkoutUrl){
+      el('billingStatus').textContent='O checkout retornou um endereço inválido.';
+      throw new Error('Checkout inválido.');
+    }
+    el('billingStatus').textContent='Abrindo Mercado Pago…';
+    location.assign(checkoutUrl);
+  });
+});
+
 async function requestTrial() {
   if(!state){
     document.querySelector('nav [data-go="profile"]')?.click();
@@ -248,7 +293,11 @@ async function requestTrial() {
   declinedTrial=false;
   await run(async()=>{await cloud.account.startTrial();await refresh();});
 }
-function startTrialFromTrustedClick(event){if(event.isTrusted)requestTrial()}
+function startTrialFromTrustedClick(event){
+  if(!event.isTrusted)return;
+  if(access.status==='pro_expired'){showProPlans();return}
+  requestTrial();
+}
 el('accountStartTrial').addEventListener('click',startTrialFromTrustedClick);
 el('proGateStart').addEventListener('click',startTrialFromTrustedClick);
 el('accountDeclineTrial').addEventListener('click',()=>{

@@ -29,8 +29,9 @@ function openDialog() {
     : decision.reason === 'expired'
       ? 'Rotinas, frascos e histórico continuam salvos. Você pode continuar usando a calculadora FREE.'
       : 'Rotinas, frascos e histórico fazem parte do PRO. Você pode testar por 7 dias, sem cartão.';
-  start.classList.toggle('hidden',decision.reason === 'expired' || (!decision.canStartTrial && !decision.needsLogin));
-  start.textContent = decision.needsLogin ? 'Entrar para começar' : 'Começar 7 dias grátis';
+  const commercial=decision.reason==='expired';
+  start.classList.toggle('hidden',!commercial && !decision.canStartTrial && !decision.needsLogin);
+  start.textContent = commercial ? 'Ver planos' : decision.needsLogin ? 'Entrar para começar' : 'Começar 7 dias grátis';
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else dialog.setAttribute('open','');
 }
@@ -50,6 +51,10 @@ start?.addEventListener('click',()=>{
   const decision=proGateDecision(currentAccess());
   closeDialog();
   if(decision.needsLogin) document.querySelector('nav [data-go="profile"]')?.click();
+  if(decision.reason==='expired'){
+    document.querySelector('nav [data-go="profile"]')?.click();
+    requestAnimationFrame(()=>document.getElementById('proOffer')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  }
   // O início real é tratado pelo módulo de conta e exige um clique confiável do navegador.
 });
 close?.addEventListener('click',closeDialog);
