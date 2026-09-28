@@ -16,10 +16,10 @@ test('abrir, cancelar e editar continuam usando os formulários existentes',asyn
   const js=await read('app.js');
   assert.match(js,/newRoutine'\)\.onclick=\(\)=>openRoutine\(\)/);
   assert.match(js,/cancelRoutine'\)\.onclick=async\(\)=>[^]*drafts\.delete\('routine-form'\)[^]*routineForm'\)\.classList\.add\('hidden'\)/);
-  assert.match(js,/window\.editR=id=>openRoutine/);
+  assert.match(js,/window\.editR=id=>\{let opened=openRoutine[^]*routineForm'\)\.scrollIntoView\(\{behavior:'smooth',block:'start'\}\)[^]*rName'\)\.focus\(\{preventScroll:true\}\)/);
   assert.match(js,/newVial'\)\.onclick=\(\)=>\{vialReturnToRoutine=false;openVial\(\)\}/);
   assert.match(js,/cancelVial'\)\.onclick=.*classList\.add\('hidden'\).*returnToRoutineFromVial\(\)/);
-  assert.match(js,/window\.editVial=id=>openVial/);
+  assert.match(js,/window\.editVial=id=>\{let opened=openVial[^]*vialForm'\)\.scrollIntoView\(\{behavior:'smooth',block:'start'\}\)[^]*vName'\)\.focus\(\{preventScroll:true\}\)/);
   assert.match(js,/function openRoutine[^]*requirePro/);
   assert.match(js,/function openVial[^]*requirePro/);
 });

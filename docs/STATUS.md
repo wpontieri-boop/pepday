@@ -397,12 +397,16 @@ confirmado enquanto existe sessão e a zerá-lo somente quando a ausência de se
 é confirmada. O cache V3 foi incrementado novamente. Regressão do bloco:
 `20/20 PASS`; suíte completa: `224/224 PASS`.
 
-Próximo gate: QA final de homologação com uma conta real no navegador, validando
-hidratação e as duas escolhas de conflito ponta a ponta. A automação administrativa
-desse smoke não foi incorporada porque a ferramenta bloqueou a orquestração de
-chave elevada; nenhuma credencial foi gravada no repositório. Produção, V2.9 e
-`main` permanecem intocados. A alteração da quantidade inicial do Frasco continua
-fora da edição genérica.
+O QA final de conflito em dois navegadores foi concluído manualmente com PASS:
+“Usar versão da conta” restaurou a versão remota confirmada e “Manter deste aparelho”
+recriou a intenção local sobre a versão remota atual, sincronizando sem duplicação.
+Produção, V2.9 e `main` permanecem intocados.
+
+Refinamento de UX posterior: ao editar Frasco ou Rotina a tela agora rola suavemente
+até o formulário no topo e posiciona o foco no campo de nome sem provocar novo salto
+de rolagem. O cache V3 foi incrementado para entregar o `app.js` atualizado.
+Teste direcionado de Rotinas/Frascos: `8/8 PASS`; suíte completa: `224/224 PASS`.
+A alteração da quantidade inicial do Frasco continua fora da edição genérica.
 
 ## Registro deste checkpoint
 
