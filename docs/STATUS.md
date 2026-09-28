@@ -505,6 +505,24 @@ Testes direcionados da landing: `7/7 PASS`; regressão completa: `264/264 PASS`.
 Smoke local: `/site/ = 200`, seringa presente, escala até 100 UI, alvo 20 UI e
 nenhum depoimento fictício publicado.
 
+Homologação pública isolada criada no Render, vinculada somente à branch
+`v3.0-bloco-b`, sem alterar V2.9, `main` ou produção. URL:
+`https://pepday-v3-homologacao.onrender.com/`; landing principal:
+`https://pepday-v3-homologacao.onrender.com/site/`; cartão:
+`https://pepday-v3-homologacao.onrender.com/cartao/`. O deploy do commit
+`e3bb660` ficou `LIVE`. Validação via internet pelo PC da loja: Home `200`,
+landing `200` com seringa/alvo 20 UI, cartão `200` e CSS da landing `200`.
+O build publica apenas os arquivos públicos necessários e exclui docs, testes,
+migrations e arquivos de ambiente.
+
+A landing de marketing passou a usar capturas reais da própria V3, geradas em sessão
+limpa do Chrome sem login e sem dados pessoais. Foram adicionadas
+`site/assets/calculator-u100-real.png` (Calculadora com resultado e seringa U-100)
+e `site/assets/home-real.png` (Home do PepDay). O Hero usa a tela real da
+Calculadora e a seção de demonstração usa a Home real, mantendo apenas um mockup
+conceitual de Frascos por enquanto. Testes direcionados continuam `7/7 PASS` e a
+regressão completa permanece `264/264 PASS`.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,

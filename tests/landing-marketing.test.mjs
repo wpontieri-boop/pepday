@@ -54,13 +54,21 @@ test('seringa U-100 mostra escala completa e marcador do resultado sem recomenda
   assert.match(css,/\.ms-target/);
 });
 
-test('landing usa tema claro e mockups visuais do próprio produto',async()=>{
-  const [html,css]=await Promise.all([read('site/index.html'),read('site/site.css')]);
+test('landing usa tema claro e telas reais do próprio produto',async()=>{
+  const [html,css,calculatorShot,homeShot]=await Promise.all([
+    read('site/index.html'),
+    read('site/site.css'),
+    readFile(new URL('../site/assets/calculator-u100-real.png',import.meta.url)),
+    readFile(new URL('../site/assets/home-real.png',import.meta.url))
+  ]);
   assert.match(html,/class="hero-visual"/);
-  assert.match(html,/class="phone phone-main"/);
+  assert.match(html,/calculator-u100-real\.png/);
+  assert.match(html,/home-real\.png/);
   assert.match(html,/class="phones"/);
   assert.match(css,/background:#fff/);
-  assert.match(css,/\.screen-dark/);
+  assert.match(css,/\.real-app-phone/);
+  assert.ok(calculatorShot.length>10000);
+  assert.ok(homeShot.length>10000);
 });
 
 test('landing não substitui a Home do app durante homologação',async()=>{
