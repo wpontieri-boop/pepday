@@ -331,12 +331,15 @@ em `REQUISITOS.txt`.
 
 ## Próximo passo exato
 
-Planejar e submeter à aprovação a fase B2.2-D2, dedicada ao backend versionado de
-Rotinas e às `routine_versions` imutáveis. Preservar o backend versionado de
-Frascos aprovado no D1, o repositório local-first, a outbox offline e a
-sincronização Application/Undo, mantendo as RPCs transacionais da B2.1 como
-autoridade para aplicação, movimento, saldo e Undo, sem reprocessar o legado nem
-alterar FREE/TRIAL/PRO.
+Concluir B2.2-D2-F com conexões PostgreSQL simultâneas no `pepday-v3-test`.
+D2-A/B/C/D estão implementados e enviados até `04befe7`. O pacote de concorrência
+D2-F foi preparado no Mac; as regressões locais passaram, mas a tentativa via
+conector não teve sobreposição e foi corretamente rejeitada. Cleanup confirmado
+com zero fixtures. Falta disponibilizar `SUPABASE_DB_URL` no ambiente para o
+runner direto; D2-F ainda não está aprovado. Detalhes e critérios em
+[B22D2F_REAL_VALIDATION.md](B22D2F_REAL_VALIDATION.md).
+
+Preservar D1, B2.1, repositório local-first, outbox, FREE/TRIAL/PRO, V2.9 e produção.
 
 ## Registro deste checkpoint
 
