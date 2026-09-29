@@ -47,3 +47,10 @@ test('ledger não armazena payload bruto do provedor', async () => {
   assert.doesNotMatch(table,/payload\s+jsonb/i);
   assert.doesNotMatch(table,/payer_email|card_token|access_token/i);
 });
+
+test('pagamento aprovado que estende o período vence ordem de webhook do preapproval', async () => {
+  const sql = await read('supabase/migrations/20260929220835_fix_billing_approved_payment_order.sql');
+  assert.match(sql,/if p_effect='payment_approved' then/);
+  assert.match(sql,/p_period_end<=s\.current_period_end/);
+  assert.match(sql,/elsif s\.last_provider_event_at is not null and p_provider_event_at<s\.last_provider_event_at/);
+});
