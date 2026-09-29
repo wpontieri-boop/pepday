@@ -27,7 +27,8 @@ test('painel admin explica corretamente que cartão não significa scan anônimo
   const html=await read('site/admin/index.html');
   assert.match(html,/contas atribuídas/i);
   assert.match(html,/Ainda não contamos scans anônimos do QR/i);
-  assert.match(html,/Nenhum nome, e-mail, rotina, frasco ou dado sensível é exibido/i);
+  assert.match(html,/gestão de códigos promocionais mostra somente os dados mínimos da conta/i);
+  assert.match(html,/nenhuma rotina, frasco ou dado de saúde é exibido/i);
 });
 
 test('painel usa sessão Supabase compartilhada e não cria conta nova',async()=>{

@@ -18,7 +18,7 @@
   <section class="card auth-card" id="authCard">
     <div class="eyebrow">ACESSO ADMINISTRATIVO</div>
     <h1>Entre com sua conta PepDay</h1>
-    <p>O painel mostra apenas números agregados. Nenhum nome, e-mail, rotina, frasco ou dado sensível é exibido.</p>
+    <p>As métricas são agregadas. A gestão de códigos promocionais mostra somente os dados mínimos da conta necessários para criar códigos exclusivos e conferir resgates; nenhuma rotina, frasco ou dado de saúde é exibido.</p>
     <form id="emailForm">
       <label>E-mail<input id="email" type="email" autocomplete="email" required></label>
       <button type="submit">Enviar código</button>
@@ -105,6 +105,32 @@
         <div><small>RECEITA RECEBIDA</small><strong id="revenueReceived">—</strong><span>entra após eventos financeiros do Mercado Pago</span></div>
       </div>
       <p class="muted">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
+    </section>
+
+    <section class="card promo-admin">
+      <div class="section-title">
+        <div><div class="eyebrow">ACESSO PROMOCIONAL</div><h2>Códigos PRO</h2></div>
+        <p>Crie AMIGO30, AMIGO60 ou AMIGO90, limite usos, defina validade e vincule a uma conta quando necessário.</p>
+      </div>
+      <form id="promoCreateForm" class="promo-form">
+        <div class="promo-presets">
+          <button type="button" data-promo-preset="30">AMIGO30</button>
+          <button type="button" data-promo-preset="60">AMIGO60</button>
+          <button type="button" data-promo-preset="90">AMIGO90</button>
+        </div>
+        <label>Código<input id="promoAdminCode" maxlength="32" autocomplete="off" placeholder="AMIGO30" required></label>
+        <label>Duração<select id="promoAdminDuration" required><option value="30">30 dias</option><option value="60">60 dias</option><option value="90">90 dias</option></select></label>
+        <label>Limite de usos<input id="promoAdminLimit" type="number" min="1" max="100000" value="1" required></label>
+        <label>Validade<input id="promoAdminExpiry" type="datetime-local"></label>
+        <label>E-mail exclusivo (opcional)<input id="promoAdminEmail" type="email" autocomplete="off" placeholder="pessoa@exemplo.com"></label>
+        <button type="submit">Criar código</button>
+      </form>
+      <p class="status" id="promoAdminStatus" role="status"></p>
+      <div id="promoCodeList" class="promo-code-list"></div>
+      <div id="promoRedemptions" class="promo-redemptions hidden">
+        <div class="promo-detail-head"><h3 id="promoRedemptionsTitle">Resgates</h3><button class="ghost" id="promoRedemptionsClose" type="button">Fechar</button></div>
+        <div id="promoRedemptionsList"></div>
+      </div>
     </section>
 
     <section class="card note">

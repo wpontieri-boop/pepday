@@ -65,3 +65,11 @@
 #accountPanel .account-delete-confirm label{display:block;margin-top:10px;font-size:13px}
 #accountPanel .account-delete-confirm input{width:100%;margin-top:7px}
 #accountPanel #accountDataStatus{min-height:20px;margin:8px 0 0}
+
+.promo-redeem{margin-top:14px;padding-top:14px;border-top:1px solid #183847}
+.promo-redeem>label{display:block;margin-bottom:8px;font-size:13px;font-weight:700;color:#d7e8f0}
+.promo-redeem-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.promo-redeem-row input{width:100%;text-transform:uppercase}
+.promo-redeem-row button{margin:0;white-space:nowrap}
+#promoStatus{min-height:20px;margin:8px 0 0}
+@media(max-width:520px){.promo-redeem-row{grid-template-columns:1fr}.promo-redeem-row button{width:100%}}

@@ -697,3 +697,23 @@ O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
 a implementação B1 e seu hardening foram enviados somente para
 `origin/v3.0-bloco-b`. A B1 está encerrada e aprovada, sem alteração em `main`,
 GitHub Pages ou V2.9.
+
+### Códigos promocionais PRO — checkpoint de 29/09/2026
+
+Foi adicionada em homologação a gestão de acesso PRO promocional independente do
+Mercado Pago. Os presets administrativos são AMIGO30, AMIGO60 e AMIGO90, com
+duração de 30/60/90 dias, limite de usos, validade, vínculo opcional a uma conta,
+registro de resgate e ativação/desativação pelo admin.
+
+Cada conta pode utilizar no máximo um código promocional. O resgate não altera
+`subscriptions`, não gera `billing_events` e não conta como pagamento/receita.
+Se houver trial ativo, o período promocional começa quando o trial terminar; uma
+assinatura paga ativa bloqueia o resgate. O entitlement retorna `source='promo'`
+somente durante a janela promocional ativa.
+
+Migrations aplicadas somente no `pepday-v3-test`:
+`20260929172504_promo_codes_access.sql` e
+`20260929172643_promo_codes_fk_indexes.sql`. As tabelas são backend-only, com
+RLS habilitado e acesso direto revogado. As RPCs administrativas exigem
+`profiles.role='admin'`; a consulta de resgates expõe ao admin apenas identidade
+mínima da conta e datas do acesso, nunca rotinas, frascos, doses ou dados de saúde.

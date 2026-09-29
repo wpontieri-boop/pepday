@@ -58,6 +58,8 @@ function enableMethods() {
   el('accountSaveProfile').disabled = busy || !legalReady();
   el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
   document.querySelectorAll('[data-pro-plan]').forEach(button=>button.disabled=busy);
+  if(el('promoRedeemButton'))el('promoRedeemButton').disabled=busy;
+  if(el('promoCode'))el('promoCode').disabled=busy;
   if(el('accountExportData'))el('accountExportData').disabled=busy;
   if(el('accountDeleteOpen'))el('accountDeleteOpen').disabled=busy;
   if(el('accountDeleteCancel'))el('accountDeleteCancel').disabled=busy;
@@ -75,6 +77,8 @@ function clearPrivateUi({preserveAccess=false}={}) {
   el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
   if(el('accountDataStatus'))el('accountDataStatus').textContent='';
+  if(el('promoStatus'))el('promoStatus').textContent='';
+  if(el('promoCode'))el('promoCode').value='';
   if(el('accountDeleteText'))el('accountDeleteText').value='';
   if(el('accountDeleteConfirm'))hide('accountDeleteConfirm');
   ['accountSignedIn','accountProfileForm','accountImport','accountImportReview','syncState'].forEach(id => hide(id));
@@ -348,6 +352,31 @@ function safeCheckoutUrl(value){
     )?url.href:null;
   }catch{return null}
 }
+
+el('promoRedeemForm').addEventListener('submit',event=>{
+  event.preventDefault();
+  if(busy)return;
+  const code=el('promoCode').value.trim().toUpperCase();
+  if(!code){el('promoStatus').textContent='Informe o código promocional.';return}
+  run(async()=>{
+    if(!state)throw new Error('Entre na sua conta antes de usar um código promocional.');
+    el('promoStatus').textContent='Validando código…';
+    const {data,error}=await cloud.client.rpc('redeem_promo_code',{p_code:code});
+    if(error){el('promoStatus').textContent=error?.message||'Não foi possível aplicar este código.';return}
+    const startsAt=data?.starts_at?new Date(data.starts_at):null;
+    const endsAt=data?.ends_at?new Date(data.ends_at):null;
+    const fmt=value=>value&&Number.isFinite(value.getTime())
+      ?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(value):null;
+    const starts=fmt(startsAt),ends=fmt(endsAt);
+    const message=starts&&ends
+      ?(startsAt.getTime()>Date.now()+60000
+        ?`Código aplicado. Seu PRO promocional começa em ${starts} e vai até ${ends}.`
+        :`Código aplicado. Seu PRO promocional está ativo até ${ends}.`)
+      :'Código aplicado com sucesso.';
+    await refresh();
+    status(message);
+  });
+});
 
 el('proOffer').addEventListener('click',event=>{
   const button=event.target.closest?.('button[data-pro-plan]');

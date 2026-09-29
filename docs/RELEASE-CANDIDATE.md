@@ -1,6 +1,6 @@
 # PepDay V3.0 — Matriz de Release Candidate
 
-Atualização: 28/09/2026.
+Atualização: 29/09/2026.
 
 Estados:
 - **PASS** — validado por teste automatizado, SQL real, smoke ou teste humano já aprovado.
@@ -38,7 +38,8 @@ A V2.9 permanece em produção.
 | trial único | PASS | serialização/idempotência |
 | FREE | PASS | calculadora/tutorial e gates |
 | PRO | PASS | entitlement/gates/backend |
-| admin | PASS | RPC real + UI agregada |
+| códigos promocionais PRO | PASS | 30/60/90 dias, limite/validade/exclusividade, resgate único, RLS/RPC admin no TEST |
+| admin | PASS | métricas agregadas + gestão controlada de códigos promocionais |
 | migração V2.9 | PASS | snapshot/backup/importação e teste humano |
 | sincronização | PASS | outbox/hydration/conflitos |
 | offline/online | PASS | sync engine e reconexão |
@@ -51,14 +52,15 @@ A V2.9 permanece em produção.
 | reativação | BLOQUEADO POR CONFIGURAÇÃO | state machine pronta; falta evento sandbox |
 | e-mails transacionais | BLOQUEADO POR CONFIGURAÇÃO | outbox/worker testados; falta ativação do provedor |
 | push | BLOQUEADO POR CONFIGURAÇÃO | fundação/SQL testados; falta ativação do provedor |
-| cache/update | PASS | cache profile-sync-10 + Render LIVE |
+| cache/update | PASS | cache profile-sync-13; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
 | Termos/Privacidade | PASS TÉCNICO | versões vigentes; revisão jurídica profissional pendente |
 
 ## Testes atuais
 
-- Regressão completa: **318/318 PASS**
+- Regressão completa: **338/338 PASS**
+- Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **36/36 PASS**
 - FCM: **11/11 PASS**

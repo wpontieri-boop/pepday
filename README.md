@@ -231,6 +231,22 @@ Recursos PRO incluem rotinas, frascos, histórico, previsão de término, alerta
 
 Fim de trial ou assinatura **não apaga dados**. O acesso pode ser bloqueado e restaurado depois.
 
+### Códigos promocionais PRO
+
+A homologação também suporta acesso PRO temporário por código promocional, separado de billing:
+
+- presets administrativos: **AMIGO30**, **AMIGO60** e **AMIGO90**;
+- duração de 30, 60 ou 90 dias;
+- limite de usos e data de validade configuráveis;
+- uso de código promocional limitado a uma vez por conta;
+- código pode ser exclusivo para uma conta já cadastrada;
+- resgate registra conta, horário de resgate, início e fim do acesso;
+- admin pode ativar/desativar e consultar resgates;
+- se o código for aplicado durante um trial ativo, o período promocional começa após o fim do trial;
+- assinatura paga ativa não aceita novo resgate promocional.
+
+Código promocional **não cria pagamento, receita ou conversão paga** e não grava evento financeiro do Mercado Pago. O entitlement identifica essa origem como `promo`.
+
 ## 9. Mercado Pago — pagamentos
 
 O Mercado Pago é o gateway inicial previsto para assinatura PRO.
@@ -332,7 +348,7 @@ O acesso exige:
 - conta autenticada;
 - `profiles.role='admin'`.
 
-O painel mostra somente métricas agregadas:
+As métricas comerciais do painel são agregadas:
 
 - novas contas;
 - contas atribuídas ao cartão/QR;
@@ -342,7 +358,7 @@ O painel mostra somente métricas agregadas:
 - PRO pagos ativos;
 - taxas cartão → trial e cartão → PRO.
 
-Ele não expõe nome, e-mail, UUID de cliente, rotina ou frasco.
+A área administrativa de códigos promocionais é uma exceção operacional controlada: para criar código exclusivo e conferir quem resgatou, ela pode mostrar ao admin nome/e-mail e identificador da conta estritamente necessários a essa gestão. Rotinas, frascos, doses e demais dados de saúde não são exibidos.
 
 “Cartão/QR” significa **conta atribuída ao cartão**, não scan anônimo.
 
@@ -531,7 +547,8 @@ Fundação concluída:
 - FCM preferências/outbox/worker;
 - landing comercial;
 - aquisição cartão/QR;
-- painel admin.
+- painel admin;
+- códigos promocionais PRO de 30/60/90 dias, separados de billing.
 
 Ativação real de Mercado Pago, Brevo e FCM ainda depende das credenciais/configurações correspondentes e testes de homologação próprios.
 

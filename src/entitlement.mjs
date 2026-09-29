@@ -73,8 +73,10 @@ export function entitlementPresentation(access, locale = 'pt-BR') {
     return { label:'PEPDAY PRO — TESTE GRÁTIS', description:notice ? `${base} ${notice.message}` : base };
   }
   if (normalized.status === 'pro_active' && normalized.pro) return {
-    label: 'PEPDAY PRO ATIVO',
-    description: end ? `Acesso PRO ativo até ${end}.` : 'Acesso PRO ativo.'
+    label: normalized.source === 'promo' ? 'PEPDAY PRO — CÓDIGO PROMOCIONAL' : 'PEPDAY PRO ATIVO',
+    description: normalized.source === 'promo'
+      ? (end ? `Acesso PRO promocional ativo até ${end}.` : 'Acesso PRO promocional ativo.')
+      : (end ? `Acesso PRO ativo até ${end}.` : 'Acesso PRO ativo.')
   };
   if (normalized.status === 'pro_expired') return {
     label: 'PEPDAY PRO EXPIRADO',

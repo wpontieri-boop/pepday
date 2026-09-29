@@ -230,7 +230,15 @@
           <li>Sincronização da conta</li>
         </ul>
         <p class="muted" id="billingStatus" role="status" aria-live="polite"></p>
-        <p class="pro-data-note">Seus dados permanecem salvos mesmo se o teste ou a assinatura terminar. Ao voltar ao PRO, tudo é liberado novamente.</p>
+        <form class="promo-redeem" id="promoRedeemForm">
+          <label for="promoCode">Tem um código de acesso PRO?</label>
+          <div class="promo-redeem-row">
+            <input id="promoCode" type="text" inputmode="text" autocomplete="off" maxlength="32" placeholder="Ex.: AMIGO30">
+            <button class="ghost" id="promoRedeemButton" type="submit">Aplicar código</button>
+          </div>
+          <p class="muted" id="promoStatus" role="status" aria-live="polite"></p>
+        </form>
+        <p class="pro-data-note">Seus dados permanecem salvos mesmo se o teste ou a assinatura terminar. Isso também vale para acesso por código promocional. Ao voltar ao PRO, tudo é liberado novamente.</p>
       </section>
       <section class="card form" id="accountPanel" aria-labelledby="accountTitle">
         <h3 id="accountTitle">Minha conta</h3>

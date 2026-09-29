@@ -5,6 +5,13 @@ const hide=(id,value=true)=>$(id)?.classList.toggle('hidden',value);
 const setText=(id,value)=>{if($(id))$(id).textContent=String(value??'—')};
 const fmt=n=>new Intl.NumberFormat('pt-BR').format(Number(n||0));
 const fmtPercent=n=>new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(Number(n||0))+'%';
+const fmtDate=value=>{
+  if(!value)return 'sem validade';
+  const date=new Date(value);
+  return Number.isFinite(date.getTime())
+    ?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(date)
+    :'—';
+};
 
 if(!globalThis.supabase?.createClient) throw new Error('SDK Supabase indisponível.');
 const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{
@@ -21,6 +28,7 @@ let days=30;
 let busy=false;
 
 function authStatus(message){setText('authStatus',message)}
+function promoStatus(message){setText('promoAdminStatus',message)}
 function setBusy(value){
   busy=value;
   document.querySelectorAll('button').forEach(button=>button.disabled=value);
@@ -65,6 +73,53 @@ function renderMetrics(data){
     :'');
 }
 
+function renderPromoCodes(rows){
+  const list=$('promoCodeList');if(!list)return;
+  list.replaceChildren();
+  if(!Array.isArray(rows)||rows.length===0){
+    const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum código promocional criado ainda.';list.append(empty);return;
+  }
+  for(const row of rows){
+    const card=document.createElement('article');card.className='promo-code-row';
+    const head=document.createElement('div');head.className='promo-code-head';
+    const code=document.createElement('strong');code.textContent=row.code;
+    const badge=document.createElement('span');badge.textContent=row.active?'ATIVO':'DESATIVADO';badge.className=row.active?'active':'inactive';
+    head.append(code,badge);
+    const meta=document.createElement('p');
+    meta.textContent=`${row.duration_days} dias • ${row.redemption_count}/${row.max_redemptions} uso(s) • ${row.exclusive?'exclusivo • ':''}validade: ${fmtDate(row.expires_at)}`;
+    const actions=document.createElement('div');actions.className='promo-code-actions';
+    const uses=document.createElement('button');uses.type='button';uses.className='ghost';uses.dataset.promoUses=row.code;uses.textContent='Ver resgates';
+    const toggle=document.createElement('button');toggle.type='button';toggle.dataset.promoToggle=row.code;toggle.dataset.promoActive=String(!row.active);
+    toggle.textContent=row.active?'Desativar':'Ativar';
+    actions.append(uses,toggle);card.append(head,meta,actions);list.append(card);
+  }
+}
+
+async function loadPromoCodes(){
+  const {data,error}=await client.rpc('get_admin_promo_codes');
+  if(error)throw error;
+  renderPromoCodes(data);
+}
+
+async function showPromoRedemptions(code){
+  const {data,error}=await client.rpc('get_admin_promo_redemptions',{p_code:code});
+  if(error)throw error;
+  setText('promoRedemptionsTitle',`Resgates — ${code}`);
+  const list=$('promoRedemptionsList');list.replaceChildren();
+  if(!Array.isArray(data)||data.length===0){
+    const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum resgate registrado.';list.append(empty);
+  }else{
+    for(const row of data){
+      const item=document.createElement('div');item.className='promo-redemption-row';
+      const identity=document.createElement('strong');identity.textContent=row.email||row.user_id;
+      const detail=document.createElement('span');
+      detail.textContent=`${row.name?row.name+' • ':''}resgatado em ${fmtDate(row.redeemed_at)} • acesso até ${fmtDate(row.ends_at)}`;
+      item.append(identity,detail);list.append(item);
+    }
+  }
+  hide('promoRedemptions',false);
+}
+
 async function loadMetrics(){
   if(busy)return;
   setBusy(true);
@@ -76,6 +131,7 @@ async function loadMetrics(){
     hide('authCard');
     hide('dashboard',false);
     renderMetrics(data);
+    await loadPromoCodes();
   }catch(error){
     if(error?.code==='42501'){
       hide('dashboard');
@@ -124,6 +180,59 @@ document.querySelectorAll('[data-days]').forEach(button=>button.addEventListener
   document.querySelectorAll('[data-days]').forEach(item=>item.classList.toggle('active',item===button));
   await loadMetrics();
 }));
+
+document.querySelectorAll('[data-promo-preset]').forEach(button=>button.addEventListener('click',()=>{
+  const days=button.dataset.promoPreset;
+  $('promoAdminCode').value=`AMIGO${days}`;
+  $('promoAdminDuration').value=days;
+  $('promoAdminCode').focus();
+}));
+
+$('promoCreateForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy)return;
+  const code=$('promoAdminCode').value.trim().toUpperCase();
+  const duration=Number($('promoAdminDuration').value);
+  const limit=Number($('promoAdminLimit').value);
+  const expiry=$('promoAdminExpiry').value;
+  const email=$('promoAdminEmail').value.trim();
+  setBusy(true);promoStatus('Criando código…');
+  try{
+    const {error}=await client.rpc('admin_create_promo_code',{
+      p_code:code,p_duration_days:duration,p_max_redemptions:limit,
+      p_expires_at:expiry?new Date(expiry).toISOString():null,
+      p_exclusive_email:email||null
+    });
+    if(error)throw error;
+    promoStatus(`${code} criado com sucesso.`);
+    $('promoCreateForm').reset();$('promoAdminLimit').value='1';$('promoAdminDuration').value='30';
+    await loadPromoCodes();
+  }catch(error){
+    console.error('PepDay promo create:',error?.code||error?.name||'erro');
+    promoStatus(error?.message||'Não foi possível criar o código.');
+  }finally{setBusy(false)}
+});
+
+$('promoCodeList')?.addEventListener('click',async event=>{
+  const uses=event.target.closest?.('button[data-promo-uses]');
+  const toggle=event.target.closest?.('button[data-promo-toggle]');
+  if(busy||(!uses&&!toggle))return;
+  setBusy(true);
+  try{
+    if(uses)await showPromoRedemptions(uses.dataset.promoUses);
+    if(toggle){
+      const code=toggle.dataset.promoToggle,active=toggle.dataset.promoActive==='true';
+      const {error}=await client.rpc('admin_set_promo_code_active',{p_code:code,p_active:active});
+      if(error)throw error;
+      promoStatus(`${code} ${active?'ativado':'desativado'}.`);
+      await loadPromoCodes();
+    }
+  }catch(error){
+    console.error('PepDay promo admin:',error?.code||error?.name||'erro');
+    promoStatus(error?.message||'Não foi possível concluir a ação.');
+  }finally{setBusy(false)}
+});
+
+$('promoRedemptionsClose')?.addEventListener('click',()=>hide('promoRedemptions'));
 
 $('refresh')?.addEventListener('click',loadMetrics);
 $('logout')?.addEventListener('click',async()=>{
