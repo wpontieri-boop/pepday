@@ -591,6 +591,48 @@ O worker FCM está preparado em código, mas NÃO foi implantado/ativado porque 
 foi configurada a service account real do Firebase no ambiente de teste. Nenhuma
 credencial Firebase foi gravada no repositório e nenhum push real foi enviado.
 
+
+O Bloco D de direitos do titular e documentos jurídicos foi iniciado/concluído na
+fundação funcional. A migration `20260929005558_block_d_data_rights.sql` foi aplicada
+somente no `pepday-v3-test`. A RPC `export_my_data()` exige `auth.uid()` e gera
+JSON com cadastro/aceites, preferências, plano/trial, frascos, rotinas/versões,
+aplicações, movimentações, importações e atribuição de aquisição. O arquivo não inclui
+role interna, audit logs, billing events, tokens de push, instalações de push ou
+outboxes técnicos. Validação SQL real com rollback:
+`PASS FINAL BLOCO D EXPORT — owner + coleções + sem dados técnicos internos + rollback`.
+
+A Edge Function `account-delete` foi implantada apenas no projeto de teste e está
+`ACTIVE` versão 1. Ela exige confirmação literal `EXCLUIR`, valida o JWT do usuário
+no Supabase Auth e consulta a assinatura pelo backend. Se houver preapproval Mercado
+Pago que ainda precise ser cancelada, a função exige confirmação canônica de
+`status=canceled` antes de remover `auth.users`; falha de cancelamento impede a
+exclusão automática. A deleção do Auth usa hard delete e as FKs preparadas anteriormente
+cascateiam os dados PepDay. A função não foi executada contra a conta de Wagner.
+Smoke remoto seguro: confirmação incorreta retorna `400 DELETE_CONFIRMATION_REQUIRED`
+e confirmação correta sem autenticação retorna `401 AUTH_REQUIRED`. Teste destrutivo
+real ficará para uma conta descartável.
+
+O Perfil agora separa três operações: exportar dados confirmados da conta em JSON;
+excluir permanentemente a conta mediante confirmação digitada; e apagar apenas os
+dados locais do aparelho. `clearUserData()` foi corrigido para limpar todas as dez
+stores do escopo ativo (incluindo histórico, outbox, conflitos e recibos), preservando
+outros usuários e o `device:bootstrap`. A limpeza local após exclusão só acontece
+depois que o backend confirma `ACCOUNT_DELETED`.
+
+Termos e Política de Privacidade foram atualizados para
+`terms-2026-09-28` / `privacy-2026-09-28`, com URLs na homologação Render. A conta
+passa a considerar o cadastro juridicamente atual apenas quando as versões aceitas
+coincidem com as versões públicas; versões antigas preservam os dados e solicitam
+revisão/novo aceite. Os documentos descrevem Supabase, Google, Mercado Pago, Brevo e
+Firebase/FCM, distinguem comunicações essenciais/operacionais de marketing opcional,
+registram exportação/exclusão/gestão local e mantêm explícita a revisão jurídica final
+antes do lançamento comercial.
+
+O cache V3 foi incrementado de `profile-sync-9` para `profile-sync-10` e passou a
+incluir Termos e Privacidade, preservando a política de atualização/remoção exclusiva
+de caches `pepday-v3-*`. Testes direcionados de jurídico/direitos/local: `36/36 PASS`;
+regressão completa: `307/307 PASS`. Smoke local: Home, Termos e Privacidade `200`.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,

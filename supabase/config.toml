@@ -25,3 +25,9 @@ enabled = true
 verify_jwt = false
 # Worker interno: autenticação por segredo próprio da função.
 entrypoint = "./functions/fcm-push-worker/index.mjs"
+
+[functions.account-delete]
+enabled = true
+verify_jwt = false
+# A função valida o JWT do usuário diretamente no Supabase Auth e cancela billing antes da exclusão.
+entrypoint = "./functions/account-delete/index.mjs"

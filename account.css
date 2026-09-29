@@ -49,3 +49,11 @@
 #billingStatus{min-height:20px;margin:8px 0 0}
 .pro-offer :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 @media(max-width:620px){.pro-plan-grid{grid-template-columns:1fr}.pro-benefits{grid-template-columns:1fr}}
+
+#accountPanel .data-rights{margin-top:14px;border:1px solid #1d4053}
+#accountPanel .data-rights h3{margin:0 0 8px}
+#accountPanel .account-delete-confirm{margin-top:14px;padding:14px;border:1px solid #6b3434;border-radius:12px;background:#2a1115}
+#accountPanel .account-delete-confirm strong{display:block;margin-bottom:6px;color:#ffd8dc}
+#accountPanel .account-delete-confirm label{display:block;margin-top:10px;font-size:13px}
+#accountPanel .account-delete-confirm input{width:100%;margin-top:7px}
+#accountPanel #accountDataStatus{min-height:20px;margin:8px 0 0}

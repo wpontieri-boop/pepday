@@ -253,8 +253,27 @@
             </div>
           </div>
           <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
+          <div class="account-details data-rights" id="accountDataRights">
+            <h3>Seus dados</h3>
+            <p class="muted">Exporte os dados confirmados na sua conta em JSON. Alterações ainda não sincronizadas neste aparelho podem não aparecer no arquivo.</p>
+            <div class="account-actions">
+              <button class="ghost" id="accountExportData" type="button">Exportar dados da conta</button>
+              <button class="danger" id="accountDeleteOpen" type="button">Excluir minha conta</button>
+            </div>
+            <p class="muted" id="accountDataStatus" role="status" aria-live="polite"></p>
+            <div class="account-delete-confirm hidden" id="accountDeleteConfirm">
+              <strong>Exclusão permanente da conta</strong>
+              <p class="muted">A conta e os dados vinculados no PepDay serão removidos. Se houver assinatura recorrente ativa, o PepDay tentará cancelá-la antes. Exporte seus dados primeiro se quiser guardar uma cópia.</p>
+              <label for="accountDeleteText">Digite <b>EXCLUIR</b> para confirmar</label>
+              <input id="accountDeleteText" autocomplete="off" maxlength="7" spellcheck="false">
+              <div class="account-actions">
+                <button class="danger" id="accountDeleteConfirmBtn" type="button" disabled>Excluir definitivamente</button>
+                <button class="ghost" id="accountDeleteCancel" type="button">Cancelar</button>
+              </div>
+            </div>
+          </div>
           <form id="accountProfileForm" class="hidden">
-            <h3>Complete seu cadastro</h3>
+            <h3 id="accountProfileTitle">Complete seu cadastro</h3>
             <label for="accountName">Nome</label><input id="accountName" autocomplete="name" maxlength="200" required>
             <label for="accountCountry">País</label><input id="accountCountry" value="BR" pattern="[A-Za-z]{2}" minlength="2" maxlength="2" required aria-describedby="countryHint">
             <p class="muted" id="countryHint">Código de duas letras. Brasil: BR.</p>

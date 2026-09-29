@@ -41,12 +41,21 @@ function legalReady() {
       try { return new URL(value,location.href).protocol === 'https:'; } catch { return false; }
     }));
 }
+function profileLegalCurrent(profile){
+  return Boolean(profile?.is_adult_confirmed && profile?.terms_accepted_at && profile?.privacy_accepted_at &&
+    profile?.terms_version===config.termsVersion && profile?.privacy_version===config.privacyVersion);
+}
 function enableMethods() {
   el('accountGoogle').disabled = busy || !methods.google || !config.authRedirectUrl;
   el('accountSendCode').disabled = busy || !methods.email;
   el('accountSaveProfile').disabled = busy || !legalReady();
   el('accountStageImport').disabled = busy || importErrors.length>0 || !el('accountImportConsent').checked;
   document.querySelectorAll('[data-pro-plan]').forEach(button=>button.disabled=busy);
+  if(el('accountExportData'))el('accountExportData').disabled=busy;
+  if(el('accountDeleteOpen'))el('accountDeleteOpen').disabled=busy;
+  if(el('accountDeleteCancel'))el('accountDeleteCancel').disabled=busy;
+  if(el('accountDeleteConfirmBtn'))el('accountDeleteConfirmBtn').disabled=
+    busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
 }
 function clearPrivateUi({preserveAccess=false}={}) {
   state = null; importErrors=[]; importMode='import'; currentRepository=null;
@@ -58,6 +67,9 @@ function clearPrivateUi({preserveAccess=false}={}) {
   el('accountImportSummary').textContent = '';
   el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
+  if(el('accountDataStatus'))el('accountDataStatus').textContent='';
+  if(el('accountDeleteText'))el('accountDeleteText').value='';
+  if(el('accountDeleteConfirm'))hide('accountDeleteConfirm');
   ['accountSignedIn','accountProfileForm','accountImport','accountImportReview','syncState'].forEach(id => hide(id));
 }
 function stopSync(){syncEngine?.stop();syncEngine=null}
@@ -123,6 +135,22 @@ async function run(action) {
   try { await action(); } catch(error) { status(accountError(error)); }
   finally { busy=false; enableMethods(); }
 }
+function dataStatus(message){
+  if(el('accountDataStatus'))el('accountDataStatus').textContent=message||'';
+}
+function downloadJson(data){
+  const stamp=new Date().toISOString().slice(0,10);
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const anchor=document.createElement('a');
+  anchor.href=url;
+  anchor.download=`pepday-dados-${stamp}.json`;
+  anchor.rel='noopener';
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),0);
+}
 async function refresh() {
   const current = ++generation;
   stopSync();clearPrivateUi({preserveAccess:true});
@@ -161,17 +189,20 @@ async function refresh() {
     }
     startSync(repository);
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
-    const complete = next.profile.is_adult_confirmed && next.profile.terms_accepted_at && next.profile.privacy_accepted_at;
-    publishAccess({...next.entitlement,signedIn:true},Boolean(complete));
+    const complete=profileLegalCurrent(next.profile);
+    publishAccess({...next.entitlement,signedIn:true},complete);
     if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
       :'Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');
-    hide('accountProfileForm',Boolean(complete));
+    hide('accountProfileForm',complete);
     if (!complete) {
+      const priorLegal=Boolean(next.profile.terms_accepted_at||next.profile.privacy_accepted_at);
+      el('accountProfileTitle').textContent=priorLegal?'Revise os documentos atualizados':'Complete seu cadastro';
       el('accountName').value=next.profile.name || '';
       el('accountCountry').value=next.profile.country || 'BR';
       el('accountTimezone').textContent=`Fuso horário: ${timezone}`;
+      if(priorLegal)status('Há uma versão atualizada dos Termos de Uso e da Política de Privacidade. Seus dados foram preservados; revise e aceite os documentos atuais para continuar usando os recursos da conta.');
     }
     // Até os aceites serem reais, não enviar conteúdo potencialmente sensível.
     if (complete && !later.has(next.user.id)) {
@@ -231,6 +262,60 @@ el('accountLogout').addEventListener('click',()=>run(async()=>{
   hide('accountCodeForm'); hide('accountSignedOut',false);
   status('Você saiu da conta. Os dados locais deste aparelho foram preservados.');
 }));
+
+el('accountExportData').addEventListener('click',()=>run(async()=>{
+  if(!state)throw new Error('Entre na conta para exportar seus dados.');
+  dataStatus('Preparando seu arquivo…');
+  try{await syncEngine?.trigger()}catch{}
+  const data=await cloud.account.exportData();
+  downloadJson(data);
+  dataStatus('Exportação gerada. O arquivo contém os dados confirmados na sua conta.');
+}));
+
+el('accountDeleteOpen').addEventListener('click',()=>{
+  if(busy||!state)return;
+  el('accountDeleteText').value='';
+  hide('accountDeleteConfirm',false);
+  dataStatus('Revise o aviso e digite EXCLUIR para confirmar.');
+  enableMethods();
+  el('accountDeleteText').focus();
+});
+
+el('accountDeleteCancel').addEventListener('click',()=>{
+  if(busy)return;
+  el('accountDeleteText').value='';
+  hide('accountDeleteConfirm');
+  dataStatus('');
+  enableMethods();
+});
+
+el('accountDeleteText').addEventListener('input',enableMethods);
+
+el('accountDeleteConfirmBtn').addEventListener('click',()=>run(async()=>{
+  if(!state||el('accountDeleteText').value.trim()!=='EXCLUIR')return;
+  const repository=currentRepository;
+  const userId=state.user.id;
+  dataStatus('Excluindo sua conta com segurança…');
+  const {data,error}=await cloud.client.functions.invoke('account-delete',{
+    body:{confirm:'EXCLUIR'}
+  });
+  if(error||data?.code!=='ACCOUNT_DELETED'){
+    dataStatus('Não foi possível excluir a conta agora. Nenhum dado local foi apagado.');
+    if(error)throw error;
+    throw new Error('Exclusão não confirmada.');
+  }
+
+  if(repository?.accountScope===`user:${userId}`)await repository.clearUserData();
+  window.dispatchEvent(new CustomEvent('pepday:local-data-cleared',{detail:{reason:'account-deleted'}}));
+
+  ++generation;stopSync();currentRepository=null;repositoryScope?.suspend();
+  try{await cloud.account.logout()}catch{}
+  await repositoryScope?.signedOut();
+  clearPrivateUi();
+  pendingEmail='';el('accountEmailForm').reset();el('accountEmail').readOnly=false;
+  hide('accountCodeForm');hide('accountSignedOut',false);
+  status('Conta excluída. Os dados vinculados a esta conta foram removidos e os dados locais deste aparelho foram limpos.');
+}));
 el('accountProfileForm').addEventListener('submit',event=>{
   event.preventDefault(); if (!legalReady() || !state) return;
   run(async()=>{
@@ -287,7 +372,7 @@ async function requestTrial() {
     status('Entre ou crie sua conta para começar o teste PRO gratuito.');
     return;
   }
-  const complete=state.profile.is_adult_confirmed && state.profile.terms_accepted_at && state.profile.privacy_accepted_at;
+  const complete=profileLegalCurrent(state.profile);
   if(!complete){
     document.querySelector('nav [data-go="profile"]')?.click();
     status('Conclua o cadastro e os aceites antes de começar o teste PRO.');

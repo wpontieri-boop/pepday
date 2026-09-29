@@ -46,6 +46,7 @@ export function createAccountService(client, { redirectTo = null, allowedRedirec
       }));
     },
     entitlement: () => unwrap(client.rpc('get_entitlement')),
+    exportData: () => unwrap(client.rpc('export_my_data')),
     // Só ligar ao clique explícito em “Começar 7 dias grátis”.
     startTrial: () => unwrap(client.rpc('start_trial'))
   });

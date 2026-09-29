@@ -275,3 +275,25 @@ test('somente local-db encapsula chamadas IndexedDB e app não grava chaves lega
   assert.match(serviceWorker,/pepday-v3-profile-sync/);
   assert.doesNotMatch(serviceWorker,/indexedDB|deleteDatabase/);
 });
+
+
+test('clearUserData apaga todo o escopo ativo e preserva outros escopos e bootstrap',async()=>{
+  const database=new MemoryDatabase();
+  const repository=createPepDayRepository({database,accountScope:'user:alpha'});
+  for(const name of LOCAL_STORE_NAMES){
+    await database.write(name,async store=>{
+      await store.put({accountScope:'user:alpha',id:`alpha-${name}`,data:{owner:'alpha'}});
+      await store.put({accountScope:'user:beta',id:`beta-${name}`,data:{owner:'beta'}});
+      if(name==='meta')await store.put({accountScope:'device:bootstrap',id:'installation-id',data:{value:'device-1'}});
+    });
+  }
+  await repository.clearUserData();
+  for(const name of LOCAL_STORE_NAMES){
+    const alpha=await database.read(name,store=>store.getAllByScope('user:alpha'));
+    const beta=await database.read(name,store=>store.getAllByScope('user:beta'));
+    assert.equal(alpha.length,0,`${name} deve ser limpo no escopo ativo`);
+    assert.equal(beta.length,1,`${name} de outro usuário deve ser preservado`);
+  }
+  const bootstrap=await database.read('meta',store=>store.get('device:bootstrap','installation-id'));
+  assert.equal(bootstrap.data.value,'device-1');
+});

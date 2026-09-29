@@ -74,7 +74,7 @@ export async function loadAccountState(client, account) {
   }
   if (!identity.data?.user) return { status: 'signed_out' };
   const user = identity.data.user;
-  const profile = await client.from('profiles').select('id,name,email,country,timezone,is_adult_confirmed,terms_accepted_at,privacy_accepted_at')
+  const profile = await client.from('profiles').select('id,name,email,country,timezone,is_adult_confirmed,terms_accepted_at,terms_version,privacy_accepted_at,privacy_version')
     .eq('id',user.id).single();
   if (profile.error) throw profile.error;
   const entitlement = await account.entitlement();

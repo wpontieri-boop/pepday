@@ -357,7 +357,10 @@ export function createPepDayRepository({database,accountScope,outboxOptions={}})
     deleteRoutineWithOutbox(id,options){return deleteEntityWithOutbox('routines',id,options)},
     deleteVialWithOutbox(id,options){return deleteEntityWithOutbox('vials',id,options)},
     async clearUserData(){
-      const scope=getScope(),stores=['routines','vials','drafts'];
+      const scope=getScope(),stores=[
+        'vials','routines','routineVersions','applications','vialMovements',
+        'outbox','conflicts','drafts','meta','migrationReceipts'
+      ];
       await database.transaction(stores,'readwrite',async txStores=>{
         for(const name of stores){
           const rows=await txStores[name].getAllByScope(scope);

@@ -1,7 +1,7 @@
 // Cache exclusivo da homologação V3.0. Não remove o cache da V2.9.
 const SCOPE_PATH=new URL(self.registration.scope).pathname;
-const CACHE='pepday-v3-profile-sync-9-'+SCOPE_PATH;
-const ASSETS=['./','./index.html','./cartao/','./style.css','./account.css','./app.js',
+const CACHE='pepday-v3-profile-sync-10-'+SCOPE_PATH;
+const ASSETS=['./','./index.html','./cartao/','./termos.html','./privacidade.html','./style.css','./account.css','./app.js',
   './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/acquisition.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
   './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs',
   './src/local-db.mjs','./src/pepday-repository.mjs','./src/local-data-migration.mjs','./src/sync-outbox.mjs',

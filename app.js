@@ -13,6 +13,7 @@ function clearPrivateLocalUi(state='loading',message=''){
   if(['routines','vials'].includes(document.querySelector('.screen.active')?.id))go('home');
   renderLocalData();
 }
+window.addEventListener('pepday:local-data-cleared',()=>clearPrivateLocalUi('loading'));
 
 const repositoryBase=(async()=>{
   if(globalThis.PepDayDisableRepositoryBootstrap===true)return null;
