@@ -550,12 +550,14 @@ service-role-only de enqueue, claim e conclusão. O registro guarda apenas user_
 tipo do evento, dedupe e metadados de entrega — não armazena endereço de e-mail,
 nome, rotina, frasco ou dado de saúde.
 
-O worker `brevo-email-worker` está preparado em código, mas NÃO foi implantado nem
-ativado porque ainda não existem `BREVO_API_KEY`, templates e segredo interno
-configurados. Ele exige segredo próprio antes de reivindicar eventos, resolve o
-destinatário somente no backend, escolhe template por variável de ambiente, usa o
-endpoint fixo do Brevo e implementa retry/backoff sem logar destinatário, payload ou
-segredos. O segredo interno é comparado por SHA-256.
+O worker `brevo-email-worker` foi implantado no `pepday-v3-test` em 29/09/2026,
+com `verify_jwt=false` e autenticação própria por `PEPDAY_EMAIL_WORKER_SECRET`.
+O segredo interno foi gerado e salvo diretamente nos secrets do Supabase TEST, sem
+ser gravado no repositório, e `PEPDAY_PUBLIC_URL` aponta para a homologação Render.
+O envio real continua BLOQUEADO até configurar a `BREVO_API_KEY` e os IDs dos
+templates transacionais `BREVO_TEMPLATE_*`. O worker resolve o destinatário somente
+no backend, escolhe template por variável de ambiente, usa o endpoint fixo do Brevo
+e implementa retry/backoff sem logar destinatário, payload ou segredos.
 
 Validação SQL real do outbox:
 `PASS FINAL BLOCO C BREVO OUTBOX — enqueue + dedupe + claim lock + complete +
