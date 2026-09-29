@@ -35,9 +35,15 @@ function backendHeaders(key){
   return headers;
 }
 
+const corsHeaders={
+  "Access-Control-Allow-Origin":"*",
+  "Access-Control-Allow-Methods":"POST, OPTIONS",
+  "Access-Control-Allow-Headers":"authorization, content-type, apikey, x-client-info",
+};
+
 function response(status,code,extra={}){
   return Response.json({ok:status>=200&&status<300,code,...extra},{
-    status,headers:{"Cache-Control":"no-store"}
+    status,headers:{...corsHeaders,"Cache-Control":"no-store"}
   });
 }
 
@@ -89,6 +95,7 @@ function returnUrl(){
 export default {
   async fetch(req){
     try{
+      if(req.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders});
       if(req.method!=="POST")return response(405,"METHOD_NOT_ALLOWED");
       const size=Number(req.headers.get("content-length")||0);
       if(Number.isFinite(size)&&size>4096)return response(413,"REQUEST_TOO_LARGE");

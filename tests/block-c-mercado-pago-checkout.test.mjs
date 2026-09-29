@@ -51,6 +51,15 @@ test('assinatura paga ativa não abre nova assinatura paralela',()=>{
   assert.equal(canCreateCheckout({status:'trial',provider_subscription_id:null}),true);
 });
 
+test('Edge Function responde preflight CORS antes do checkout',async()=>{
+  const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
+  assert.match(index,/Access-Control-Allow-Origin/);
+  assert.match(index,/Access-Control-Allow-Methods[^\n]*POST, OPTIONS/);
+  assert.match(index,/Access-Control-Allow-Headers[^\n]*authorization/);
+  assert.match(index,/req\.method===\"OPTIONS\"/);
+  assert.match(index,/status:204/);
+});
+
 test('Edge Function valida JWT do usuário antes de criar preapproval',async()=>{
   const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
   assert.ok(index.indexOf('authenticatedUser')<index.indexOf('"https://api.mercadopago.com/preapproval"'));
