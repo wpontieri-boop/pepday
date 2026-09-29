@@ -344,10 +344,10 @@ hr{border-color:rgba(85,155,185,.12)}
 .tutorial-replay-btn{width:100%;margin-bottom:10px}
 .tutorial-overlay{position:fixed;inset:0;z-index:9999}
 .tutorial-overlay.hidden{display:none!important}
-.tutorial-dim{position:absolute;inset:0;background:rgba(0,7,12,.79);backdrop-filter:blur(1.5px)}
+.tutorial-dim{position:absolute;inset:0;background:transparent}
 .tutorial-spotlight{
-  position:fixed;z-index:10001;border:2px solid #28dcff;border-radius:16px;
-  box-shadow:0 0 0 4px rgba(40,220,255,.11),0 0 28px rgba(24,201,255,.58);
+  position:fixed;z-index:10001;border:2px solid #28dcff;border-radius:16px;background:transparent;
+  box-shadow:0 0 0 9999px rgba(0,7,12,.79),0 0 0 4px rgba(40,220,255,.11),0 0 28px rgba(24,201,255,.58);
   transition:.26s ease;pointer-events:none
 }
 .tutorial-arrow{
@@ -358,6 +358,8 @@ hr{border-color:rgba(85,155,185,.12)}
 .tutorial-card{
   position:fixed;z-index:10002;left:50%;transform:translateX(-50%);
   width:min(calc(100vw - 28px),420px);padding:18px;border-radius:20px;
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
   background:linear-gradient(145deg,#0c2739,#071722);
   border:1px solid rgba(61,206,244,.36);
   box-shadow:0 22px 60px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.04);

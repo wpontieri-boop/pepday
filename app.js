@@ -89,8 +89,9 @@ async function localOperation(action){
 function isoToday(){let d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function br(n,max=4){return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:max})}
 const proScreens=new Set(['routines','vials']);
+const tutorialNavigationToken=Object.freeze({});
 function requirePro(context){return globalThis.PepDayAccess?.requirePro?.(context)===true}
-function go(id){if(proScreens.has(id)&&!requirePro(`navigate:${id}`))return false;if(proScreens.has(id)&&localDataState!=='ready')return false;$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials();return true}
+function go(id,navigationToken=null){const tutorialDemo=navigationToken===tutorialNavigationToken;if(proScreens.has(id)&&!tutorialDemo&&!requirePro(`navigate:${id}`))return false;if(proScreens.has(id)&&!tutorialDemo&&localDataState!=='ready')return false;$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id)); $$('nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id)); window.scrollTo({top:0,behavior:'smooth'}); if(id==='home') renderToday(); if(id==='routines') renderRoutines(); if(id==='vials') renderVials();return true}
 Object.defineProperty(window,'PepDayNavigation',{value:Object.freeze({go}),writable:false,configurable:false});
 $$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 
@@ -636,43 +637,51 @@ const tutorialSteps = [
 function tutorialEl(id){ return document.getElementById(id); }
 
 function tutorialPosition(target){
-  const spot = tutorialEl('tutorialSpotlight');
-  const card = tutorialEl('tutorialCard');
-  const arrow = tutorialEl('tutorialArrow');
-  if(!target || !spot || !card) return;
+  const spot=tutorialEl('tutorialSpotlight');
+  const card=tutorialEl('tutorialCard');
+  const arrow=tutorialEl('tutorialArrow');
+  if(!target||!spot||!card||!arrow)return;
 
-  const r = target.getBoundingClientRect();
-  const pad = 7;
-  spot.style.left = Math.max(6, r.left-pad) + 'px';
-  spot.style.top = Math.max(6, r.top-pad) + 'px';
-  spot.style.width = Math.min(window.innerWidth-12, r.width+pad*2) + 'px';
-  spot.style.height = (r.height+pad*2) + 'px';
+  const viewport=window.visualViewport;
+  const viewTop=viewport?.offsetTop||0;
+  const viewLeft=viewport?.offsetLeft||0;
+  const viewH=viewport?.height||window.innerHeight;
+  const viewW=viewport?.width||window.innerWidth;
+  const viewBottom=viewTop+viewH;
+  const margin=12;
+  const r=target.getBoundingClientRect();
+  const pad=7;
 
-  // Place card where it does not cover the highlighted area.
-  const cardH = Math.min(card.offsetHeight || 260, window.innerHeight * .62);
-  const roomBelow = window.innerHeight - r.bottom;
-  const below = roomBelow > cardH + 42;
+  const spotLeft=Math.max(viewLeft+6,r.left-pad);
+  const spotTop=Math.max(viewTop+6,r.top-pad);
+  spot.style.left=spotLeft+'px';
+  spot.style.top=spotTop+'px';
+  spot.style.width=Math.max(0,Math.min(viewLeft+viewW-6,r.right+pad)-spotLeft)+'px';
+  spot.style.height=Math.max(0,Math.min(viewBottom-6,r.bottom+pad)-spotTop)+'px';
 
-  card.classList.toggle('tutorial-card-top', !below);
-  card.classList.toggle('tutorial-card-bottom', below);
+  // Mede o card real já limitado pelo CSS ao viewport visual.
+  const cardH=Math.min(card.offsetHeight||260,Math.max(120,viewH-margin*2));
+  const roomBelow=viewBottom-r.bottom;
+  const roomAbove=r.top-viewTop;
+  const below=roomBelow>=cardH+36 || roomBelow>=roomAbove;
 
-  if(below){
-    card.style.top = Math.min(window.innerHeight-cardH-18, r.bottom+28) + 'px';
-    arrow.textContent = '↑';
-    arrow.style.top = (r.bottom+3) + 'px';
-  }else{
-    card.style.top = Math.max(18, r.top-cardH-28) + 'px';
-    arrow.textContent = '↓';
-    arrow.style.top = Math.max(8, r.top-28) + 'px';
-  }
+  card.classList.toggle('tutorial-card-top',!below);
+  card.classList.toggle('tutorial-card-bottom',below);
 
-  arrow.style.left = Math.max(14, Math.min(window.innerWidth-34, r.left+r.width/2-10)) + 'px';
+  const preferredTop=below?r.bottom+28:r.top-cardH-28;
+  const maxTop=Math.max(viewTop+margin,viewBottom-cardH-margin);
+  card.style.top=Math.min(maxTop,Math.max(viewTop+margin,preferredTop))+'px';
+
+  arrow.textContent=below?'↑':'↓';
+  const preferredArrowTop=below?r.bottom+3:r.top-28;
+  arrow.style.top=Math.min(viewBottom-32,Math.max(viewTop+8,preferredArrowTop))+'px';
+  arrow.style.left=Math.max(viewLeft+14,Math.min(viewLeft+viewW-34,r.left+r.width/2-10))+'px';
 }
 
 function renderTutorialStep(){
   if(!tutorialActive) return;
-  const step = tutorialSteps[tutorialIndex];
-  const entered=go(step.screen);
+  const step=tutorialSteps[tutorialIndex];
+  const entered=go(step.screen,tutorialNavigationToken);
 
   setTimeout(()=>{
     tutorialEl('tutorialStep').textContent = `${tutorialIndex+1} de ${tutorialSteps.length}`;
@@ -726,12 +735,14 @@ tutorialEl('tutorialBack')?.addEventListener('click',()=>{
 tutorialEl('tutorialSkip')?.addEventListener('click',finishTutorial);
 tutorialEl('replayTutorial')?.addEventListener('click',()=>startTutorial(true));
 
-window.addEventListener('resize',()=>{
-  if(tutorialActive){
-    const step=tutorialSteps[tutorialIndex];
-    tutorialPosition(document.querySelector(step.target));
-  }
-});
+function repositionTutorial(){
+  if(!tutorialActive)return;
+  const step=tutorialSteps[tutorialIndex];
+  tutorialPosition(document.querySelector(step.target));
+}
+window.addEventListener('resize',repositionTutorial);
+window.visualViewport?.addEventListener('resize',repositionTutorial);
+window.visualViewport?.addEventListener('scroll',repositionTutorial);
 
 window.addEventListener('load',()=>{
   setTimeout(()=>startTutorial(false),450);

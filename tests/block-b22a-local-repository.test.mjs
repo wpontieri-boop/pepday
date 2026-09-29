@@ -263,7 +263,7 @@ test('somente local-db encapsula chamadas IndexedDB e app não grava chaves lega
   assert.doesNotMatch(repositorySource,/\bindexedDB\b/);assert.doesNotMatch(migrationSource,/\bindexedDB\b/);assert.doesNotMatch(appSource,/\bindexedDB\b/);
   for(const source of [dbSource,repositorySource,migrationSource,appSource,accountSource])assert.doesNotMatch(source,/from\s+['"]node:|require\s*\(/);
   assert.doesNotMatch(appSource,/readLegacyArray/);assert.match(appSource,/let routines=\[\],vials=\[\]/);
-  assert.match(appSource,/localDataState='loading'/);assert.match(appSource,/if\(proScreens\.has\(id\)&&localDataState!=='ready'\)return false/);
+  assert.match(appSource,/localDataState='loading'/);assert.match(appSource,/proScreens\.has\(id\)&&!tutorialDemo&&localDataState!=='ready'/);
   assert.match(appSource,/if\(draft\)applyRoutineDraft\(draft,\{show:true\}\);\s*localRepository=base\.repository;localDataState='ready'/);
   assert.match(appSource,/if\(token!==scopeGeneration\)return null/);assert.match(appSource,/token===scopeGeneration\?\{ok:true,value\}:\{ok:false,stale:true\}/);
   assert.match(accountSource,/signedIn\(session\.session\.user\.id\)/);assert.match(accountSource,/repositoryScope\?\.suspend\(\)/);

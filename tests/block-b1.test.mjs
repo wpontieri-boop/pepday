@@ -195,16 +195,19 @@ function appHarness(status='free',routineDone=false){
   return {context,element,screens,nav,store,windowListeners};
 }
 
-test('navegação programática e tutorial passam pelo gate central em FREE',()=>{
+test('navegação programática segue bloqueada em FREE e tutorial pode demonstrar telas PRO sem conceder acesso',()=>{
   const h=appHarness('free');
   assert.equal(h.context.PepDayNavigation.go('routines'),false);
   assert.equal(h.context.PepDayNavigation.go('vials'),false);
   assert.equal(h.screens.find(x=>x.id==='home').classList.contains('active'),true);
   h.element('replayTutorial').fire('click');
   h.element('tutorialNext').fire('click'); // calculadora FREE
-  h.element('tutorialNext').fire('click'); // tentativa de Frascos
-  assert.equal(h.screens.find(x=>x.id==='calculator').classList.contains('active'),true);
-  assert.equal(h.screens.find(x=>x.id==='vials').classList.contains('active'),false);
+  h.element('tutorialNext').fire('click'); // Frascos em demonstração
+  assert.equal(h.screens.find(x=>x.id==='vials').classList.contains('active'),true);
+  assert.equal(h.context.PepDayNavigation.go('routines'),false);
+  h.element('tutorialSkip').fire('click');
+  assert.equal(h.screens.find(x=>x.id==='home').classList.contains('active'),true);
+  assert.equal(h.context.PepDayNavigation.go('vials'),false);
 });
 
 test('mutadores diretos de rotina, frasco e aplicação não alteram dados no FREE',()=>{

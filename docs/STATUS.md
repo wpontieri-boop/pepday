@@ -653,6 +653,24 @@ celular. Exclusão de conta está funcional em backend/UI e com smoke seguro, ma
 destrutivo real requer uma conta descartável. Nenhum desses bloqueios autoriza promoção
 para produção.
 
+
+Ajustes finais do tutorial após teste físico mobile do proprietário:
+- Rotinas e Frascos agora podem ser exibidos pelo tutorial em modo demonstração sem
+  disparar o gate PRO. O bypass usa token interno exclusivo do tutorial; navegação
+  programática normal continua bloqueada no FREE, nenhum entitlement é concedido e
+  mutações permanecem protegidas.
+- O spotlight passou a usar recorte real: o restante da tela fica escurecido, enquanto
+  o alvo destacado permanece plenamente visível/legível com borda/brilho ciano.
+- O card do tutorial usa Visual Viewport, clamp dentro da área visível, safe-area,
+  max-height e overflow controlado. O passo final do Perfil não deve mais cortar a
+  parte inferior; resize/scroll do viewport também reposicionam o card.
+- Cache V3 incrementado para `pepday-v3-profile-sync-11`.
+
+Testes direcionados do tutorial/regressão afetada: `53/53 PASS`.
+Regressão completa após o patch: `323/323 PASS`.
+O patch ainda requer uma conferência física curta no celular após o auto-deploy da
+homologação, especificamente nos três comportamentos acima.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
