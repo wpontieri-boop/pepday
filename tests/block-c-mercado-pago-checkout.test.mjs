@@ -78,6 +78,8 @@ test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no 
   assert.match(index,/status:\"pending\"/);
   assert.match(index,/"X-Idempotency-Key":request\.requestId/);
   assert.match(index,/PEPDAY_BILLING_RETURN_URL/);
+  assert.match(index,/notification_url:notificationUrl\(supabaseUrl\)/);
+  assert.match(index,/\/functions\/v1\/mercado-pago-webhook/);
   assert.doesNotMatch(index,/card_token_id/);
   assert.doesNotMatch(index,/preapproval_plan_id:/);
 });
