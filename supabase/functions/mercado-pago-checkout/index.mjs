@@ -116,14 +116,6 @@ function returnUrl(){
   }catch{throw new CheckoutError("BILLING_RETURN_URL_INVALID",500)}
 }
 
-function notificationUrl(supabaseUrl){
-  try{
-    const url=new URL("/functions/v1/mercado-pago-webhook",supabaseUrl);
-    if(url.protocol!=="https:")throw new Error();
-    return url.href;
-  }catch{throw new CheckoutError("WEBHOOK_URL_INVALID",500)}
-}
-
 export default {
   async fetch(req){
     try{
@@ -189,7 +181,6 @@ export default {
             external_reference:externalReference,
             auto_recurring:recurring,
             back_url:returnUrl(),
-            notification_url:notificationUrl(supabaseUrl),
             status:"pending"
           })
         },
