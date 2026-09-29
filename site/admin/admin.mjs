@@ -26,9 +26,20 @@ const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabase
 
 let days=30;
 let busy=false;
+let promoRows=[];
 
 function authStatus(message){setText('authStatus',message)}
 function promoStatus(message){setText('promoAdminStatus',message)}
+function promoExpiryFromNow(days){
+  const date=new Date();
+  date.setDate(date.getDate()+Number(days||0));
+  date.setSeconds(0,0);
+  const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);
+  return local.toISOString().slice(0,16);
+}
+function syncPromoExpiry(){
+  if($('promoAdminExpiry'))$('promoAdminExpiry').value=promoExpiryFromNow($('promoAdminDuration')?.value||30);
+}
 function setBusy(value){
   busy=value;
   document.querySelectorAll('button').forEach(button=>button.disabled=value);
@@ -76,11 +87,15 @@ function renderMetrics(data){
 function renderPromoCodes(rows){
   const list=$('promoCodeList');if(!list)return;
   list.replaceChildren();
-  if(!Array.isArray(rows)||rows.length===0){
-    const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum código promocional criado ainda.';list.append(empty);return;
+  const query=($('promoCodeSearch')?.value||'').trim().toUpperCase();
+  const filtered=Array.isArray(rows)?rows.filter(row=>!query||String(row.code||'').toUpperCase().includes(query)):[];
+  if(filtered.length===0){
+    const empty=document.createElement('p');empty.className='muted';
+    empty.textContent=query?'Nenhum código encontrado.':'Nenhum código promocional criado ainda.';
+    list.append(empty);return;
   }
   const statusLabel={available:'DISPONÍVEL',used:'UTILIZADO',expired:'EXPIRADO',disabled:'DESATIVADO'};
-  for(const row of rows){
+  for(const row of filtered){
     const card=document.createElement('article');card.className='promo-code-row';
     const head=document.createElement('div');head.className='promo-code-head';
     const code=document.createElement('strong');code.textContent=row.code;
@@ -103,7 +118,8 @@ function renderPromoCodes(rows){
 async function loadPromoCodes(){
   const {data,error}=await client.rpc('get_admin_promo_codes');
   if(error)throw error;
-  renderPromoCodes(data);
+  promoRows=Array.isArray(data)?data:[];
+  renderPromoCodes(promoRows);
 }
 
 async function showPromoRedemptions(code){
@@ -189,8 +205,12 @@ document.querySelectorAll('[data-days]').forEach(button=>button.addEventListener
 document.querySelectorAll('[data-promo-preset]').forEach(button=>button.addEventListener('click',()=>{
   const value=button.dataset.promoPreset;
   $('promoAdminDuration').value=value;
+  syncPromoExpiry();
   document.querySelectorAll('[data-promo-preset]').forEach(item=>item.classList.toggle('active',item===button));
 }));
+$('promoAdminDuration')?.addEventListener('change',syncPromoExpiry);
+$('promoCodeSearch')?.addEventListener('input',()=>renderPromoCodes(promoRows));
+syncPromoExpiry();
 
 $('promoCreateForm')?.addEventListener('submit',async event=>{
   event.preventDefault();if(busy)return;
@@ -206,7 +226,7 @@ $('promoCreateForm')?.addEventListener('submit',async event=>{
     });
     if(error)throw error;
     promoStatus(`${data.code} gerado com sucesso. Use “Copiar código” para enviar ao amigo.`);
-    $('promoCreateForm').reset();$('promoAdminDuration').value='30';
+    $('promoCreateForm').reset();$('promoAdminDuration').value='30';syncPromoExpiry();
     document.querySelectorAll('[data-promo-preset]').forEach(item=>item.classList.toggle('active',item.dataset.promoPreset==='30'));
     await loadPromoCodes();
   }catch(error){
