@@ -82,7 +82,7 @@ test('erro UNREGISTERED é reconhecido para desativar instalação morta',()=>{
 });
 
 test('migration respeita todas as preferências e não armazena payload sensível',async()=>{
-  const sql=await read('supabase/migrations/20260928221328_block_c_fcm_push_foundation.sql');
+  const sql=await read('supabase/migrations/20260929004210_block_c_fcm_push_foundation.sql');
   assert.match(sql,/add column operational_notices boolean not null default true/);
   assert.match(sql,/when 'routine_due' then s\.routine_reminders/);
   assert.match(sql,/when 'refill_due' then s\.refill_alerts/);
@@ -95,7 +95,7 @@ test('migration respeita todas as preferências e não armazena payload sensíve
 });
 
 test('cliente só registra instalação/preferências; worker RPCs ficam service-role-only',async()=>{
-  const sql=await read('supabase/migrations/20260928221328_block_c_fcm_push_foundation.sql');
+  const sql=await read('supabase/migrations/20260929004210_block_c_fcm_push_foundation.sql');
   assert.match(sql,/grant execute on function public\.register_push_installation\(text\)\s+to authenticated/i);
   assert.match(sql,/grant execute on function public\.disable_push_installation\(text\)\s+to authenticated/i);
   assert.match(sql,/grant execute on function public\.update_push_preferences\(boolean,boolean,boolean,boolean\)\s+to authenticated/i);

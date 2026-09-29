@@ -564,6 +564,33 @@ completa: `280/280 PASS`. O advisor de performance deixou de apontar o FK novo d
 outbox após o índice; o índice aparece como não usado apenas porque acabou de ser
 criado. Os demais FKs sem índice são anteriores a este delta.
 
+
+A fundação de push via Firebase Cloud Messaging (FCM) foi concluída em código e banco
+de homologação. A migration aplicada somente no `pepday-v3-test` é
+`20260929004210_block_c_fcm_push_foundation.sql`. Ela adiciona
+`settings.operational_notices`, instalações de push por dispositivo e outbox por
+instalação, todos sem payload de saúde. As preferências de rotina, reposição,
+operacional e segurança são checadas no enqueue e novamente no claim.
+
+As RPCs de cliente `register_push_installation`, `disable_push_installation` e
+`update_push_preferences` exigem sessão autenticada e operam somente com
+`auth.uid()`. Enqueue/claim/conclusão ficam exclusivos de `service_role`. As tabelas
+de push não possuem acesso direto por `anon`, `authenticated` ou `service_role`;
+o acesso passa somente pelas RPCs previstas. O worker `fcm-push-worker` usa mensagens
+fixas e genéricas para tela bloqueada, sem substância, dose, histórico ou texto livre.
+
+Validação SQL real:
+`PASS FINAL BLOCO C FCM — preferências + instalação + enqueue + bloqueio + claim +
+complete + rollback + privilégios`. Testes direcionados FCM: `11/11 PASS`;
+regressão completa: `291/291 PASS`. O advisor não apontou novos FKs sem índice.
+Os avisos de RLS sem policy são intencionais porque as tabelas não são expostas para
+acesso direto; os avisos de SECURITY DEFINER nas RPCs de cliente são esperados e
+mitigados por `auth.uid()` e pelos testes reais de privilégio.
+
+O worker FCM está preparado em código, mas NÃO foi implantado/ativado porque ainda não
+foi configurada a service account real do Firebase no ambiente de teste. Nenhuma
+credencial Firebase foi gravada no repositório e nenhum push real foi enviado.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,
