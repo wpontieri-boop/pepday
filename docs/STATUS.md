@@ -633,6 +633,26 @@ incluir Termos e Privacidade, preservando a política de atualização/remoção
 de caches `pepday-v3-*`. Testes direcionados de jurídico/direitos/local: `36/36 PASS`;
 regressão completa: `307/307 PASS`. Smoke local: Home, Termos e Privacidade `200`.
 
+
+O README foi atualizado como manual operacional do proprietário, cobrindo arquitetura,
+serviços, ambientes, segurança, FREE/TRIAL/PRO, local-first, publicação, backup,
+custos/upgrades, variáveis de ambiente por nome (sem valores) e fluxo GitHub entre
+PC/Mac. A matriz `docs/RELEASE-CANDIDATE.md` separa PASS, validação física mobile e
+bloqueios por configuração externa.
+
+Foi adicionada a suíte `tests/release-candidate-static.test.mjs`, cobrindo HTML,
+manifest/PWA, Service Worker/cache, existência de assets, mg/mcg, seringas U-100 de
+30/50/100 UI, regra 5on2off, forecast/reposição, fluxo Rotina → Frasco com draft,
+responsividade e tutorial. Resultado: `11/11 PASS`. Regressão completa atual:
+`318/318 PASS`.
+
+O checklist final registra como bloqueados por configuração externa os testes reais de
+pagamento/webhook/cancelamento/expiração/reativação, Brevo e FCM. Mobile/PWA está
+tecnicamente validado por estrutura/responsividade, mas requer teste físico final no
+celular. Exclusão de conta está funcional em backend/UI e com smoke seguro, mas o teste
+destrutivo real requer uma conta descartável. Nenhum desses bloqueios autoriza promoção
+para produção.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,

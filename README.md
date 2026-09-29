@@ -1,208 +1,597 @@
-# PepDay V3.0
+# PepDay V3.0 — Manual do Projeto
 
-O PepDay V3 está em desenvolvimento controlado. O **Bloco A foi concluído e
-aprovado** em 11/09/2026, tendo como commit-base aprovado
-`724ba23f0a11c77eff1e9637fd26a9ad21ca026c`. O desenvolvimento do Bloco B parte
-da branch `v3.0-bloco-b`. A Fase B1 (FREE/TRIAL/PRO) está implementada e testada
-e foi concluída e aprovada. O backend B1 foi aplicado com sucesso no Supabase de
-testes `pepday-v3-test`.
+O PepDay é uma ferramenta de cálculo matemático e organização de informações inseridas pelo próprio usuário. Ele **não prescreve, indica ou recomenda substâncias, doses, tratamentos ou protocolos** e não substitui orientação de profissional habilitado.
 
-A V2.9 continua sendo a produção estável e não deve ser alterada até a aprovação
-final da V3. Não promover esta branch para `main`, não alterar GitHub Pages e não
-publicar em produção sem autorização expressa.
+Este README é o manual operacional do proprietário. As decisões funcionais completas ficam em [REQUISITOS.txt](REQUISITOS.txt) e o histórico técnico detalhado em [docs/STATUS.md](docs/STATUS.md).
 
-Ambiente atual de testes do Bloco A:
-`https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/`
+## 1. Regra principal de segurança
 
-O registro detalhado da retomada está em [docs/STATUS.md](docs/STATUS.md). As
-decisões funcionais aprovadas permanecem documentadas em
-[REQUISITOS.txt](REQUISITOS.txt), que é a fonte de verdade do produto.
+A **V2.9 continua sendo a produção estável**. A V3 está em desenvolvimento e homologação.
 
-## Estado aprovado do Bloco A
+Até aprovação final:
 
-- Login por e-mail validado, incluindo OTP, persistência de sessão e logout.
-- Login com Google validado no ambiente V3 de testes.
-- Cadastro, confirmação de maioridade, Termos de Uso, Política de Privacidade e
-  respectivos consentimentos validados.
-- Importação inicial do legado validada em teste humano.
-- O teste humano confirmou **2 rotinas e 2 frascos no aparelho** e **2 rotinas e
-  2 frascos na conta**.
-- A cópia local foi preservada após a importação; usar a conta nunca autoriza a
-  exclusão automática dos dados locais.
-- Fluxo Rotina → cadastrar novo frasco → retornar à rotina com o novo frasco
-  selecionado, além dos tooltips de Frascos e Rotinas, concluído e aprovado.
-- Correção e versionamento do cache do Service Worker concluídos no commit
-  `724ba23f0a11c77eff1e9637fd26a9ad21ca026c`, garantindo a atualização do
-  `style.css` da V3 sem interferir na V2.9.
-- SQL inicial e incremental, RLS, autenticação, OTP e demais testes já aprovados
-  não devem ser repetidos sem necessidade objetiva.
+- não alterar ou promover `main` sem autorização expressa;
+- não substituir a V2.9 em produção;
+- não mudar GitHub Pages para a V3;
+- não inserir credenciais no frontend ou no Git;
+- não aplicar migrations da V3 em banco de produção;
+- não ativar cobrança, e-mail ou push com credenciais reais sem validar primeiro no ambiente de teste.
 
-## Arquitetura e operação
+A branch de desenvolvimento atual é:
 
-### Frontend e PWA
+```
+v3.0-bloco-b
+```
 
-O aplicativo é um frontend estático/PWA em HTML, CSS e JavaScript modular, sem
-Next.js e sem backend embutido no navegador. `index.html`, `app.js` e
-`style.css` mantêm a interface principal; os módulos em `src/` concentram conta,
-acesso à nuvem e importação. `manifest.json`, `icon.svg` e `sw.js` compõem a PWA.
-O servidor em `scripts/dev-server.mjs` existe somente para desenvolvimento local
-e não publica o aplicativo.
+## 2. Ambientes
 
-### GitHub e GitHub Pages
+### Produção estável
 
-O GitHub preserva o histórico, as branches de desenvolvimento e os checkpoints.
-GitHub Pages hospeda a V2.9 estável em produção. A V3 deve permanecer isolada
-durante os Blocos B, C e D; publicar uma branch de testes não equivale a promover
-a V3 para produção. `main` e a configuração do GitHub Pages só podem mudar após
-validação integral e aprovação final.
+A produção ainda é a **V2.9**, hospedada separadamente. Ela deve permanecer intacta até a liberação formal da V3.
 
-### Supabase, Auth e RLS
+### Homologação pública da V3
 
-O projeto isolado `pepday-v3-test` fornece PostgreSQL, autenticação e políticas
-Row Level Security. As tabelas vinculam registros ao proprietário e o cliente só
-pode acessar o que as políticas e funções aprovadas permitirem. O frontend não é
-autoridade para conceder PRO. Mutações de aplicação, movimento, saldo e undo
-devem ser transacionais e idempotentes no Bloco B, nunca liberadas por escrita
-direta para contornar RLS.
+Frontend público de teste:
 
-### Login e contas
+```
+https://pepday-v3-homologacao.onrender.com/
+```
 
-E-mail/OTP e Google estão validados no ambiente de testes. Redirecionamentos são
-limitados ao endereço público aprovado da V3 de testes. Segredos OAuth pertencem
-exclusivamente aos painéis dos provedores. O cadastro exige maioridade e aceite
-versionado dos Termos de Uso e da Política de Privacidade; nenhum aceite pode ser
-presumido ou fabricado.
+Landing principal:
 
-### Dados locais, importação e futura sincronização
+```
+https://pepday-v3-homologacao.onrender.com/site/
+```
 
-A V2.9 mantém dados no navegador. A importação da V3 cria e confere um snapshot,
-preserva identidades/UUIDs, saldos, `done`, `doseHistory` e o registro legado sem
-inventar aplicações ou concentrações ausentes. Registros existentes não são
-sobrescritos silenciosamente, e a cópia local não é apagada automaticamente.
+Landing do cartão/QR:
 
-No Bloco B, a operação será local-first: salvar localmente, registrar operações
-pendentes quando offline e sincronizar ao reconectar. Registros editáveis usarão
-versão/timestamps para conflitos. Aplicações e movimentos são eventos imutáveis e
-não podem adotar uma regra simples de “última escrita vence”. O Perfil deverá
-mostrar o estado da sincronização.
+```
+https://pepday-v3-homologacao.onrender.com/cartao/
+```
 
-### FREE, TRIAL e PRO
+Painel administrativo:
 
-A calculadora e o tutorial pertencem ao nível FREE. Recursos como frascos,
-rotinas, histórico e sincronização pertencem ao PRO, respeitando o escopo exato
-de `REQUISITOS.txt`. As abas continuam visíveis no FREE e apresentam explicação
-de acesso. O trial de sete dias só começa por ação explícita do usuário, uma vez
-por conta, sem cartão, e não reinicia por instalação, login ou logout. Os gates e
-fluxos de FREE/TRIAL/PRO da Fase B1 usam o entitlement calculado no backend. O
-cliente não decide acesso pelo relógio ou por `localStorage`; ele apenas consome
-os estados `free`, `trial`, `pro_active` e `pro_expired`. No frontend, o estado
-gravável fica privado ao módulo autenticado que recebe `get_entitlement()`; eventos
-DOM são apenas notificações e não concedem acesso. Navegação e mutações PRO usam
-a mesma guarda central, inclusive quando chamadas programaticamente.
+```
+https://pepday-v3-homologacao.onrender.com/site/admin/
+```
 
-A interface mantém Calculadora/tutorial livres sem login, exibe Rotinas e Frascos
-no FREE e usa um gate reutilizável para explicar ações PRO. O trial só é solicitado
-após clique em “Começar 7 dias grátis”; “Agora não” mantém o FREE. O backend fixa
-início e fim com seu próprio relógio, serializa tentativas concorrentes e não
-renova um trial já usado. Bloqueio ou expiração nunca exclui dados.
-Uma conta que já teve acesso pago e está expirada não recebe trial posteriormente,
-mesmo que seu registro ainda indique `trial_used=false`.
+O Render publica automaticamente a branch `v3.0-bloco-b` da homologação. Isso **não** equivale a publicar a V3 em produção.
 
-### Checkpoint aprovado da B1
+### Supabase de teste
 
-- O teste SQL real passou, com rollback confirmado por
-  `usuarios_teste_restantes = 0`.
-- O teste humano confirmou o estado FREE, o gate PRO em Rotinas, “Agora não”
-  mantendo FREE e a Calculadora disponível no FREE.
-- O trial foi iniciado explicitamente, sem cartão, e confirmado por sete dias:
-  de 11/09/2026 18:08 até 18/09/2026 18:08.
-- Rotinas e Frascos foram liberados durante o TRIAL, que persistiu após Ctrl+F5.
-- As duas rotinas e os dois frascos permaneceram preservados tanto localmente
-  quanto na conta.
-- O hardening do gate foi aprovado.
-- O ajuste de UX de `+ Nova` Rotina e `+ Novo` Frasco foi concluído no commit
-  `9c30f1296d4fc4e5c6c870ec8a1f3042499069f3`. Essa alteração visual será incluída
-  na próxima publicação de testes, sem nova publicação Astra isolada, para
-  economizar créditos.
+Projeto isolado:
 
-### Integrações comerciais e notificações previstas
+```
+pepday-v3-test
+```
 
-- **Mercado Pago — não implementado:** arquitetura prevista para pagamento e
-  webhooks verificados no backend; somente o backend poderá alterar entitlement.
-- **Brevo — não implementado:** arquitetura prevista para e-mails transacionais;
-  o serviço não decidirá nem concederá acesso PRO.
-- **Firebase/FCM — não implementado:** arquitetura prevista para notificações
-  push opcionais, sem expor substância ou dose na tela bloqueada.
+O projeto de teste concentra Auth, PostgreSQL, RLS, RPCs e Edge Functions da V3. Produção não deve receber migrations da V3 sem aprovação final.
 
-Essas integrações pertencem a etapa posterior, conforme `REQUISITOS.txt`. Nenhuma
-delas deve ser simulada como pronta ou receber credenciais no frontend.
+## 3. Como o PepDay está dividido
 
-### Publicação, cache, backup e recuperação
+### Frontend / PWA
 
-Cada ambiente da PWA deve usar cache versionado e isolado por escopo. O Service
-Worker atual invalida o cache anterior da própria V3 e força a carga do CSS atual,
-sem remover caches da V2.9 ou de outros escopos. Auth, chamadas de API e URLs com
-query string não devem ser armazenadas como assets públicos.
+Arquivos principais:
 
-Antes de qualquer promoção, é obrigatório confirmar branch/commit, executar os
-testes direcionados ao delta, verificar o ambiente de destino e manter um ponto
-de recuperação. O backup íntegro da V2.9 e seus hashes estão em `backup/`; ele
-recupera o código estável, não os dados de usuários. Banco e configurações dos
-serviços exigem estratégia própria de backup e recuperação antes do lançamento.
+- `index.html` — aplicação;
+- `app.js` — interface e fluxo local;
+- `style.css` e `account.css` — estilos;
+- `src/` — módulos de conta, acesso, sincronização, repositório local e regras auxiliares;
+- `manifest.json` — configuração PWA;
+- `sw.js` — Service Worker e cache;
+- `config.js` — **somente configurações públicas**;
+- `termos.html` e `privacidade.html` — documentos jurídicos vigentes da homologação.
 
-### Segurança e LGPD
+O app é local-first: grava no IndexedDB do dispositivo e sincroniza a conta quando possível.
 
-O PepDay coleta somente dados necessários aos fluxos aprovados e deve aplicar
-isolamento por conta, RLS, consentimentos versionados, minimização de dados e
-meios adequados de acesso, exportação e exclusão. A revisão jurídica final, o
-canal de privacidade e a operação comercial completa continuam pendentes para os
-blocos posteriores.
+### Marketing
 
-**Nunca armazenar Client Secret, senhas, service-role keys, chaves privadas ou
-qualquer credencial confidencial no repositório.** `config.js` contém somente
-configuração pública apropriada ao navegador. Segredos ficam nos painéis ou no
-backend seguro dos respectivos serviços.
+- `site/` — landing principal clara/premium;
+- `cartao/` — landing curta do QR físico;
+- `site/admin/` — painel privado de aquisição.
 
-## Escopo imediato: Bloco B
+O app interno continua em tema dark premium. A landing comercial usa tema claro.
 
-A Fase B1, concluída e aprovada, implementa a fonte única de entitlement, o início idempotente do trial,
-o status no Perfil e o gate PRO endurecido de Rotinas/Frascos. A B2.1 está aplicada no
-`pepday-v3-test`: aplicação, movimento, saldo e Undo são transacionais e idempotentes. O smoke
-real foi aprovado com status funcional `PASS`, rollback confirmado, zero fixtures remanescentes
-e veredito `PASS FINAL`. A intenção temporal original fica persistida separadamente do horário
-efetivo gerado pelo servidor, e a data da aplicação é validada pelo calendário do snapshot
-imutável de `routine_versions`. As fases seguintes do Bloco B continuam responsáveis pela
-integração completa Rotina ↔ Frasco/Calculadora, sincronização local-first e estados de
-sincronização no Perfil. Mercado Pago, Brevo, Firebase e publicação em produção continuam fora
-desta fase.
+## 4. GitHub
 
-Ainda exigem validação real separada: concorrência entre sessões, contenção simultânea de
-`FOR UPDATE`, corrida na mesma rotina/data, transporte JWT/Auth real entre contas e replay
-concorrente com Undo.
+Repositório:
 
-Permanecem deliberadamente para fases futuras: entitlement PRO offline/local-first,
-sincronização contínua, avisos de três e um dia para o fim do trial e atualização
-automática de campos apenas informativos, como `completed_at`, quando não forem
-necessários à autorização.
+```
+wpontieri-boop/pepday
+```
 
-## Desenvolvimento e testes
+O GitHub é o ponto central para continuar o projeto entre o PC da loja e o Mac.
 
-- Suite Node: `node --test tests/*.test.mjs`.
-- Testes Node somente da B1: `node --test tests/block-b1.test.mjs`.
-- Servidor local: `node scripts/dev-server.mjs`.
-- SQL B1 em banco efêmero: definir `PGLITE_MODULE` para o `dist/index.js` do
-  PGlite 0.5.8 e executar `node scripts/test-b1-sql.mjs`.
-- Suite SQL local: `node scripts/test-import-sql.mjs`, com o módulo PGlite
-  indicado por `PGLITE_MODULE`; ela usa fixtures descartáveis e não conecta ao
-  projeto Supabase.
+Fluxo obrigatório:
 
-Executar somente os testes proporcionais à alteração. Não repetir SQL,
-autenticação, OTP, sessão, logout ou testes humanos já aprovados sem uma razão
-técnica concreta.
+1. antes de começar, ler `AGENTS.md`;
+2. executar `git fetch origin`;
+3. conferir branch e `git status`;
+4. comparar divergência local/remoto;
+5. só usar `pull --ff-only` quando não houver trabalho local divergente;
+6. desenvolver e testar;
+7. revisar secrets/arquivos indevidos;
+8. commit;
+9. push;
+10. confirmar divergência `0 0`.
 
-## Aviso de uso
+Nunca sobrescrever mudanças de outro computador sem comparar primeiro.
 
-O PepDay é uma ferramenta de cálculo e organização de informações inseridas pelo
-próprio usuário. Não prescreve, indica ou recomenda substâncias, doses,
-tratamentos ou protocolos e não substitui avaliação ou orientação de profissional
-habilitado.
+## 5. Supabase — login, banco, sincronização e entitlement
+
+O Supabase é a autoridade da conta.
+
+Responsabilidades:
+
+- login por e-mail/OTP;
+- Google quando habilitado;
+- perfis e consentimentos;
+- banco da conta;
+- FREE / TRIAL / PRO;
+- sincronização;
+- rotinas, frascos, aplicações e movimentos confirmados;
+- billing state;
+- atribuição de aquisição;
+- exportação de dados;
+- exclusão de conta via backend;
+- Edge Functions.
+
+### RLS e segurança
+
+O navegador não recebe chave administrativa.
+
+Dados de usuário são protegidos por RLS, RPCs e funções que usam o usuário autenticado. Operações críticas de domínio são transacionais e versionadas.
+
+Tabelas internas como filas de billing, e-mail e push não têm leitura direta pelo cliente. O acesso ocorre somente pelas RPCs/backend previstos.
+
+### Configuração pública
+
+`config.js` pode conter somente dados adequados ao navegador, como URL do projeto, publishable key, versões jurídicas e URLs públicas.
+
+Nunca colocar em `config.js`:
+
+- secret key;
+- service-role key;
+- senha;
+- private key;
+- access token;
+- webhook secret;
+- Client Secret OAuth.
+
+## 6. Login: Google e e-mail
+
+E-mail/OTP usa Supabase Auth.
+
+Google depende do provedor Google configurado no Supabase e dos redirects autorizados. Os redirects de autenticação não devem ser trocados casualmente ao mudar uma landing ou URL jurídica.
+
+Termos e Privacidade são versionados. O cadastro só é considerado juridicamente atual quando:
+
+- maioridade está confirmada;
+- Termos foram aceitos;
+- Política foi aceita;
+- `terms_version` coincide com `config.termsVersion`;
+- `privacy_version` coincide com `config.privacyVersion`.
+
+Quando uma nova versão é publicada, dados existentes são preservados e o Perfil solicita novo aceite.
+
+## 7. Dados locais e sincronização
+
+O armazenamento local principal é IndexedDB.
+
+Stores atuais:
+
+- `vials`;
+- `routines`;
+- `routineVersions`;
+- `applications`;
+- `vialMovements`;
+- `outbox`;
+- `conflicts`;
+- `drafts`;
+- `meta`;
+- `migrationReceipts`.
+
+A sincronização é local-first:
+
+1. ação é salva localmente;
+2. uma operação entra na outbox quando necessário;
+3. o backend valida e confirma;
+4. conflitos não são sobrescritos silenciosamente;
+5. usuário pode revisar conflito quando a regra permitir.
+
+Aplicações e movimentos mantêm histórico imutável/versionado.
+
+O botão **Apagar meus dados locais** remove apenas o escopo ativo daquele dispositivo. Ele não equivale à exclusão da conta.
+
+## 8. FREE, TRIAL e PRO
+
+### FREE
+
+- calculadora;
+- tutorial;
+- uso básico sem exigir conta para a calculadora.
+
+### TRIAL
+
+- 7 dias;
+- só começa por ação explícita;
+- uma vez por conta;
+- sem iniciar automaticamente em login, instalação ou reload.
+
+### PRO
+
+Preço comercial aprovado para a V3:
+
+- mensal: **R$ 14,90/mês**;
+- anual: **R$ 99,90/ano**;
+- anual: “Mais vantajoso”;
+- economia exibida: **R$ 78,90 por ano**.
+
+Recursos PRO incluem rotinas, frascos, histórico, previsão de término, alertas e sincronização conforme o escopo aprovado.
+
+Fim de trial ou assinatura **não apaga dados**. O acesso pode ser bloqueado e restaurado depois.
+
+## 9. Mercado Pago — pagamentos
+
+O Mercado Pago é o gateway inicial previsto para assinatura PRO.
+
+Arquivos:
+
+- `supabase/functions/mercado-pago-checkout/`;
+- `supabase/functions/mercado-pago-webhook/`;
+- migrations de billing em `supabase/migrations/`.
+
+Regras:
+
+- redirect do navegador nunca concede PRO;
+- somente backend/webhook confirmado altera entitlement;
+- webhook valida assinatura;
+- pagamento aprovado, pendente, rejeitado, renovação, cancelamento, tolerância e expiração têm estados próprios;
+- falha de renovação usa tolerância de 3 dias;
+- cancelamento mantém acesso até o fim do período pago quando aplicável;
+- exclusão da conta tenta cancelar uma preapproval ativa antes de remover a conta.
+
+### Variáveis de ambiente Mercado Pago
+
+Ficam no backend/Supabase Edge Functions, nunca no Git:
+
+- `MERCADO_PAGO_ACCESS_TOKEN`;
+- `MERCADO_PAGO_WEBHOOK_SECRET`;
+- `MERCADO_PAGO_MONTHLY_PLAN_ID`;
+- `MERCADO_PAGO_ANNUAL_PLAN_ID`;
+- `MERCADO_PAGO_LIVE_MODE`;
+- `PEPDAY_BILLING_RETURN_URL`.
+
+A fundação está pronta em código/banco, mas a ativação comercial depende de credenciais e planos reais validados.
+
+## 10. Brevo — e-mails transacionais
+
+Arquivos:
+
+- `supabase/functions/brevo-email-worker/`;
+- migrations `block_c_brevo_email_*`.
+
+O outbox de e-mail é backend-only, idempotente e não armazena o endereço de e-mail como payload de fila. O destinatário é resolvido no backend no momento do envio.
+
+Eventos previstos incluem criação de conta, trial, pagamento, renovação, falha, cancelamento, reativação e segurança.
+
+### Variáveis Brevo
+
+Somente backend:
+
+- `BREVO_API_KEY`;
+- `PEPDAY_EMAIL_WORKER_SECRET`;
+- `PEPDAY_PUBLIC_URL`;
+- `BREVO_TEMPLATE_<EVENTO>` para cada template transacional usado.
+
+O worker está preparado, mas **não está ativado para envio real** enquanto chave e templates não forem configurados/testados.
+
+Brevo apenas envia mensagens. Ele não concede PRO.
+
+## 11. Firebase / FCM — push
+
+Arquivos:
+
+- `supabase/functions/fcm-push-worker/`;
+- migration `block_c_fcm_push_foundation`.
+
+Tipos de push:
+
+- rotina do dia;
+- reposição;
+- avisos operacionais;
+- segurança da conta.
+
+Todas as categorias respeitam preferência do usuário.
+
+A mensagem da tela bloqueada é fixa e genérica. Nunca deve incluir:
+
+- substância;
+- dose;
+- histórico;
+- detalhes sensíveis.
+
+### Variáveis FCM
+
+Somente backend:
+
+- `FIREBASE_SERVICE_ACCOUNT_JSON`;
+- `PEPDAY_PUSH_WORKER_SECRET`;
+- `PEPDAY_PUBLIC_URL`.
+
+A service account contém chave privada e **jamais** deve entrar no repositório.
+
+O worker está preparado, mas não está ativado para push real enquanto a service account de teste não for configurada.
+
+## 12. Admin interno
+
+O painel privado está em `/site/admin/`.
+
+O acesso exige:
+
+- conta autenticada;
+- `profiles.role='admin'`.
+
+O painel mostra somente métricas agregadas:
+
+- novas contas;
+- contas atribuídas ao cartão/QR;
+- outras origens;
+- trials;
+- conversões pagas;
+- PRO pagos ativos;
+- taxas cartão → trial e cartão → PRO.
+
+Ele não expõe nome, e-mail, UUID de cliente, rotina ou frasco.
+
+“Cartão/QR” significa **conta atribuída ao cartão**, não scan anônimo.
+
+## 13. LGPD, Termos e Privacidade
+
+Documentos:
+
+- `termos.html`;
+- `privacidade.html`.
+
+Versões atuais da homologação:
+
+- `terms-2026-09-28`;
+- `privacy-2026-09-28`.
+
+O Perfil oferece:
+
+- exportação JSON dos dados confirmados na conta;
+- exclusão de conta com confirmação `EXCLUIR`;
+- exclusão local separada.
+
+A exportação não inclui segredos, tokens, outboxes internos ou logs técnicos internos.
+
+A exclusão de conta é executada pela Edge Function `account-delete`. A conta e dados associados são removidos por backend/cascata somente depois das validações necessárias.
+
+**A revisão jurídica final por profissional competente continua obrigatória antes do lançamento comercial.**
+
+## 14. Onde ficam as variáveis de ambiente
+
+Segredos de serviços ficam nas configurações das Edge Functions/ambiente seguro do Supabase ou no painel do provedor correspondente.
+
+Não criar `.env` versionado.
+
+Antes de commit:
+
+```
+git diff --check
+git status
+```
+
+Também fazer busca de valores secretos e arquivos inesperados.
+
+Nomes de variáveis podem existir no código/documentação; **valores reais nunca**.
+
+## 15. Publicação
+
+### Homologação
+
+O Render está ligado à branch `v3.0-bloco-b`.
+
+Fluxo:
+
+1. testes passam;
+2. commit;
+3. push da branch;
+4. Render faz auto-deploy;
+5. conferir deploy `LIVE`;
+6. smoke externo das URLs afetadas.
+
+### Supabase
+
+Migrations são aplicadas explicitamente somente ao projeto correto. Nunca reaplicar uma migration já registrada com outro conteúdo.
+
+Edge Functions são implantadas explicitamente.
+
+### Produção
+
+Publicação da V3 em produção só acontece após:
+
+- testes obrigatórios;
+- validação mobile;
+- validação PWA/cache;
+- integrações comerciais configuradas quando necessárias;
+- revisão jurídica final;
+- release candidate aprovado;
+- autorização expressa do proprietário.
+
+## 16. Atualização do PWA e cache
+
+O Service Worker usa cache versionado e isolado por escopo.
+
+Ao alterar assets públicos importantes:
+
+1. atualizar o conteúdo;
+2. incrementar a versão do cache em `sw.js`;
+3. rodar testes;
+4. validar reload/atualização;
+5. não remover cache da V2.9.
+
+Auth, APIs, conteúdo privado e requests com Authorization não entram no cache público.
+
+## 17. Backup e recuperação
+
+### Código
+
+A principal proteção é Git + GitHub.
+
+Ao terminar uma sessão de desenvolvimento:
+
+- revisar;
+- testar;
+- commit;
+- push;
+- confirmar `HEAD == origin/v3.0-bloco-b`.
+
+Antes de trocar de computador, sempre subir o checkpoint.
+
+### Banco e serviços
+
+Git não é backup de banco.
+
+Antes de produção, manter estratégia própria para:
+
+- Supabase/PostgreSQL;
+- configurações Auth;
+- Edge Functions;
+- Mercado Pago;
+- templates Brevo;
+- Firebase;
+- domínios/redirects.
+
+Nunca colocar backup com credenciais no repositório.
+
+### Dados locais
+
+Dados ainda não sincronizados podem existir apenas no dispositivo. Não formatar, limpar navegador ou apagar IndexedDB de um dispositivo de teste sem confirmar a sincronização ou exportar o que for necessário.
+
+## 18. Custos e upgrades
+
+A arquitetura foi montada para começar pequena e aproveitar planos gratuitos ou de baixo custo **quando o provedor e a conta permitirem**. Preços, franquias e disponibilidade mudam e devem ser conferidos no dashboard oficial antes do lançamento.
+
+Em geral, upgrades podem se tornar necessários por:
+
+- volume de banco/storage;
+- número de usuários/Auth;
+- volume de Edge Functions;
+- tráfego/banda;
+- número de e-mails;
+- número de pushes;
+- recursos de backup/observabilidade;
+- necessidades de SLA;
+- volume de pagamentos e taxas transacionais.
+
+Nunca assumir que um plano continua gratuito apenas porque era gratuito durante a homologação.
+
+## 19. Testes
+
+Suite completa:
+
+```bash
+npm test
+```
+
+Testes específicos podem ser executados com:
+
+```bash
+node --test tests/<arquivo>.test.mjs
+```
+
+Servidor local:
+
+```bash
+node scripts/dev-server.mjs --port 4173
+```
+
+Executar testes proporcionais ao delta. Não repetir testes humanos, SQL pesado ou fluxos já aprovados sem motivo técnico.
+
+## 20. Estado atual por bloco
+
+### Bloco A — base
+
+Concluído: Supabase, Auth, banco, RLS, migração inicial e base de conta.
+
+### Bloco B — produto e sincronização
+
+Concluído na fundação funcional: FREE/TRIAL/PRO, relação Rotina ↔ Frasco, local-first, outbox, conflitos, Perfil e operações transacionais.
+
+### Bloco C — comercial e notificações
+
+Fundação concluída:
+
+- billing Mercado Pago;
+- webhook e checkout;
+- estados comerciais;
+- Brevo outbox/worker;
+- FCM preferências/outbox/worker;
+- landing comercial;
+- aquisição cartão/QR;
+- painel admin.
+
+Ativação real de Mercado Pago, Brevo e FCM ainda depende das credenciais/configurações correspondentes e testes de homologação próprios.
+
+### Bloco D — finalização
+
+Em andamento:
+
+- LGPD/Termos: fundação implementada;
+- exportação/exclusão: implementadas em homologação;
+- README/manual: atualizado;
+- PWA/cache: atualizado e ainda requer validação final;
+- testes finais: em andamento;
+- validação mobile: pendente;
+- ZIP/release candidate: pendente;
+- revisão jurídica profissional: pendente.
+
+## 21. O que NÃO alterar sem cuidado
+
+- `main` e GitHub Pages;
+- V2.9;
+- migrations já aplicadas;
+- políticas RLS;
+- RPCs transacionais;
+- regras de entitlement;
+- cálculo matemático aprovado;
+- versionamento de rotinas/frascos;
+- cache da V2.9;
+- URLs de Auth/redirect;
+- planos e IDs do Mercado Pago;
+- credenciais de provedores;
+- versões de Termos/Privacidade sem atualizar o fluxo de aceite;
+- regras de exclusão e cascata;
+- service workers;
+- domínio final/QR físico.
+
+Quando houver dúvida, criar checkpoint antes da alteração.
+
+## 22. Regra para continuar em outro computador
+
+No computador atual:
+
+```bash
+git status
+git fetch origin
+git rev-list --left-right --count HEAD...origin/v3.0-bloco-b
+git push origin v3.0-bloco-b
+```
+
+No computador seguinte:
+
+```bash
+git fetch origin
+git status
+git rev-list --left-right --count HEAD...origin/v3.0-bloco-b
+git pull --ff-only origin v3.0-bloco-b
+```
+
+Só usar o `pull --ff-only` se não houver mudança local divergente.
+
+---
+
+Para o estado técnico exato da última sessão, consulte [docs/STATUS.md](docs/STATUS.md).
+Para o checklist de liberação e bloqueios atuais, consulte [docs/RELEASE-CANDIDATE.md](docs/RELEASE-CANDIDATE.md).
