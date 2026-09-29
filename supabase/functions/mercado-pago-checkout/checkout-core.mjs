@@ -18,10 +18,15 @@ export function checkoutExternalReference(subscriptionId,plan){
   return `pepday:${id}:${plan}`;
 }
 
-export function checkoutPlanId(plan,env){
-  if(plan==='monthly')return String(env.monthlyPlanId||'').trim();
-  if(plan==='annual')return String(env.annualPlanId||'').trim();
-  return '';
+export function checkoutRecurring(plan){
+  const config=PLANS[plan];
+  if(!config)return null;
+  return {
+    frequency:plan==='annual'?12:1,
+    frequency_type:'months',
+    transaction_amount:config.price,
+    currency_id:'BRL'
+  };
 }
 
 export function validCheckoutUrl(value){

@@ -1,7 +1,7 @@
 import {
   canCreateCheckout,
   checkoutExternalReference,
-  checkoutPlanId,
+  checkoutRecurring,
   normalizeCheckoutRequest,
   validCheckoutUrl,
 } from "./checkout-core.mjs";
@@ -130,11 +130,8 @@ export default {
       }
       if(!canCreateCheckout(subscription))return response(409,"SUBSCRIPTION_ALREADY_ACTIVE");
 
-      const planId=checkoutPlanId(request.plan,{
-        monthlyPlanId:env("MERCADO_PAGO_MONTHLY_PLAN_ID"),
-        annualPlanId:env("MERCADO_PAGO_ANNUAL_PLAN_ID")
-      });
-      if(!planId)throw new CheckoutError("PLAN_NOT_CONFIGURED",503);
+      const recurring=checkoutRecurring(request.plan);
+      if(!recurring)throw new CheckoutError("PLAN_NOT_CONFIGURED",503);
 
       const externalReference=checkoutExternalReference(subscription.id,request.plan);
       if(!externalReference)throw new CheckoutError("SUBSCRIPTION_REFERENCE_INVALID",500);
@@ -149,10 +146,12 @@ export default {
             "X-Idempotency-Key":request.requestId
           },
           body:JSON.stringify({
-            preapproval_plan_id:planId,
+            reason:`PepDay PRO ${request.plan==='annual'?'Anual':'Mensal'}`,
             payer_email:user.email,
             external_reference:externalReference,
-            back_url:returnUrl()
+            auto_recurring:recurring,
+            back_url:returnUrl(),
+            status:"pending"
           })
         },
         "MP_CREATE_SUBSCRIPTION"

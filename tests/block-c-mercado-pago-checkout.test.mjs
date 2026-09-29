@@ -6,7 +6,7 @@ import {
   PLANS,
   canCreateCheckout,
   checkoutExternalReference,
-  checkoutPlanId,
+  checkoutRecurring,
   normalizeCheckoutRequest,
   validCheckoutUrl,
 } from '../supabase/functions/mercado-pago-checkout/checkout-core.mjs';
@@ -32,10 +32,14 @@ test('external_reference não aceita IDs arbitrários e inclui plano',()=>{
   assert.equal(checkoutExternalReference(subscriptionId,'vip'),null);
 });
 
-test('plan id vem somente de configuração server-side',()=>{
-  assert.equal(checkoutPlanId('monthly',{monthlyPlanId:'m',annualPlanId:'a'}),'m');
-  assert.equal(checkoutPlanId('annual',{monthlyPlanId:'m',annualPlanId:'a'}),'a');
-  assert.equal(checkoutPlanId('vip',{monthlyPlanId:'m',annualPlanId:'a'}),'');
+test('recorrência do checkout vem somente dos planos comerciais aprovados',()=>{
+  assert.deepEqual(checkoutRecurring('monthly'),{
+    frequency:1,frequency_type:'months',transaction_amount:14.90,currency_id:'BRL'
+  });
+  assert.deepEqual(checkoutRecurring('annual'),{
+    frequency:12,frequency_type:'months',transaction_amount:99.90,currency_id:'BRL'
+  });
+  assert.equal(checkoutRecurring('vip'),null);
 });
 
 test('checkout URL aceita somente HTTPS do domínio Mercado Pago',()=>{
@@ -60,15 +64,18 @@ test('Edge Function responde preflight CORS antes do checkout',async()=>{
   assert.match(index,/status:204/);
 });
 
-test('Edge Function valida JWT do usuário antes de criar preapproval',async()=>{
+test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no PepDay',async()=>{
   const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
   assert.ok(index.indexOf('authenticatedUser')<index.indexOf('"https://api.mercadopago.com/preapproval"'));
   assert.match(index,/\/auth\/v1\/user/);
   assert.match(index,/payer_email:user\.email/);
   assert.match(index,/external_reference:externalReference/);
-  assert.match(index,/preapproval_plan_id:planId/);
+  assert.match(index,/auto_recurring:recurring/);
+  assert.match(index,/status:\"pending\"/);
   assert.match(index,/"X-Idempotency-Key":request\.requestId/);
   assert.match(index,/PEPDAY_BILLING_RETURN_URL/);
+  assert.doesNotMatch(index,/card_token_id/);
+  assert.doesNotMatch(index,/preapproval_plan_id:/);
 });
 
 test('checkout não grava entitlement nem status de assinatura antes do webhook',async()=>{
