@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'..');
 const read=path=>readFile(resolve(root,path),'utf8');
 
-test('migration cria códigos e resgates promocionais backend-only',async()=>{
+test('migration cria codigos e resgates promocionais backend-only',async()=>{
   const sql=await read('supabase/migrations/20260929172504_promo_codes_access.sql');
   assert.match(sql,/create table public\.promo_codes/i);
   assert.match(sql,/create table public\.promo_redemptions/i);
@@ -19,7 +19,7 @@ test('migration cria códigos e resgates promocionais backend-only',async()=>{
   assert.match(sql,/revoke all on public\.promo_redemptions from public,anon,authenticated,service_role/i);
 });
 
-test('resgate é único por conta e não fabrica assinatura paga',async()=>{
+test('resgate e unico por conta e nao fabrica assinatura paga',async()=>{
   const sql=await read('supabase/migrations/20260929172504_promo_codes_access.sql');
   const start=sql.indexOf('create or replace function public.redeem_promo_code');
   const end=sql.indexOf('create or replace function public.admin_create_promo_code');
@@ -32,7 +32,8 @@ test('resgate é único por conta e não fabrica assinatura paga',async()=>{
   assert.doesNotMatch(redeem,/billing_events/i);
   assert.match(redeem,/insert into public\.audit_logs\(user_id,action\) values\(u,'promo_redeemed'\)/i);
 });
-test('entitlement reconhece promo como PRO temporário separado de billing',async()=>{
+
+test('entitlement reconhece promo como PRO temporario separado de billing',async()=>{
   const sql=await read('supabase/migrations/20260929172504_promo_codes_access.sql');
   assert.match(sql,/source','promo'/);
   assert.match(sql,/promo_code',r\.code_snapshot/);
@@ -43,7 +44,7 @@ test('entitlement reconhece promo como PRO temporário separado de billing',asyn
   assert.match(source,/Acesso PRO promocional ativo/);
 });
 
-test('admin controla criação, validade, exclusividade, ativação e auditoria de usos',async()=>{
+test('admin controla criacao, validade, exclusividade, ativacao e auditoria de usos',async()=>{
   const sql=await read('supabase/migrations/20260929172504_promo_codes_access.sql');
   for(const fn of [
     'admin_create_promo_code',
@@ -57,7 +58,7 @@ test('admin controla criação, validade, exclusividade, ativação e auditoria 
   assert.match(sql,/grant execute on function public\.get_admin_promo_redemptions\(text\) to authenticated/i);
 });
 
-test('app oferece campo de código e usa somente RPC autenticada',async()=>{
+test('app oferece campo de codigo e usa somente RPC autenticada',async()=>{
   const html=await read('index.html');
   const ui=await read('src/account-ui.mjs');
   assert.match(html,/id="promoRedeemForm"/);
@@ -67,18 +68,29 @@ test('app oferece campo de código e usa somente RPC autenticada',async()=>{
   assert.doesNotMatch(ui,/promo_codes[^\n]*(insert|update|delete)/i);
   assert.doesNotMatch(ui,/promo_redemptions[^\n]*(insert|update|delete)/i);
 });
-test('painel oferece presets AMIGO30, AMIGO60 e AMIGO90 e gestão de resgates',async()=>{
+
+test('painel gera codigos unicos 30, 60 e 90 dias e permite copiar e auditar uso',async()=>{
   const html=await read('site/admin/index.html');
   const js=await read('site/admin/admin.mjs');
+  const migration=await read('supabase/migrations/20260929222437_unique_promo_codes.sql');
   for(const days of ['30','60','90']){
     assert.match(html,new RegExp(`data-promo-preset="${days}"`));
-    assert.match(html,new RegExp(`AMIGO${days}`));
   }
-  assert.match(html,/id="promoAdminLimit"/);
+  assert.doesNotMatch(html,/id="promoAdminCode"/);
+  assert.doesNotMatch(html,/id="promoAdminLimit"/);
+  assert.match(html,/Gerar c.digo .nico/u);
   assert.match(html,/id="promoAdminExpiry"/);
   assert.match(html,/id="promoAdminEmail"/);
-  assert.match(js,/admin_create_promo_code/);
-  assert.match(js,/admin_set_promo_code_active/);
+  assert.match(js,/admin_generate_promo_code/);
+  assert.match(js,/navigator\.clipboard\.writeText/);
+  assert.match(js,/Copiar c.digo/u);
+  assert.match(js,/DISPON.VEL/u);
+  assert.match(js,/UTILIZADO/);
+  assert.match(js,/EXPIRADO/);
   assert.match(js,/get_admin_promo_redemptions/);
-  assert.match(js,/Ver resgates/);
+  assert.match(migration,/generated_code:='AMIGO'\|\|p_duration_days\|\|'-'/);
+  assert.match(migration,/max_redemptions,expires_at/);
+  assert.match(migration,/generated_code,p_duration_days,1,p_expires_at/);
+  assert.match(migration,/where code in \('AMIGO30','AMIGO60','AMIGO90'\)/);
+  assert.match(migration,/revoke execute on function public\.admin_create_promo_code[^]*from authenticated/);
 });

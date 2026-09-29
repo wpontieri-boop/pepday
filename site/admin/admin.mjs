@@ -79,19 +79,24 @@ function renderPromoCodes(rows){
   if(!Array.isArray(rows)||rows.length===0){
     const empty=document.createElement('p');empty.className='muted';empty.textContent='Nenhum código promocional criado ainda.';list.append(empty);return;
   }
+  const statusLabel={available:'DISPONÍVEL',used:'UTILIZADO',expired:'EXPIRADO',disabled:'DESATIVADO'};
   for(const row of rows){
     const card=document.createElement('article');card.className='promo-code-row';
     const head=document.createElement('div');head.className='promo-code-head';
     const code=document.createElement('strong');code.textContent=row.code;
-    const badge=document.createElement('span');badge.textContent=row.active?'ATIVO':'DESATIVADO';badge.className=row.active?'active':'inactive';
+    const badge=document.createElement('span');
+    badge.textContent=statusLabel[row.status]||'—';
+    badge.className=row.status==='available'?'active':'inactive';
     head.append(code,badge);
     const meta=document.createElement('p');
-    meta.textContent=`${row.duration_days} dias • ${row.redemption_count}/${row.max_redemptions} uso(s) • ${row.exclusive?'exclusivo • ':''}validade: ${fmtDate(row.expires_at)}`;
+    meta.textContent=`${row.duration_days} dias • uso único • ${row.exclusive?'exclusivo • ':''}validade: ${fmtDate(row.expires_at)}`;
     const actions=document.createElement('div');actions.className='promo-code-actions';
-    const uses=document.createElement('button');uses.type='button';uses.className='ghost';uses.dataset.promoUses=row.code;uses.textContent='Ver resgates';
+    const copy=document.createElement('button');copy.type='button';copy.className='ghost';copy.dataset.promoCopy=row.code;copy.textContent='Copiar código';
+    const uses=document.createElement('button');uses.type='button';uses.className='ghost';uses.dataset.promoUses=row.code;uses.textContent='Ver resgate';
     const toggle=document.createElement('button');toggle.type='button';toggle.dataset.promoToggle=row.code;toggle.dataset.promoActive=String(!row.active);
     toggle.textContent=row.active?'Desativar':'Ativar';
-    actions.append(uses,toggle);card.append(head,meta,actions);list.append(card);
+    if(row.status==='used'||row.status==='expired')toggle.disabled=true;
+    actions.append(copy,uses,toggle);card.append(head,meta,actions);list.append(card);
   }
 }
 
@@ -182,29 +187,27 @@ document.querySelectorAll('[data-days]').forEach(button=>button.addEventListener
 }));
 
 document.querySelectorAll('[data-promo-preset]').forEach(button=>button.addEventListener('click',()=>{
-  const days=button.dataset.promoPreset;
-  $('promoAdminCode').value=`AMIGO${days}`;
-  $('promoAdminDuration').value=days;
-  $('promoAdminCode').focus();
+  const value=button.dataset.promoPreset;
+  $('promoAdminDuration').value=value;
+  document.querySelectorAll('[data-promo-preset]').forEach(item=>item.classList.toggle('active',item===button));
 }));
 
 $('promoCreateForm')?.addEventListener('submit',async event=>{
   event.preventDefault();if(busy)return;
-  const code=$('promoAdminCode').value.trim().toUpperCase();
   const duration=Number($('promoAdminDuration').value);
-  const limit=Number($('promoAdminLimit').value);
   const expiry=$('promoAdminExpiry').value;
   const email=$('promoAdminEmail').value.trim();
-  setBusy(true);promoStatus('Criando código…');
+  setBusy(true);promoStatus('Gerando código único…');
   try{
-    const {error}=await client.rpc('admin_create_promo_code',{
-      p_code:code,p_duration_days:duration,p_max_redemptions:limit,
+    const {data,error}=await client.rpc('admin_generate_promo_code',{
+      p_duration_days:duration,
       p_expires_at:expiry?new Date(expiry).toISOString():null,
       p_exclusive_email:email||null
     });
     if(error)throw error;
-    promoStatus(`${code} criado com sucesso.`);
-    $('promoCreateForm').reset();$('promoAdminLimit').value='1';$('promoAdminDuration').value='30';
+    promoStatus(`${data.code} gerado com sucesso. Use “Copiar código” para enviar ao amigo.`);
+    $('promoCreateForm').reset();$('promoAdminDuration').value='30';
+    document.querySelectorAll('[data-promo-preset]').forEach(item=>item.classList.toggle('active',item.dataset.promoPreset==='30'));
     await loadPromoCodes();
   }catch(error){
     console.error('PepDay promo create:',error?.code||error?.name||'erro');
@@ -213,11 +216,16 @@ $('promoCreateForm')?.addEventListener('submit',async event=>{
 });
 
 $('promoCodeList')?.addEventListener('click',async event=>{
+  const copy=event.target.closest?.('button[data-promo-copy]');
   const uses=event.target.closest?.('button[data-promo-uses]');
   const toggle=event.target.closest?.('button[data-promo-toggle]');
-  if(busy||(!uses&&!toggle))return;
+  if(busy||(!copy&&!uses&&!toggle))return;
   setBusy(true);
   try{
+    if(copy){
+      await navigator.clipboard.writeText(copy.dataset.promoCopy);
+      promoStatus(`${copy.dataset.promoCopy} copiado.`);
+    }
     if(uses)await showPromoRedemptions(uses.dataset.promoUses);
     if(toggle){
       const code=toggle.dataset.promoToggle,active=toggle.dataset.promoActive==='true';

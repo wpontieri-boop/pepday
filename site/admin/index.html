@@ -110,20 +110,18 @@
     <section class="card promo-admin">
       <div class="section-title">
         <div><div class="eyebrow">ACESSO PROMOCIONAL</div><h2>Códigos PRO</h2></div>
-        <p>Crie AMIGO30, AMIGO60 ou AMIGO90, limite usos, defina validade e vincule a uma conta quando necessário.</p>
+        <p>Gere códigos únicos de 30, 60 ou 90 dias. Cada código pode ser utilizado uma única vez.</p>
       </div>
       <form id="promoCreateForm" class="promo-form">
-        <div class="promo-presets">
-          <button type="button" data-promo-preset="30">AMIGO30</button>
-          <button type="button" data-promo-preset="60">AMIGO60</button>
-          <button type="button" data-promo-preset="90">AMIGO90</button>
+        <div class="promo-presets" aria-label="Duração da cortesia">
+          <button type="button" data-promo-preset="30">30 dias</button>
+          <button type="button" data-promo-preset="60">60 dias</button>
+          <button type="button" data-promo-preset="90">90 dias</button>
         </div>
-        <label>Código<input id="promoAdminCode" maxlength="32" autocomplete="off" placeholder="AMIGO30" required></label>
         <label>Duração<select id="promoAdminDuration" required><option value="30">30 dias</option><option value="60">60 dias</option><option value="90">90 dias</option></select></label>
-        <label>Limite de usos<input id="promoAdminLimit" type="number" min="1" max="100000" value="1" required></label>
         <label>Validade<input id="promoAdminExpiry" type="datetime-local"></label>
         <label>E-mail exclusivo (opcional)<input id="promoAdminEmail" type="email" autocomplete="off" placeholder="pessoa@exemplo.com"></label>
-        <button type="submit">Criar código</button>
+        <button type="submit">Gerar código único</button>
       </form>
       <p class="status" id="promoAdminStatus" role="status"></p>
       <div id="promoCodeList" class="promo-code-list"></div>
