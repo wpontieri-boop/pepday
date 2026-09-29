@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { initializeCloud, readPublicAuthSettings, loadAccountState, accountError } from './cloud.mjs';
 import { reviewLegacy, readCloudInventory, completeLegacyImport } from './import-completion.mjs';
-import { normalizeEntitlement, entitlementPresentation } from './entitlement.mjs';
+import { normalizeEntitlement, entitlementPresentation, postTrialExperience } from './entitlement.mjs';
 import { createAccessController } from './access-control.mjs';
 import { createSyncApi } from './sync-api.mjs';
 import { createSyncEngine } from './sync-engine.mjs';
@@ -13,7 +13,7 @@ import { captureCardAcquisition, claimPendingCardAcquisition } from './acquisiti
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false, syncEngine=null, currentRepository=null;
+let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, syncEngine=null, currentRepository=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -29,6 +29,13 @@ function publishAccess(raw, profileComplete=false) {
   const presentation=entitlementPresentation(access);
   el('planLabel').textContent=presentation.label;
   el('planDescription').textContent=presentation.description;
+  const postTrial=postTrialExperience(access);
+  if(!postTrial.visible)postTrialDismissed=false;
+  el('postTrialTitle').textContent=postTrial.title||'Seu teste PRO terminou';
+  el('postTrialMessage').textContent=postTrial.message||'Você continua no PepDay FREE. Seus dados PRO permanecem salvos.';
+  el('postTrialViewPro').textContent=postTrial.primaryLabel||'Ver planos PRO';
+  el('postTrialContinueFree').textContent=postTrial.secondaryLabel||'Continuar no FREE';
+  hide('postTrialNotice',!postTrial.visible||postTrialDismissed);
   const canOffer=access.signedIn && profileComplete && access.status==='free' && access.trialAvailable && !declinedTrial;
   hide('trialActions',!canOffer);
   const showCommercial=access.signedIn && profileComplete && access.status!=='pro_active';
@@ -386,6 +393,15 @@ function startTrialFromTrustedClick(event){
   if(access.status==='pro_expired'){showProPlans();return}
   requestTrial();
 }
+el('postTrialContinueFree').addEventListener('click',()=>{
+  postTrialDismissed=true;
+  hide('postTrialNotice');
+});
+el('postTrialViewPro').addEventListener('click',event=>{
+  if(!event.isTrusted)return;
+  document.querySelector('nav [data-go="profile"]')?.click();
+  requestAnimationFrame(()=>el('proOffer')?.scrollIntoView({behavior:'smooth',block:'start'}));
+});
 el('accountStartTrial').addEventListener('click',startTrialFromTrustedClick);
 el('proGateStart').addEventListener('click',startTrialFromTrustedClick);
 el('accountDeclineTrial').addEventListener('click',()=>{

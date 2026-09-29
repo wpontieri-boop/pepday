@@ -20,6 +20,14 @@
 #planCard #planDescription{color:var(--muted);line-height:1.5}
 #planCard .account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 #planCard .account-actions button{flex:1;min-width:180px;margin-top:0}
+.post-trial-notice{border:1px solid #2b7899;background:linear-gradient(180deg,#0b2232,#081723);box-shadow:0 14px 34px #02091255}
+.post-trial-notice>small{display:block;color:var(--cyan);font-weight:800;letter-spacing:.1em}
+.post-trial-notice h3{margin:6px 0 8px}
+.post-trial-notice p{margin:0;color:#b7ccd7;line-height:1.5}
+.post-trial-notice .account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.post-trial-notice .account-actions button{flex:1;min-width:160px;margin:0}
+.post-trial-notice :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+@media(max-width:520px){.post-trial-notice .account-actions{flex-direction:column}.post-trial-notice .account-actions button{width:100%}}
 .pro-gate{width:min(440px,calc(100% - 28px));padding:22px;border:1px solid #24536b;border-radius:20px;background:#091c2a;color:var(--text);box-shadow:0 24px 70px #000b}
 .pro-gate::backdrop{background:#020912cc;backdrop-filter:blur(4px)}
 .pro-gate h3{margin:0 0 10px;color:#f5fcff}

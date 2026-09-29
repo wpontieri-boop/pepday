@@ -46,6 +46,22 @@ export function trialExpiryNotice(access) {
   return null;
 }
 
+export function postTrialExperience(access) {
+  const normalized = normalizeEntitlement(access, { signedIn: access?.signedIn === true });
+  const visible = normalized.signedIn
+    && normalized.status === 'pro_expired'
+    && normalized.source === 'trial'
+    && normalized.trialUsed;
+  if (!visible) return Object.freeze({ visible:false });
+  return Object.freeze({
+    visible:true,
+    title:'Seu teste PRO terminou',
+    message:'Você continua no PepDay FREE com a calculadora e o tutorial. Seus dados PRO permanecem salvos para quando quiser voltar.',
+    primaryLabel:'Ver planos PRO',
+    secondaryLabel:'Continuar no FREE'
+  });
+}
+
 export function entitlementPresentation(access, locale = 'pt-BR') {
   const normalized = normalizeEntitlement(access, { signedIn: access?.signedIn === true });
   const notice = trialExpiryNotice(normalized);
