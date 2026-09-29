@@ -64,6 +64,49 @@
       <div><small>CARTÃO → PRO PAGO</small><strong id="cardPaidRate">—%</strong></div>
     </section>
 
+    <section class="panel-section">
+      <div class="section-title">
+        <div><div class="eyebrow">BASE ATUAL</div><h2>Usuários e ciclo do trial</h2></div>
+        <p>Contas administrativas não entram nestes números.</p>
+      </div>
+      <div class="metrics lifecycle">
+        <article><small>USUÁRIOS</small><strong id="totalUsers">—</strong><span>contas comerciais</span></article>
+        <article><small>FREE AGORA</small><strong id="freeNow">—</strong><span>ainda não usaram trial</span></article>
+        <article class="trial"><small>TRIAL ATIVO</small><strong id="trialActive">—</strong><span>com acesso PRO temporário</span></article>
+        <article class="warning"><small>TRIAL VENCENDO</small><strong id="trialEnding">—</strong><span>próximas 72 horas</span></article>
+        <article class="danger"><small>TRIAL EXPIRADO SEM PRO</small><strong id="trialExpired">—</strong><span>oportunidade de recuperação</span></article>
+        <article class="accent"><small>ELEGÍVEIS PARA RECUPERAÇÃO</small><strong id="recoveryEligible">—</strong><span>com consentimento de marketing</span></article>
+      </div>
+    </section>
+
+    <section class="panel-section">
+      <div class="section-title">
+        <div><div class="eyebrow">ASSINATURAS</div><h2>PRO e retenção</h2></div>
+        <p>Os valores passam a refletir pagamentos reais quando o Mercado Pago for conectado.</p>
+      </div>
+      <div class="metrics subscriptions">
+        <article class="pro"><small>PRO MENSAL ATIVO</small><strong id="monthlyActive">—</strong><span>assinaturas mensais</span></article>
+        <article class="pro"><small>PRO ANUAL ATIVO</small><strong id="annualActive">—</strong><span>assinaturas anuais</span></article>
+        <article class="warning"><small>EM TOLERÂNCIA</small><strong id="graceActive">—</strong><span>falha de renovação / 3 dias</span></article>
+        <article><small>CANCELAMENTO AGENDADO</small><strong id="cancelScheduled">—</strong><span>acesso permanece até o fim</span></article>
+        <article><small>EX-PRO</small><strong id="proExpired">—</strong><span>assinatura já encerrada</span></article>
+        <article><small>CANCELAMENTOS</small><strong id="cancellationsWindow">—</strong><span id="cancellationsWindowLabel">no período</span></article>
+      </div>
+    </section>
+
+    <section class="card recovery">
+      <div>
+        <div class="eyebrow">RECUPERAÇÃO PÓS-TRIAL</div>
+        <h2>Funil preparado para campanhas</h2>
+        <p><b id="recoverySummary">—</b> usuários podem entrar numa campanha de recuperação quando Brevo e Mercado Pago estiverem ativos.</p>
+      </div>
+      <div class="recovery-stats">
+        <div><small>RECUPERADOS POR CAMPANHA</small><strong id="campaignRecovered">—</strong><span>entra após tracking Brevo + oferta</span></div>
+        <div><small>RECEITA RECEBIDA</small><strong id="revenueReceived">—</strong><span>entra após eventos financeiros do Mercado Pago</span></div>
+      </div>
+      <p class="muted">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
+    </section>
+
     <section class="card note">
       <h2>O que estamos medindo</h2>
       <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>

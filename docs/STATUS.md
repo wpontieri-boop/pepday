@@ -671,6 +671,26 @@ Regressão completa após o patch: `323/323 PASS`.
 O patch ainda requer uma conferência física curta no celular após o auto-deploy da
 homologação, especificamente nos três comportamentos acima.
 
+
+### Painel administrativo — ciclo de vida e recuperação pós-trial
+
+O painel privado de homologação foi ampliado para gestão comercial sem PII. Além do
+funil de aquisição, passa a mostrar base comercial total (excluindo contas admin),
+FREE atual, trial ativo, trial vencendo em até 72h, trial expirado sem PRO e quantidade
+elegível para recuperação somente quando `settings.marketing_opt_in=true`.
+
+Assinaturas passam a ter métricas agregadas de PRO mensal/anual ativo, tolerância de
+renovação, cancelamento agendado, ex-PRO e cancelamentos aplicados na janela de 7/30/90
+dias. Receita recebida e recuperados por campanha permanecem explicitamente
+indisponíveis até Mercado Pago/Brevo fornecerem eventos financeiros/atribuição reais;
+o painel não fabrica valores.
+
+A RPC `get_admin_acquisition_metrics(integer)` continua `SECURITY DEFINER`, mas
+valida `auth.uid()` e exige `profiles.role='admin'` antes das consultas. Validação
+real no Supabase TEST com a conta admin retornou métricas agregadas, sem PII. A validação
+detectou e corrigiu o nome real do consentimento (`marketing_opt_in`). Nenhuma
+campanha promocional foi ativada.
+
 ## Registro deste checkpoint
 
 O checkpoint documental inicial `9b75ae8a2ece447463863bb32a7b4eac64bdaf1d`,

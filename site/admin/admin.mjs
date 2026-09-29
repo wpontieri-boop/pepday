@@ -43,6 +43,22 @@ function renderMetrics(data){
   setText('paidActive',fmt(data.paid_active_now));
   setText('cardTrialRate',fmtPercent(data.card_to_trial_percent));
   setText('cardPaidRate',fmtPercent(data.card_to_paid_percent));
+  setText('totalUsers',fmt(data.total_users_now));
+  setText('freeNow',fmt(data.free_now));
+  setText('trialActive',fmt(data.trial_active_now));
+  setText('trialEnding',fmt(data.trial_ending_3d_now));
+  setText('trialExpired',fmt(data.trial_expired_no_pro_now));
+  setText('recoveryEligible',fmt(data.recovery_eligible_now));
+  setText('monthlyActive',fmt(data.monthly_active_now));
+  setText('annualActive',fmt(data.annual_active_now));
+  setText('graceActive',fmt(data.grace_active_now));
+  setText('cancelScheduled',fmt(data.cancel_scheduled_now));
+  setText('proExpired',fmt(data.pro_expired_now));
+  setText('cancellationsWindow',fmt(data.cancellations_in_window));
+  setText('cancellationsWindowLabel',`nos últimos ${data.window_days} dias`);
+  setText('recoverySummary',fmt(data.recovery_eligible_now));
+  setText('campaignRecovered',data.recovered_campaign_available?'0':'—');
+  setText('revenueReceived',data.revenue_available?'R$ 0,00':'—');
   const stamp=data.generated_at?new Date(data.generated_at):null;
   setText('generatedAt',stamp&&Number.isFinite(stamp.getTime())
     ?`Atualizado em ${new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'medium'}).format(stamp)} • janela de ${data.window_days} dias.`
