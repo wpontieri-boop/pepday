@@ -69,7 +69,9 @@ test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no 
   assert.ok(index.indexOf('authenticatedUser')<index.indexOf('"https://api.mercadopago.com/preapproval"'));
   assert.match(index,/\/auth\/v1\/user/);
   assert.match(index,/MERCADO_PAGO_LIVE_MODE/);
-  assert.match(index,/test@testuser\.com/);
+  assert.match(index,/MERCADO_PAGO_TEST_PAYER_EMAIL/);
+  assert.match(index,/MP_TEST_PAYER_EMAIL_MISSING/);
+  assert.doesNotMatch(index,/test@testuser\.com/);
   assert.match(index,/payer_email:payerEmail/);
   assert.match(index,/external_reference:externalReference/);
   assert.match(index,/auto_recurring:recurring/);
@@ -78,6 +80,16 @@ test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no 
   assert.match(index,/PEPDAY_BILLING_RETURN_URL/);
   assert.doesNotMatch(index,/card_token_id/);
   assert.doesNotMatch(index,/preapproval_plan_id:/);
+});
+
+test('erro do provedor é logado de forma sanitizada e limitada',async()=>{
+  const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
+  assert.match(index,/safeProviderError/);
+  assert.match(index,/PepDay Mercado Pago provider:/);
+  assert.match(index,/\[email\]/);
+  assert.match(index,/\[credential\]/);
+  assert.match(index,/\.slice\(0,240\)/);
+  assert.doesNotMatch(index,/JSON\.stringify\(data\)/);
 });
 
 test('checkout não grava entitlement nem status de assinatura antes do webhook',async()=>{

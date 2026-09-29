@@ -47,11 +47,35 @@ function response(status,code,extra={}){
   });
 }
 
+function safeProviderText(value){
+  return String(value??"")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[email]")
+    .replace(/(?:APP_USR|TEST)-[A-Za-z0-9_-]+/g,"[credential]")
+    .replace(/[A-Za-z0-9_-]{40,}/g,"[redacted]")
+    .slice(0,240);
+}
+
+function safeProviderError(data){
+  const causes=Array.isArray(data?.cause)?data.cause.slice(0,3).map(item=>({
+    code:safeProviderText(item?.code),
+    description:safeProviderText(item?.description)
+  })):[];
+  return {
+    message:safeProviderText(data?.message),
+    error:safeProviderText(data?.error),
+    code:safeProviderText(data?.code),
+    causes
+  };
+}
+
 async function fetchJson(url,init,code,status=503){
   const res=await fetch(url,init);
   let data=null;
   try{data=await res.json()}catch{}
-  if(!res.ok)throw new CheckoutError(`${code}_${res.status}`,status);
+  if(!res.ok){
+    if(code==="MP_CREATE_SUBSCRIPTION")console.error("PepDay Mercado Pago provider:",safeProviderError(data));
+    throw new CheckoutError(`${code}_${res.status}`,status);
+  }
   return data;
 }
 
@@ -138,7 +162,9 @@ export default {
 
       const liveMode=env("MERCADO_PAGO_LIVE_MODE");
       if(!["true","false"].includes(liveMode))throw new CheckoutError("MP_LIVE_MODE_CONFIG_MISSING",500);
-      const payerEmail=liveMode==="false"?"test@testuser.com":user.email;
+      const testPayerEmail=env("MERCADO_PAGO_TEST_PAYER_EMAIL");
+      if(liveMode==="false"&&!testPayerEmail)throw new CheckoutError("MP_TEST_PAYER_EMAIL_MISSING",500);
+      const payerEmail=liveMode==="false"?testPayerEmail:user.email;
 
       const checkout=await fetchJson(
         "https://api.mercadopago.com/preapproval",
