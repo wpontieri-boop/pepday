@@ -51,7 +51,7 @@ A V2.9 permanece em produção.
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
-| push | BLOQUEADO POR CONFIGURAÇÃO | fundação/SQL testados; falta ativação do provedor |
+| push | BLOQUEADO POR CONFIGURAÇÃO | fundação/SQL testados e worker FCM implantado; falta configuração externa do Firebase e teste físico |
 | cache/update | PASS | cache profile-sync-13; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
@@ -78,7 +78,7 @@ Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais 
 
 ### Push
 
-Ainda é necessário configurar o projeto de teste do provedor, ativar a recepção Web Push, implantar o worker e confirmar uma notificação genérica real em dispositivo de teste.
+O worker FCM já está implantado no Supabase TEST. Ainda é necessário concluir a configuração externa do Firebase, ativar a recepção Web Push no cliente e confirmar uma notificação genérica real em dispositivo de teste.
 
 ### Mobile / PWA
 

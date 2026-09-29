@@ -591,9 +591,11 @@ Os avisos de RLS sem policy são intencionais porque as tabelas não são expost
 acesso direto; os avisos de SECURITY DEFINER nas RPCs de cliente são esperados e
 mitigados por `auth.uid()` e pelos testes reais de privilégio.
 
-O worker FCM está preparado em código, mas NÃO foi implantado/ativado porque ainda não
-foi configurada a service account real do Firebase no ambiente de teste. Nenhuma
-credencial Firebase foi gravada no repositório e nenhum push real foi enviado.
+O worker FCM foi implantado no Supabase TEST em 29/09/2026 com
+`verify_jwt=false` e autenticação própria prevista por `PEPDAY_PUSH_WORKER_SECRET`.
+A função permanece efetivamente bloqueada para envio até configurar
+`FIREBASE_SERVICE_ACCOUNT_JSON` e o segredo interno do worker no ambiente TEST.
+Nenhuma credencial Firebase foi gravada no repositório e nenhum push real foi enviado.
 
 
 O Bloco D de direitos do titular e documentos jurídicos foi iniciado/concluído na
