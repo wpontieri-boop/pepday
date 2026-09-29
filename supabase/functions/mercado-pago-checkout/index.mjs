@@ -136,6 +136,10 @@ export default {
       const externalReference=checkoutExternalReference(subscription.id,request.plan);
       if(!externalReference)throw new CheckoutError("SUBSCRIPTION_REFERENCE_INVALID",500);
 
+      const liveMode=env("MERCADO_PAGO_LIVE_MODE");
+      if(!["true","false"].includes(liveMode))throw new CheckoutError("MP_LIVE_MODE_CONFIG_MISSING",500);
+      const payerEmail=liveMode==="false"?"test@testuser.com":user.email;
+
       const checkout=await fetchJson(
         "https://api.mercadopago.com/preapproval",
         {
@@ -147,7 +151,7 @@ export default {
           },
           body:JSON.stringify({
             reason:`PepDay PRO ${request.plan==='annual'?'Anual':'Mensal'}`,
-            payer_email:user.email,
+            payer_email:payerEmail,
             external_reference:externalReference,
             auto_recurring:recurring,
             back_url:returnUrl(),
