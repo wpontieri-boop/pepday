@@ -541,7 +541,7 @@ explicitamente que “cartão/QR” significa conta atribuída, não scan anôni
 Testes direcionados do painel: `6/6 PASS`; regressão completa: `270/270 PASS`;
 smoke local de `/site/admin/` e do módulo RPC: `200`.
 
-A fundação de e-mails transacionais via Brevo também foi preparada, sem ativar envio.
+A fundação de e-mails transacionais via Brevo foi configurada e validada no ambiente TEST.
 Migrations aplicadas somente no `pepday-v3-test`:
 `20260928220752_block_c_brevo_email_outbox.sql` e
 `20260928221031_block_c_brevo_email_indexes.sql`. O outbox é backend-only, com
@@ -554,10 +554,12 @@ O worker `brevo-email-worker` foi implantado no `pepday-v3-test` em 29/09/2026,
 com `verify_jwt=false` e autenticação própria por `PEPDAY_EMAIL_WORKER_SECRET`.
 O segredo interno foi gerado e salvo diretamente nos secrets do Supabase TEST, sem
 ser gravado no repositório, e `PEPDAY_PUBLIC_URL` aponta para a homologação Render.
-O envio real continua BLOQUEADO até configurar a `BREVO_API_KEY` e os IDs dos
-templates transacionais `BREVO_TEMPLATE_*`. O worker resolve o destinatário somente
-no backend, escolhe template por variável de ambiente, usa o endpoint fixo do Brevo
-e implementa retry/backoff sem logar destinatário, payload ou segredos.
+A `BREVO_API_KEY` foi configurada com entrada segura local; o remetente PepDay foi
+validado como ativo e os 11 templates transacionais foram criados e vinculados aos
+secrets `BREVO_TEMPLATE_*`. O worker foi executado em smoke real contra o ambiente
+TEST e respondeu `WORKER_COMPLETE` com fila vazia, sem envio indevido. O worker
+resolve o destinatário somente no backend, usa o endpoint fixo do Brevo e implementa
+retry/backoff sem logar destinatário, payload ou segredos.
 
 Validação SQL real do outbox:
 `PASS FINAL BLOCO C BREVO OUTBOX — enqueue + dedupe + claim lock + complete +
@@ -648,8 +650,9 @@ manifest/PWA, Service Worker/cache, existência de assets, mg/mcg, seringas U-10
 responsividade e tutorial. Resultado: `11/11 PASS`. Regressão completa atual:
 `318/318 PASS`.
 
-O checklist final registra como bloqueados por configuração externa os testes reais de
-pagamento/webhook/cancelamento/expiração/reativação, Brevo e FCM. Mobile/PWA está
+O checklist final não considera mais Brevo bloqueado por configuração externa: API key,
+remetente, templates, worker e um envio transacional real foram validados no TEST. FCM
+ainda depende da configuração externa do provedor e validação real no dispositivo. Mobile/PWA está
 tecnicamente validado por estrutura/responsividade, mas requer teste físico final no
 celular. Exclusão de conta está funcional em backend/UI e com smoke seguro, mas o teste
 destrutivo real requer uma conta descartável. Nenhum desses bloqueios autoriza promoção

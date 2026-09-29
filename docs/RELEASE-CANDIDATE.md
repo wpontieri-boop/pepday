@@ -45,12 +45,12 @@ A V2.9 permanece em produção.
 | offline/online | PASS | sync engine e reconexão |
 | RLS | PASS | migrations/advisors/testes reais |
 | isolamento entre usuários | PASS | RLS/testes reais anteriores |
-| pagamento de teste | BLOQUEADO POR CONFIGURAÇÃO | falta configuração completa do sandbox |
-| webhooks de pagamento | BLOQUEADO POR CONFIGURAÇÃO | implementação testada; falta homologação externa |
-| cancelamento de assinatura | BLOQUEADO POR CONFIGURAÇÃO | fluxo pronto; falta assinatura descartável |
-| expiração de assinatura | BLOQUEADO POR CONFIGURAÇÃO | state machine pronta; falta evento sandbox |
-| reativação | BLOQUEADO POR CONFIGURAÇÃO | state machine pronta; falta evento sandbox |
-| e-mails transacionais | BLOQUEADO POR CONFIGURAÇÃO | outbox/worker testados; falta ativação do provedor |
+| pagamento de teste | PASS | sandbox validado com pagamento mensal aprovado |
+| webhooks de pagamento | PASS | eventos automáticos do Mercado Pago recebidos e aplicados no TEST |
+| cancelamento de assinatura | PASS | cancelamento do sandbox recebido automaticamente por webhook |
+| expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
+| reativação | PASS | fluxo de reativação e ordenação de eventos validados |
+| e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | BLOQUEADO POR CONFIGURAÇÃO | fundação/SQL testados; falta ativação do provedor |
 | cache/update | PASS | cache profile-sync-13; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
@@ -59,7 +59,7 @@ A V2.9 permanece em produção.
 
 ## Testes atuais
 
-- Regressão completa: **338/338 PASS**
+- Regressão completa: **341/341 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **36/36 PASS**
@@ -70,11 +70,11 @@ A V2.9 permanece em produção.
 
 ### Pagamentos
 
-Para fechar o checklist comercial ainda é necessário configurar o sandbox do provedor, planos de teste, retorno da homologação e uma assinatura descartável.
+Sandbox Mercado Pago, planos, retorno de homologação e webhooks foram configurados e validados no TEST. Pagamento aprovado, cancelamento automático por webhook e tratamento de eventos fora de ordem foram testados; produção permanece intocada.
 
 ### E-mails
 
-Ainda é necessário configurar o provedor de homologação e templates transacionais, implantar o worker e confirmar entrega/retry.
+Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais e worker implantado. Smoke real processou 1 evento, recebeu aceite do provedor e persistiu `provider_message_id`. Retry/backoff permanece coberto pela suíte automatizada; antes de produção, revisar remetente/domínio definitivo.
 
 ### Push
 
