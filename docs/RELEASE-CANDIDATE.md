@@ -1,6 +1,6 @@
 # PepDay V3.0 — Matriz de Release Candidate
 
-Atualização: 29/09/2026.
+Atualização: 30/09/2026.
 
 Estados:
 - **PASS** — validado por teste automatizado, SQL real, smoke ou teste humano já aprovado.
@@ -51,7 +51,7 @@ A V2.9 permanece em produção.
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
-| push | PASS TÉCNICO / MOBILE PENDENTE | Firebase TEST configurado, cliente Web Push registrado e fila aceitando eventos; falta disparo automático seguro do worker e confirmação visual de uma notificação real |
+| push | PASS TÉCNICO / MOBILE PENDENTE | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 2 smokes reais em sent com provider_message_id e HTTP 200; falta somente confirmação visual humana no dispositivo |
 | cache/update | PASS | cache profile-sync-15; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
@@ -59,11 +59,11 @@ A V2.9 permanece em produção.
 
 ## Testes atuais
 
-- Regressão completa: **344/344 PASS**
+- Regressão completa: **347/347 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **36/36 PASS**
-- FCM/UX push: **13/13 PASS**
+- FCM/UX push: **16/16 PASS**
 - Brevo: **10/10 PASS**
 
 ## Pendências externas
@@ -78,7 +78,7 @@ Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais 
 
 ### Push
 
-O Firebase TEST e o cliente Web Push já estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho” e a fila aceitou uma notificação operacional. Falta configurar o disparo automático/seguro do `fcm-push-worker` e confirmar visualmente uma notificação genérica real no dispositivo antes de marcar push como PASS final.
+O Firebase TEST e o cliente Web Push estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho”. O Supabase TEST agora executa o push por cron seguro (`pg_cron` + `pg_net`) usando token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`, que chama o worker FCM já protegido por segredo backend-only. Dois smokes operacionais reais chegaram a `sent`, ambos com `provider_message_id`; o disparo controlado retornou HTTP 200 sem erro de transporte. Falta somente confirmar visualmente a notificação genérica no dispositivo antes de marcar push como PASS final.
 
 ### Mobile / PWA
 

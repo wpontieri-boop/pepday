@@ -105,11 +105,48 @@ test('cliente só registra instalação/preferências; worker RPCs ficam service
   assert.match(sql,/revoke all on public\.push_notification_outbox from public,anon,authenticated,service_role/i);
 });
 
-test('worker exige segredo antes do claim e usa OAuth/HTTP v1 somente no backend',async()=>{
+test('dispatcher FCM usa cron, pg_net e token efêmero de uso único sem segredo estático',async()=>{
+  const sql=await read('supabase/migrations/20260930224101_fcm_push_cron_dispatcher.sql');
+  assert.match(sql,/create extension if not exists pg_cron/i);
+  assert.match(sql,/create extension if not exists pg_net with schema extensions/i);
+  assert.match(sql,/create table public\.push_worker_invocations/i);
+  assert.match(sql,/extensions\.digest\(value,'sha256'\)/i);
+  assert.match(sql,/expires_at>stamp/i);
+  assert.match(sql,/set consumed_at=stamp/i);
+  assert.match(sql,/grant execute on function public\.consume_push_worker_invocation\(text\)\s+to service_role/i);
+  assert.match(sql,/where name='pepday_supabase_project_url'/i);
+  assert.match(sql,/x-pepday-invocation-token/i);
+  assert.match(sql,/cron\.schedule\([^]*'pepday-fcm-push-worker'[^]*'\* \* \* \* \*'/i);
+  assert.doesNotMatch(sql,/PEPDAY_PUSH_WORKER_SECRET|FIREBASE_SERVICE_ACCOUNT_JSON|sb_secret_|service_role_key/i);
+  assert.ok(sql.indexOf("select exists(")<sql.indexOf("select net.http_post("));
+});
+
+test('migration de rota aponta o cron somente para o dispatcher interno',async()=>{
+  const sql=await read('supabase/migrations/20260930224752_route_fcm_cron_dispatcher.sql');
+  assert.match(sql,/\/functions\/v1\/fcm-push-cron-dispatcher/);
+  assert.match(sql,/x-pepday-invocation-token/);
+  assert.doesNotMatch(sql,/x-pepday-worker-secret|PEPDAY_PUSH_WORKER_SECRET|FIREBASE_SERVICE_ACCOUNT_JSON/i);
+  assert.ok(sql.indexOf("select exists(")<sql.indexOf("select net.http_post("));
+});
+
+test('dispatcher HTTP consome token antes de chamar worker e não expõe segredo',async()=>{
+  const source=await read('supabase/functions/fcm-push-cron-dispatcher/index.mjs');
+  const consumeCall=source.indexOf('"consume_push_worker_invocation"');
+  const workerCall=source.indexOf('const result=await forwardToWorker(');
+  assert.ok(consumeCall>=0&&workerCall>consumeCall);
+  assert.match(source,/x-pepday-invocation-token/);
+  assert.match(source,/PEPDAY_PUSH_WORKER_SECRET/);
+  assert.match(source,/x-pepday-worker-secret/);
+  assert.doesNotMatch(source,/FIREBASE_SERVICE_ACCOUNT_JSON|private_key|client_email/i);
+  const logs=[...source.matchAll(/console\.(?:error|warn)\(([^\n]+)\)/g)].map(m=>m[1]).join('\n');
+  assert.doesNotMatch(logs,/secret|token|recipient|payload/i);
+});
+
+test('worker mantém segredo próprio antes do claim e OAuth FCM somente no backend',async()=>{
   const source=await read('supabase/functions/fcm-push-worker/index.mjs');
   assert.ok(source.indexOf('internalSecretOk(req)')<source.indexOf('"claim_push_notification"'));
-  assert.match(source,/FIREBASE_SERVICE_ACCOUNT_JSON/);
   assert.match(source,/PEPDAY_PUSH_WORKER_SECRET/);
+  assert.match(source,/FIREBASE_SERVICE_ACCOUNT_JSON/);
   assert.match(source,/https:\/\/oauth2\.googleapis\.com\/token/);
   assert.match(source,/https:\/\/www\.googleapis\.com\/auth\/firebase\.messaging/);
   assert.match(source,/fcmEndpoint\(account\.projectId\)/);
@@ -118,10 +155,11 @@ test('worker exige segredo antes do claim e usa OAuth/HTTP v1 somente no backend
   assert.doesNotMatch(logs,/installation|token|privateKey|serviceAccount|recipient|payload/i);
 });
 
-test('config declara worker FCM sem JWT público e com segredo próprio',async()=>{
+test('config declara worker e dispatcher FCM internos sem JWT público',async()=>{
   const config=await read('supabase/config.toml');
   assert.match(config,/\[functions\.fcm-push-worker\][^]*verify_jwt = false[^]*fcm-push-worker\/index\.mjs/);
-  assert.match(config,/autenticação por segredo próprio/i);
+  assert.match(config,/\[functions\.fcm-push-cron-dispatcher\][^]*verify_jwt = false[^]*fcm-push-cron-dispatcher\/index\.mjs/);
+  assert.match(config,/token efêmero/i);
 });
 
 

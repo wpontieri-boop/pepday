@@ -17,8 +17,10 @@ Atualização: 30/09/2026.
 - Cliente Web Push usa VAPID público e registra a instalação no Supabase por RPC autenticada.
 - Arquivo de service worker do Firebase está publicado em `src/firebase-messaging-sw.js`; o 404 anterior foi corrigido.
 - Teste humano confirmou no Mac: **“Notificações ativadas neste aparelho.”**
-- Fila de push aceitou uma notificação operacional de teste (`queued: 1`).
-- Ainda falta fechar o disparo automático/seguro do `fcm-push-worker` e confirmar a entrega visual de uma notificação real no dispositivo.
+- Disparo periódico seguro de push foi configurado somente no Supabase TEST com `pg_cron` + `pg_net`, token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`.
+- Migrations TEST: `20260930224101_fcm_push_cron_dispatcher.sql` e `20260930224752_route_fcm_cron_dispatcher.sql`.
+- Dois smokes operacionais reais foram processados ponta a ponta: outbox em `sent`, dois `provider_message_id` persistidos e chamada do dispatcher com HTTP 200 sem erro de transporte.
+- Falta somente a confirmação visual humana de uma notificação real no dispositivo para fechar push como PASS final.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -40,19 +42,19 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Testes atuais
 
-- Regressão completa: **344/344 PASS**.
-- Pacote direcionado de push + landing + static: **32/32 PASS**.
-- Sintaxe de `app.js` e `src/account-ui.mjs`: PASS.
+- Regressão completa: **347/347 PASS**.
+- FCM/UX push: **16/16 PASS**.
+- Sintaxe de `fcm-push-worker` e `fcm-push-cron-dispatcher`: PASS.
+- Advisors Supabase executados após o DDL; nenhum novo bloqueio crítico foi introduzido.
 
 ## Próximo passo técnico
 
-Fechar o pipeline real de push em TEST:
-1. configurar um disparador seguro e periódico do `fcm-push-worker`;
-2. processar a notificação operacional já enfileirada ou criar um novo smoke;
-3. confirmar notificação real no Mac/celular;
-4. somente então marcar push como PASS na matriz de Release Candidate.
+O pipeline automático de push em TEST está tecnicamente fechado. Próximos passos:
+1. confirmar visualmente no Mac/celular o smoke real já aceito pelo Firebase;
+2. após confirmação humana, marcar push como PASS na matriz de Release Candidate;
+3. seguir para validações finais de mobile/PWA e demais pendências da matriz.
 
-Depois disso, seguir para validações finais de mobile/PWA e demais pendências da matriz.
+Produção, `main` e V2.9 permanecem fora deste fluxo.
 
 ## Regra para retomar em outro chat ou computador
 

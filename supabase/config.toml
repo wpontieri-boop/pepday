@@ -26,6 +26,12 @@ verify_jwt = false
 # Worker interno: autenticação por segredo próprio da função.
 entrypoint = "./functions/fcm-push-worker/index.mjs"
 
+[functions.fcm-push-cron-dispatcher]
+enabled = true
+verify_jwt = false
+# Dispatcher interno: token efêmero do Postgres + segredo do worker somente no backend.
+entrypoint = "./functions/fcm-push-cron-dispatcher/index.mjs"
+
 [functions.account-delete]
 enabled = true
 verify_jwt = false

@@ -592,10 +592,12 @@ acesso direto; os avisos de SECURITY DEFINER nas RPCs de cliente são esperados 
 mitigados por `auth.uid()` e pelos testes reais de privilégio.
 
 O worker FCM foi implantado no Supabase TEST em 29/09/2026 com
-`verify_jwt=false` e autenticação própria prevista por `PEPDAY_PUSH_WORKER_SECRET`.
-A função permanece efetivamente bloqueada para envio até configurar
-`FIREBASE_SERVICE_ACCOUNT_JSON` e o segredo interno do worker no ambiente TEST.
-Nenhuma credencial Firebase foi gravada no repositório e nenhum push real foi enviado.
+`verify_jwt=false` e autenticação própria por `PEPDAY_PUSH_WORKER_SECRET`.
+Em 30/09/2026, `FIREBASE_SERVICE_ACCOUNT_JSON` e o segredo interno já estavam
+configurados somente no ambiente TEST. O disparo periódico passou a usar
+`pg_cron` + `pg_net`, token efêmero de uso único e a Edge Function interna
+`fcm-push-cron-dispatcher`; nenhuma credencial Firebase foi gravada no repositório.
+Dois smokes operacionais reais chegaram a `sent` com `provider_message_id`.
 
 
 O Bloco D de direitos do titular e documentos jurídicos foi iniciado/concluído na
@@ -732,9 +734,20 @@ O Firebase TEST foi configurado para Web Push, com service account mantida apena
 segredo no Supabase TEST e VAPID público no cliente. O service worker de mensagens foi
 movido para `src/firebase-messaging-sw.js` e passou a ser publicado corretamente pela
 homologação Render; o 404 que bloqueava a criação do token foi eliminado. Teste humano
-no Mac confirmou “Notificações ativadas neste aparelho”. A fila backend aceitou uma
-notificação operacional (`queued: 1`). Ainda falta fechar o disparo automático/seguro
-do worker e confirmar visualmente uma notificação real no dispositivo.
+no Mac confirmou “Notificações ativadas neste aparelho”.
+
+Em 30/09/2026, o disparo automático/seguro foi fechado somente no ambiente TEST.
+As migrations `20260930224101_fcm_push_cron_dispatcher.sql` e
+`20260930224752_route_fcm_cron_dispatcher.sql` habilitam `pg_cron` + `pg_net`,
+criam tokens de invocação efêmeros de uso único (somente hash persistido) e roteiam o
+job para a Edge Function interna `fcm-push-cron-dispatcher`. O dispatcher consome o
+token antes de chamar o `fcm-push-worker`, cujo segredo continua apenas no backend.
+O job `pepday-fcm-push-worker` está ativo a cada minuto.
+
+Foram processados dois smokes operacionais reais: ambos terminaram em `sent`, ambos
+persistiram `provider_message_id` do Firebase e o segundo disparo controlado retornou
+HTTP 200 sem erro de transporte. Falta somente a confirmação visual humana do banner no
+dispositivo para fechar push como PASS final da matriz.
 
 A UX aprovada não depende mais de o usuário descobrir notificações no Perfil. Após
 completar o cadastro, se a permissão ainda estiver no estado padrão, o app retorna à
@@ -744,8 +757,8 @@ lembretes”. A permissão nativa continua sendo solicitada somente após clique
 O Perfil permanece como área de manutenção e preferências.
 
 A landing e as ofertas PRO/Trial passaram a destacar “Lembretes no celular, mesmo com
-o PepDay fechado” e a experiência PRO sem anúncios. Regressão completa após esse delta:
-`344/344 PASS`; pacote direcionado de push + landing + static: `32/32 PASS`.
+o PepDay fechado” e a experiência PRO sem anúncios. Após o fechamento do dispatcher,
+FCM/UX push ficou em `16/16 PASS` e a regressão completa em `347/347 PASS`.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com

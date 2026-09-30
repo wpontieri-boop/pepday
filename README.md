@@ -300,7 +300,7 @@ Somente backend:
 - `PEPDAY_PUBLIC_URL`;
 - `BREVO_TEMPLATE_<EVENTO>` para cada template transacional usado.
 
-O worker está preparado, mas **não está ativado para envio real** enquanto chave e templates não forem configurados/testados.
+No ambiente TEST, chave, remetente, templates e worker já foram configurados e um envio transacional real foi validado com `provider_message_id`. Produção continua separada e exige revisão do remetente/domínio definitivo.
 
 Brevo apenas envia mensagens. Ele não concede PRO.
 
@@ -309,7 +309,9 @@ Brevo apenas envia mensagens. Ele não concede PRO.
 Arquivos:
 
 - `supabase/functions/fcm-push-worker/`;
-- migration `block_c_fcm_push_foundation`.
+- `supabase/functions/fcm-push-cron-dispatcher/`;
+- migration `block_c_fcm_push_foundation`;
+- migrations de dispatcher periódico `fcm_push_cron_dispatcher` e `route_fcm_cron_dispatcher`.
 
 Tipos de push:
 
@@ -337,7 +339,7 @@ Somente backend:
 
 A service account contém chave privada e **jamais** deve entrar no repositório.
 
-O worker está preparado, mas não está ativado para push real enquanto a service account de teste não for configurada.
+No ambiente TEST, a service account e o segredo do worker já estão configurados somente no backend. O processamento automático usa `pg_cron` + `pg_net` e um dispatcher interno com token efêmero de uso único; nenhum segredo estático do worker é gravado no banco ou no Git. Dois smokes reais foram aceitos pelo Firebase e persistiram `provider_message_id`. A confirmação visual física da notificação continua sendo a última validação antes de marcar push como PASS final.
 
 ## 12. Admin interno
 
@@ -550,7 +552,7 @@ Fundação concluída:
 - painel admin;
 - códigos promocionais PRO de 30/60/90 dias, separados de billing.
 
-Ativação real de Mercado Pago, Brevo e FCM ainda depende das credenciais/configurações correspondentes e testes de homologação próprios.
+Na homologação TEST, Mercado Pago sandbox e Brevo já tiveram fluxos reais validados. O FCM já possui pipeline automático tecnicamente validado e aguarda apenas confirmação visual física do push. Produção continua sem ativação automática e depende das credenciais/configurações finais e aprovação expressa.
 
 ### Bloco D — finalização
 
