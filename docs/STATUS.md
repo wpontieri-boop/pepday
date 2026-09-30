@@ -724,3 +724,29 @@ Migrations aplicadas somente no `pepday-v3-test`:
 RLS habilitado e acesso direto revogado. As RPCs administrativas exigem
 `profiles.role='admin'`; a consulta de resgates expõe ao admin apenas identidade
 mínima da conta e datas do acesso, nunca rotinas, frascos, doses ou dados de saúde.
+
+
+### Web Push e UX de lembretes — checkpoint de 30/09/2026
+
+O Firebase TEST foi configurado para Web Push, com service account mantida apenas como
+segredo no Supabase TEST e VAPID público no cliente. O service worker de mensagens foi
+movido para `src/firebase-messaging-sw.js` e passou a ser publicado corretamente pela
+homologação Render; o 404 que bloqueava a criação do token foi eliminado. Teste humano
+no Mac confirmou “Notificações ativadas neste aparelho”. A fila backend aceitou uma
+notificação operacional (`queued: 1`). Ainda falta fechar o disparo automático/seguro
+do worker e confirmar visualmente uma notificação real no dispositivo.
+
+A UX aprovada não depende mais de o usuário descobrir notificações no Perfil. Após
+completar o cadastro, se a permissão ainda estiver no estado padrão, o app retorna à
+Home e destaca “Deixe o PepDay lembrar por você”. Se a pessoa ainda não tiver ativado,
+a criação da primeira rotina mostra “Sua rotina está pronta” e oferece “Ativar
+lembretes”. A permissão nativa continua sendo solicitada somente após clique explícito.
+O Perfil permanece como área de manutenção e preferências.
+
+A landing e as ofertas PRO/Trial passaram a destacar “Lembretes no celular, mesmo com
+o PepDay fechado” e a experiência PRO sem anúncios. Regressão completa após esse delta:
+`344/344 PASS`; pacote direcionado de push + landing + static: `32/32 PASS`.
+
+O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
+chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com
+`origin/v3.0-bloco-b` antes de retomar desenvolvimento.

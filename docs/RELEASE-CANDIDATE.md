@@ -51,19 +51,19 @@ A V2.9 permanece em produção.
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
-| push | BLOQUEADO POR CONFIGURAÇÃO | fundação/SQL testados e worker FCM implantado; falta configuração externa do Firebase e teste físico |
-| cache/update | PASS | cache profile-sync-13; publicação de homologação após push |
+| push | PASS TÉCNICO / MOBILE PENDENTE | Firebase TEST configurado, cliente Web Push registrado e fila aceitando eventos; falta disparo automático seguro do worker e confirmação visual de uma notificação real |
+| cache/update | PASS | cache profile-sync-15; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
 | Termos/Privacidade | PASS TÉCNICO | versões vigentes; revisão jurídica profissional pendente |
 
 ## Testes atuais
 
-- Regressão completa: **341/341 PASS**
+- Regressão completa: **344/344 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **36/36 PASS**
-- FCM: **11/11 PASS**
+- FCM/UX push: **13/13 PASS**
 - Brevo: **10/10 PASS**
 
 ## Pendências externas
@@ -78,7 +78,7 @@ Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais 
 
 ### Push
 
-O worker FCM já está implantado no Supabase TEST. Ainda é necessário concluir a configuração externa do Firebase, ativar a recepção Web Push no cliente e confirmar uma notificação genérica real em dispositivo de teste.
+O Firebase TEST e o cliente Web Push já estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho” e a fila aceitou uma notificação operacional. Falta configurar o disparo automático/seguro do `fcm-push-worker` e confirmar visualmente uma notificação genérica real no dispositivo antes de marcar push como PASS final.
 
 ### Mobile / PWA
 

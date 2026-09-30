@@ -163,6 +163,8 @@ test('UX convida push após cadastro e após primeira rotina sem pedir automatic
   assert.match(accountUi,/renderPushInvite/);
   assert.match(accountUi,/pepday:first-routine-created/);
   assert.match(accountUi,/enableReminderPush/);
+  assert.match(accountUi,/nav \[data-go="home"\]/);
+  assert.match(accountUi,/pushInvite.*scrollIntoView/);
   assert.match(app,/wasFirstRoutine/);
   assert.match(app,/pepday:first-routine-created/);
   assert.doesNotMatch(accountUi,/Notification\.requestPermission\(\)/);

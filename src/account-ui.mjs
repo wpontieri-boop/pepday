@@ -425,6 +425,10 @@ el('accountProfileForm').addEventListener('submit',event=>{
       timezone,adult:el('accountAdult').checked,termsAccepted:el('accountTerms').checked,privacyAccepted:el('accountPrivacy').checked,
       termsVersion:config.termsVersion,privacyVersion:config.privacyVersion,marketing:el('accountMarketing').checked });
     await refresh();
+    if(notificationPermission()==='default'){
+      document.querySelector('nav [data-go="home"]')?.click();
+      requestAnimationFrame(()=>el('pushInvite')?.scrollIntoView({behavior:'smooth',block:'center'}));
+    }
   });
 });
 function showProPlans(){
