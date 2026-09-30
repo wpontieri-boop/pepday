@@ -250,6 +250,7 @@ $('#routineAddVial').onclick=async()=>{
 $('#frequency').onchange=toggleWeekdays;
 function toggleWeekdays(){$('#weekdaysBox').classList.toggle('hidden',$('#frequency').value!=='weekdays')}
 $('#saveRoutine').onclick=async()=>{
+ const wasFirstRoutine=!editing&&routines.length===0;
  if(!requirePro(editing?'routine:save-edit':'routine:save-create'))return false;
  if(localDataState!=='ready')return false;
  let repository=await requireLocalRepository();if(!repository)return false;
@@ -307,6 +308,7 @@ $('#saveRoutine').onclick=async()=>{
  if(editing)routines=routines.map(x=>x.id===editing?obj:x); else routines.push(obj);
  $('#routineForm').classList.add('hidden');renderRoutines();renderToday();renderVials();
  window.dispatchEvent(new CustomEvent('pepday:outbox-ready',{detail:{accountScope:repository.accountScope}}));
+ if(wasFirstRoutine)window.dispatchEvent(new CustomEvent('pepday:first-routine-created'));
 };
 function renderRoutines(){
  let box=$('#routineList');if(localDataState!=='ready'){box.innerHTML=`<div class="card empty"><p>${localDataState==='error'?localDataError:'Carregando dados locais…'}</p></div>`;return} if(!routines.length){box.innerHTML='<div class="card empty"><p>Você ainda não salvou nenhuma rotina.</p></div>';return}

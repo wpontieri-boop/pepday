@@ -148,3 +148,22 @@ test('cliente Web Push exige gesto do usuário, VAPID público e RPCs de instala
   assert.match(worker,/firebase-messaging-compat\.js/);
   assert.match(worker,/firebase\.messaging\(\)/);
 });
+
+
+test('UX convida push após cadastro e após primeira rotina sem pedir automaticamente',async()=>{
+  const [html,accountUi,app]=await Promise.all([
+    read('index.html'),
+    read('src/account-ui.mjs'),
+    read('app.js')
+  ]);
+  assert.match(html,/id="pushInvite"/);
+  assert.match(html,/id="pushInviteEnable"/);
+  assert.match(html,/id="pushRoutineDialog"/);
+  assert.match(html,/mesmo com o PepDay fechado/i);
+  assert.match(accountUi,/renderPushInvite/);
+  assert.match(accountUi,/pepday:first-routine-created/);
+  assert.match(accountUi,/enableReminderPush/);
+  assert.match(app,/wasFirstRoutine/);
+  assert.match(app,/pepday:first-routine-created/);
+  assert.doesNotMatch(accountUi,/Notification\.requestPermission\(\)/);
+});

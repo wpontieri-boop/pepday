@@ -37,6 +37,16 @@
           <button class="ghost" id="postTrialContinueFree" type="button">Continuar no FREE</button>
         </div>
       </section>
+      <section class="card push-invite-card hidden" id="pushInvite" aria-labelledby="pushInviteTitle">
+        <small>LEMBRETES NO CELULAR</small>
+        <h3 id="pushInviteTitle">Deixe o PepDay lembrar por você</h3>
+        <p>Receba lembretes direto no celular, mesmo com o PepDay fechado, para não depender só da memória.</p>
+        <div class="account-actions">
+          <button class="primary" id="pushInviteEnable" type="button">Ativar lembretes</button>
+          <button class="ghost" id="pushInviteLater" type="button">Agora não</button>
+        </div>
+        <p class="muted" id="pushInviteStatus" role="status" aria-live="polite"></p>
+      </section>
       <div class="card">
         <div class="card-title"><span>ROTINAS DE HOJE</span><button class="link" data-go="routines" data-pro-action>Gerenciar</button></div>
         <div id="todayRoutines" class="stack" data-pro-content></div>
@@ -201,12 +211,13 @@
           <button class="primary" id="accountStartTrial" type="button">Começar 7 dias grátis</button>
           <button class="ghost" id="accountDeclineTrial" type="button">Agora não</button>
         </div>
+        <p id="trialBenefit" class="muted hidden">7 dias de PRO com rotinas, lembretes no celular e experiência sem anúncios.</p>
       </div>
       <section class="card pro-offer hidden" id="proOffer" aria-labelledby="proOfferTitle">
         <div class="pro-offer-head">
           <small>PEPDAY PRO</small>
           <h3 id="proOfferTitle">Escolha seu PepDay PRO</h3>
-          <p>Rotinas, frascos, histórico, previsão de término, alertas de reposição e sincronização.</p>
+          <p>Rotinas, frascos, histórico, previsão de término, alertas e lembretes direto no celular, mesmo com o PepDay fechado.</p>
         </div>
         <div class="pro-plan-grid">
           <article class="pro-plan">
@@ -225,6 +236,7 @@
         <ul class="pro-benefits">
           <li>Rotinas e frascos</li>
           <li>Histórico e previsão de término</li>
+          <li>Lembretes no celular, mesmo com o PepDay fechado</li>
           <li>Alertas de reposição</li>
           <li>Sem anúncios</li>
           <li>Sincronização da conta</li>
@@ -368,6 +380,18 @@
       </div>
     </div>
   </div>
+
+  <dialog id="pushRoutineDialog" class="pro-gate" aria-labelledby="pushRoutineTitle" aria-describedby="pushRoutineMessage">
+    <small>ROTINA CRIADA</small>
+    <h3 id="pushRoutineTitle">Sua rotina está pronta</h3>
+    <p id="pushRoutineMessage">Ative os lembretes e deixe o PepDay acompanhar você, mesmo quando o aplicativo estiver fechado.</p>
+    <div class="account-actions">
+      <button class="primary" id="pushRoutineEnable" type="button">Ativar lembretes</button>
+      <button class="ghost" id="pushRoutineLater" type="button">Agora não</button>
+    </div>
+    <p class="muted" id="pushRoutineStatus" role="status" aria-live="polite"></p>
+    <small>Você pode alterar suas preferências depois no Perfil.</small>
+  </dialog>
 
   <dialog id="proGateDialog" class="pro-gate" aria-labelledby="proGateTitle" aria-describedby="proGateMessage">
     <h3 id="proGateTitle">Este é um recurso PepDay PRO</h3>

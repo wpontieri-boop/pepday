@@ -14,7 +14,7 @@ import { enablePush, disablePush, savePushPreferences, notificationPermission } 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, syncEngine=null, currentRepository=null;
+let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, pushInviteDismissed=false, syncEngine=null, currentRepository=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -39,6 +39,7 @@ function publishAccess(raw, profileComplete=false) {
   hide('postTrialNotice',!postTrial.visible||postTrialDismissed);
   const canOffer=access.signedIn && profileComplete && access.status==='free' && access.trialAvailable && !declinedTrial;
   hide('trialActions',!canOffer);
+  hide('trialBenefit',!canOffer);
   const showCommercial=access.signedIn && profileComplete && access.status!=='pro_active';
   hide('proOffer',!showCommercial);
   if(!showCommercial&&el('billingStatus'))el('billingStatus').textContent='';
@@ -81,6 +82,8 @@ function clearPrivateUi({preserveAccess=false}={}) {
   if(el('accountDataStatus'))el('accountDataStatus').textContent='';
   if(el('pushStatus'))el('pushStatus').textContent='';
   if(el('pushSettings'))hide('pushSettings');
+  if(el('pushInvite'))hide('pushInvite');
+  if(el('pushRoutineDialog')?.open)el('pushRoutineDialog').close();
   if(el('promoStatus'))el('promoStatus').textContent='';
   if(el('promoCode'))el('promoCode').value='';
   if(el('accountDeleteText'))el('accountDeleteText').value='';
@@ -180,6 +183,24 @@ function currentPushPreferences(){
     security:el('pushSecurity').checked
   };
 }
+function renderPushInvite(complete){
+  if(!el('pushInvite'))return;
+  const show=Boolean(state&&complete&&!pushInviteDismissed&&notificationPermission()==='default');
+  hide('pushInvite',!show);
+}
+async function enableReminderPush(statusTarget='pushInviteStatus'){
+  const target=el(statusTarget);if(target)target.textContent='Ativando lembretes…';
+  const result=await enablePush(cloud.client);
+  if(result.outcome!=='registered'){
+    if(target)target.textContent=result.outcome==='denied'?'Permissão negada pelo navegador.':result.outcome==='timeout'?'O Firebase demorou demais. Atualize a página e tente novamente.':'Não foi possível ativar neste navegador.';
+    return false;
+  }
+  await savePushPreferences(cloud.client,{routine:true,refill:true,operational:true,security:true});
+  pushInviteDismissed=true;hide('pushInvite');
+  if(el('pushRoutineDialog')?.open)el('pushRoutineDialog').close();
+  if(target)target.textContent='Lembretes ativados neste aparelho.';
+  return true;
+}
 function downloadJson(data){
   const stamp=new Date().toISOString().slice(0,10);
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -234,6 +255,7 @@ async function refresh() {
     const complete=profileLegalCurrent(next.profile);
     publishAccess({...next.entitlement,signedIn:true},complete);
     renderPushSettings(next.settings,complete);
+    renderPushInvite(complete);
     if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
@@ -307,6 +329,17 @@ el('accountLogout').addEventListener('click',()=>run(async()=>{
   hide('accountCodeForm'); hide('accountSignedOut',false);
   status('Você saiu da conta. Os dados locais deste aparelho foram preservados.');
 }));
+
+el('pushInviteEnable').addEventListener('click',()=>run(async()=>{await enableReminderPush('pushInviteStatus')}));
+el('pushInviteLater').addEventListener('click',()=>{pushInviteDismissed=true;hide('pushInvite')});
+el('pushRoutineEnable').addEventListener('click',()=>run(async()=>{await enableReminderPush('pushRoutineStatus')}));
+el('pushRoutineLater').addEventListener('click',()=>el('pushRoutineDialog')?.close());
+window.addEventListener('pepday:first-routine-created',()=>{
+  if(!state||notificationPermission()!=='default')return;
+  const dialog=el('pushRoutineDialog');
+  if(!dialog)return;
+  if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
+});
 
 el('pushEnable').addEventListener('click',()=>run(async()=>{
   if(!state)return;

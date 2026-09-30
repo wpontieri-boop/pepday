@@ -78,3 +78,12 @@ test('landing não substitui a Home do app durante homologação',async()=>{
   assert.match(html,/id="calculator"/);
   assert.match(html,/id="profile"/);
 });
+
+
+test('landing destaca lembretes no celular e benefícios PRO/Trial',async()=>{
+  const html=await read('site/index.html');
+  assert.match(html,/Lembretes no celular/i);
+  assert.match(html,/mesmo com o PepDay fechado/i);
+  assert.match(html,/Teste o PRO por 7 dias/i);
+  assert.match(html,/sem anúncios/i);
+});
