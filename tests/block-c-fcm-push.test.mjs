@@ -130,7 +130,7 @@ test('cliente Web Push exige gesto do usuário, VAPID público e RPCs de instala
     read('src/push.mjs'),
     read('index.html'),
     read('src/firebase-public-config.mjs'),
-    read('firebase-messaging-sw.js')
+    read('src/firebase-messaging-sw.js')
   ]);
   assert.match(source,/Notification\.requestPermission\(\)/);
   assert.match(source,/getToken\(messaging/);

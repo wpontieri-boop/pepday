@@ -6,6 +6,14 @@ const FIREBASE_MESSAGING_URL='https://www.gstatic.com/firebasejs/12.3.0/firebase
 let modulesPromise=null;
 let registrationPromise=null;
 
+function withTimeout(promise,label,ms=15000){
+  let timer;
+  const timeout=new Promise((_,reject)=>{
+    timer=setTimeout(()=>reject(new Error(`PUSH_TIMEOUT:${label}`)),ms);
+  });
+  return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
+}
+
 function tokenLooksValid(value){
   return /^[A-Za-z0-9_:\.-]{16,512}$/.test(String(value||'').trim());
 }
@@ -31,8 +39,8 @@ async function modules(){
 
 async function messagingRegistration(){
   if(!registrationPromise){
-    registrationPromise=navigator.serviceWorker.register('./firebase-messaging-sw.js',{
-      scope:'./push/',
+    registrationPromise=navigator.serviceWorker.register('./src/firebase-messaging-sw.js',{
+      scope:'./src/',
       updateViaCache:'none'
     });
   }
@@ -48,14 +56,14 @@ async function messagingInstance(){
 
 async function currentToken(){
   if(!pushSupported()||Notification.permission!=='granted')return null;
-  const [{messaging,sdk},serviceWorkerRegistration]=await Promise.all([
+  const [{messaging,sdk},serviceWorkerRegistration]=await withTimeout(Promise.all([
     messagingInstance(),
     messagingRegistration()
-  ]);
-  const token=await sdk.getToken(messaging,{
+  ]),'bootstrap');
+  const token=await withTimeout(sdk.getToken(messaging,{
     vapidKey:firebasePublicConfig.vapidKey,
     serviceWorkerRegistration
-  });
+  }),'token');
   return tokenLooksValid(token)?token:null;
 }
 
@@ -64,7 +72,12 @@ export async function enablePush(client){
   let permission=Notification.permission;
   if(permission==='default')permission=await Notification.requestPermission();
   if(permission!=='granted')return {outcome:'denied'};
-  const token=await currentToken();
+  let token;
+  try{token=await currentToken()}
+  catch(error){
+    if(String(error?.message||'').startsWith('PUSH_TIMEOUT:'))return {outcome:'timeout'};
+    throw error;
+  }
   if(!token)return {outcome:'token_unavailable'};
   const {data,error}=await client.rpc('register_push_installation',{p_installation_id:token});
   if(error)throw error;

@@ -3,7 +3,7 @@ const SCOPE_PATH=new URL(self.registration.scope).pathname;
 const CACHE='pepday-v3-profile-sync-14-'+SCOPE_PATH;
 const ASSETS=['./','./index.html','./cartao/','./termos.html','./privacidade.html','./style.css','./account.css','./app.js',
   './manifest.json','./icon.svg','./config.js','./src/account-ui.mjs','./src/acquisition.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
-  './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs','./src/push.mjs','./src/firebase-public-config.mjs','./firebase-messaging-sw.js',
+  './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs','./src/push.mjs','./src/firebase-public-config.mjs','./src/firebase-messaging-sw.js',
   './src/local-db.mjs','./src/pepday-repository.mjs','./src/local-data-migration.mjs','./src/sync-outbox.mjs',
   './src/sync-api.mjs','./src/sync-engine.mjs','./src/tab-coordinator.mjs','./src/sync-status.mjs','./src/remote-snapshot.mjs',
   './vendor/supabase-2.116.0.js'];

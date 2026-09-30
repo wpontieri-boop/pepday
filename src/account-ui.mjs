@@ -312,7 +312,10 @@ el('pushEnable').addEventListener('click',()=>run(async()=>{
   if(!state)return;
   pushMessage('Ativando neste aparelho…');
   const result=await enablePush(cloud.client);
-  if(result.outcome!=='registered'){pushMessage(result.outcome==='denied'?'Permissão negada pelo navegador.':'Não foi possível ativar neste navegador.');return}
+  if(result.outcome!=='registered'){
+    pushMessage(result.outcome==='denied'?'Permissão negada pelo navegador.':result.outcome==='timeout'?'O Firebase demorou demais para registrar este aparelho. Atualize a página e tente novamente.':'Não foi possível ativar neste navegador.');
+    return
+  }
   await savePushPreferences(cloud.client,currentPushPreferences());
   pushMessage('Notificações ativadas neste aparelho.');
 }));
