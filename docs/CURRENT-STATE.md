@@ -19,8 +19,8 @@ Atualização: 30/09/2026.
 - Teste humano confirmou no Mac: **“Notificações ativadas neste aparelho.”**
 - Disparo periódico seguro de push foi configurado somente no Supabase TEST com `pg_cron` + `pg_net`, token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`.
 - Migrations TEST: `20260930224101_fcm_push_cron_dispatcher.sql` e `20260930224752_route_fcm_cron_dispatcher.sql`.
-- Dois smokes operacionais reais foram processados ponta a ponta: outbox em `sent`, dois `provider_message_id` persistidos e chamada do dispatcher com HTTP 200 sem erro de transporte.
-- Falta somente a confirmação visual humana de uma notificação real no dispositivo para fechar push como PASS final.
+- Quatro smokes operacionais reais foram processados ponta a ponta: todos ficaram em `sent` e todos persistiram `provider_message_id` do Firebase.
+- O quarto smoke foi exibido fisicamente no Mac como banner **PepDay — “Há um aviso operacional no PepDay.”** após habilitar as notificações do Google Chrome no macOS. Push: **PASS final**.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -49,10 +49,9 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-O pipeline automático de push em TEST está tecnicamente fechado. Próximos passos:
-1. confirmar visualmente no Mac/celular o smoke real já aceito pelo Firebase;
-2. após confirmação humana, marcar push como PASS na matriz de Release Candidate;
-3. seguir para validações finais de mobile/PWA e demais pendências da matriz.
+O pipeline automático de push em TEST está fechado com validação técnica e humana: **PASS final**. Próximos passos:
+1. seguir para as validações finais físicas de mobile/PWA;
+2. concluir as demais pendências da matriz de Release Candidate.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 

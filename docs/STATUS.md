@@ -597,7 +597,9 @@ Em 30/09/2026, `FIREBASE_SERVICE_ACCOUNT_JSON` e o segredo interno já estavam
 configurados somente no ambiente TEST. O disparo periódico passou a usar
 `pg_cron` + `pg_net`, token efêmero de uso único e a Edge Function interna
 `fcm-push-cron-dispatcher`; nenhuma credencial Firebase foi gravada no repositório.
-Dois smokes operacionais reais chegaram a `sent` com `provider_message_id`.
+Quatro smokes operacionais reais chegaram a `sent` com `provider_message_id`; o
+quarto foi exibido fisicamente no Mac com o PepDay fechado após habilitar notificações
+do Google Chrome no macOS.
 
 
 O Bloco D de direitos do titular e documentos jurídicos foi iniciado/concluído na
@@ -654,11 +656,11 @@ manifest/PWA, Service Worker/cache, existência de assets, mg/mcg, seringas U-10
 responsividade e tutorial. Resultado: `11/11 PASS`. Regressão completa atual:
 `318/318 PASS`.
 
-O checklist final não considera mais Brevo bloqueado por configuração externa: API key,
-remetente, templates, worker e um envio transacional real foram validados no TEST. FCM
-ainda depende da configuração externa do provedor e validação real no dispositivo. Mobile/PWA está
-tecnicamente validado por estrutura/responsividade, mas requer teste físico final no
-celular. Exclusão de conta está funcional em backend/UI e com smoke seguro, mas o teste
+O checklist final não considera mais Brevo nem FCM bloqueados por configuração externa:
+API key/remetente/templates/worker do Brevo e o pipeline FCM tiveram validação real no
+TEST; o push também teve confirmação visual física no Mac. Mobile/PWA está tecnicamente
+validado por estrutura/responsividade, mas requer teste físico final no celular.
+Exclusão de conta está funcional em backend/UI e com smoke seguro, mas o teste
 destrutivo real requer uma conta descartável. Nenhum desses bloqueios autoriza promoção
 para produção.
 
@@ -744,10 +746,10 @@ job para a Edge Function interna `fcm-push-cron-dispatcher`. O dispatcher consom
 token antes de chamar o `fcm-push-worker`, cujo segredo continua apenas no backend.
 O job `pepday-fcm-push-worker` está ativo a cada minuto.
 
-Foram processados dois smokes operacionais reais: ambos terminaram em `sent`, ambos
-persistiram `provider_message_id` do Firebase e o segundo disparo controlado retornou
-HTTP 200 sem erro de transporte. Falta somente a confirmação visual humana do banner no
-dispositivo para fechar push como PASS final da matriz.
+Foram processados quatro smokes operacionais reais: todos terminaram em `sent` e todos
+persistiram `provider_message_id` do Firebase. No quarto smoke, com o PepDay fechado,
+o banner **PepDay — “Há um aviso operacional no PepDay.”** foi exibido fisicamente no
+Mac após habilitar as notificações do Google Chrome no macOS. Push fechado como **PASS final** da matriz.
 
 A UX aprovada não depende mais de o usuário descobrir notificações no Perfil. Após
 completar o cadastro, se a permissão ainda estiver no estado padrão, o app retorna à

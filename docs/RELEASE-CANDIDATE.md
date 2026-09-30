@@ -51,7 +51,7 @@ A V2.9 permanece em produção.
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
-| push | PASS TÉCNICO / MOBILE PENDENTE | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 2 smokes reais em sent com provider_message_id e HTTP 200; falta somente confirmação visual humana no dispositivo |
+| push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
 | cache/update | PASS | cache profile-sync-15; publicação de homologação após push |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
@@ -78,7 +78,7 @@ Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais 
 
 ### Push
 
-O Firebase TEST e o cliente Web Push estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho”. O Supabase TEST agora executa o push por cron seguro (`pg_cron` + `pg_net`) usando token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`, que chama o worker FCM já protegido por segredo backend-only. Dois smokes operacionais reais chegaram a `sent`, ambos com `provider_message_id`; o disparo controlado retornou HTTP 200 sem erro de transporte. Falta somente confirmar visualmente a notificação genérica no dispositivo antes de marcar push como PASS final.
+O Firebase TEST e o cliente Web Push estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho”. O Supabase TEST executa o push por cron seguro (`pg_cron` + `pg_net`) usando token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`, que chama o worker FCM já protegido por segredo backend-only. Quatro smokes operacionais reais chegaram a `sent`, todos com `provider_message_id`. No quarto smoke, com o PepDay fechado e as notificações do Google Chrome habilitadas no macOS, o banner **PepDay — “Há um aviso operacional no PepDay.”** foi exibido fisicamente no Mac. Push encerrado como **PASS final**.
 
 ### Mobile / PWA
 

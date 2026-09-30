@@ -339,7 +339,7 @@ Somente backend:
 
 A service account contém chave privada e **jamais** deve entrar no repositório.
 
-No ambiente TEST, a service account e o segredo do worker já estão configurados somente no backend. O processamento automático usa `pg_cron` + `pg_net` e um dispatcher interno com token efêmero de uso único; nenhum segredo estático do worker é gravado no banco ou no Git. Dois smokes reais foram aceitos pelo Firebase e persistiram `provider_message_id`. A confirmação visual física da notificação continua sendo a última validação antes de marcar push como PASS final.
+No ambiente TEST, a service account e o segredo do worker já estão configurados somente no backend. O processamento automático usa `pg_cron` + `pg_net` e um dispatcher interno com token efêmero de uso único; nenhum segredo estático do worker é gravado no banco ou no Git. Quatro smokes reais foram aceitos pelo Firebase e persistiram `provider_message_id`; o quarto foi exibido fisicamente no Mac com o PepDay fechado após habilitar as notificações do Google Chrome no macOS. Push de homologação: **PASS final**.
 
 ## 12. Admin interno
 
@@ -552,7 +552,7 @@ Fundação concluída:
 - painel admin;
 - códigos promocionais PRO de 30/60/90 dias, separados de billing.
 
-Na homologação TEST, Mercado Pago sandbox e Brevo já tiveram fluxos reais validados. O FCM já possui pipeline automático tecnicamente validado e aguarda apenas confirmação visual física do push. Produção continua sem ativação automática e depende das credenciais/configurações finais e aprovação expressa.
+Na homologação TEST, Mercado Pago sandbox, Brevo e FCM já tiveram fluxos reais validados. O push FCM possui pipeline automático seguro e confirmação visual física no Mac. Produção continua sem ativação automática e depende das credenciais/configurações finais e aprovação expressa.
 
 ### Bloco D — finalização
 
