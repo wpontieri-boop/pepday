@@ -52,18 +52,18 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-15; publicação de homologação após push |
+| cache/update | PASS | cache profile-sync-16; patch de reidratação do vínculo de push incluído na homologação |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS TÉCNICO | função ACTIVE; smoke 400/401; teste destrutivo requer conta descartável |
 | Termos/Privacidade | PASS TÉCNICO | versões vigentes; revisão jurídica profissional pendente |
 
 ## Testes atuais
 
-- Regressão completa: **347/347 PASS**
+- Regressão completa: **349/349 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **36/36 PASS**
-- FCM/UX push: **16/16 PASS**
+- FCM/UX push: **18/18 PASS**
 - Brevo: **10/10 PASS**
 
 ## Pendências externas
@@ -81,6 +81,8 @@ Brevo configurado no TEST: API key, remetente ativo, 11 templates transacionais 
 O Firebase TEST e o cliente Web Push estão configurados. O navegador de teste confirmou “Notificações ativadas neste aparelho”. O Supabase TEST executa o push por cron seguro (`pg_cron` + `pg_net`) usando token efêmero de uso único e a Edge Function interna `fcm-push-cron-dispatcher`, que chama o worker FCM já protegido por segredo backend-only. Quatro smokes operacionais reais chegaram a `sent`, todos com `provider_message_id`. No quarto smoke, com o PepDay fechado e as notificações do Google Chrome habilitadas no macOS, o banner **PepDay — “Há um aviso operacional no PepDay.”** foi exibido fisicamente no Mac. Push encerrado como **PASS final**.
 
 ### Mobile / PWA
+
+QA físico Android já aprovou Home, Calculadora, Perfil, tutorial, reinstalação do PWA e ciclo offline → online. Durante o QA foi encontrado e corrigido o estado visual do vínculo de push após reload; falta apenas retestar esse patch no Android e concluir os itens restantes abaixo.
 
 No celular real, validar:
 1. abrir a homologação;

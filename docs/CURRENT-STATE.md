@@ -21,6 +21,7 @@ Atualização: 30/09/2026.
 - Migrations TEST: `20260930224101_fcm_push_cron_dispatcher.sql` e `20260930224752_route_fcm_cron_dispatcher.sql`.
 - Quatro smokes operacionais reais foram processados ponta a ponta: todos ficaram em `sent` e todos persistiram `provider_message_id` do Firebase.
 - O quarto smoke foi exibido fisicamente no Mac como banner **PepDay — “Há um aviso operacional no PepDay.”** após habilitar as notificações do Google Chrome no macOS. Push: **PASS final**.
+- No QA físico Android, foi corrigida a reidratação do vínculo do aparelho após reload: nova RPC por usuário `get_push_installation_status`, botões Ativar/Desativar mutuamente exclusivos e ativação com as quatro categorias marcadas. Migration TEST: `20260930235204_push_installation_status.sql`; cache V3: `profile-sync-16`. Falta apenas o reteste humano deste patch no Android.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -42,16 +43,17 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Testes atuais
 
-- Regressão completa: **347/347 PASS**.
-- FCM/UX push: **16/16 PASS**.
+- Regressão completa: **349/349 PASS**.
+- FCM/UX push: **18/18 PASS**.
 - Sintaxe de `fcm-push-worker` e `fcm-push-cron-dispatcher`: PASS.
 - Advisors Supabase executados após o DDL; nenhum novo bloqueio crítico foi introduzido.
 
 ## Próximo passo técnico
 
 O pipeline automático de push em TEST está fechado com validação técnica e humana: **PASS final**. Próximos passos:
-1. seguir para as validações finais físicas de mobile/PWA;
-2. concluir as demais pendências da matriz de Release Candidate.
+1. retestar no Android o estado do aparelho após ativar e recarregar o PWA;
+2. seguir com exportação e demais validações finais físicas de mobile/PWA;
+3. concluir as demais pendências da matriz de Release Candidate.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 

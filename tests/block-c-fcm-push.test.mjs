@@ -207,3 +207,28 @@ test('UX convida push após cadastro e após primeira rotina sem pedir automatic
   assert.match(app,/pepday:first-routine-created/);
   assert.doesNotMatch(accountUi,/Notification\.requestPermission\(\)/);
 });
+
+test('status da instalação de push é consultável somente pelo próprio usuário autenticado',async()=>{
+  const sql=await read('supabase/migrations/20260930235204_push_installation_status.sql');
+  assert.match(sql,/get_push_installation_status/i);
+  assert.match(sql,/auth\.uid\(\)/i);
+  assert.match(sql,/where i\.user_id=u and i\.installation_id=value/i);
+  assert.match(sql,/revoke all on function public\.get_push_installation_status\(text\)[^]*from public,anon,authenticated,service_role/i);
+  assert.match(sql,/grant execute on function public\.get_push_installation_status\(text\)[^]*to authenticated/i);
+  assert.doesNotMatch(sql,/jsonb_build_object\([^]*installation_id/i);
+});
+
+test('perfil reidrata vínculo do aparelho e não mostra ativar/desativar ao mesmo tempo',async()=>{
+  const [push,accountUi,sw]=await Promise.all([
+    read('src/push.mjs'),
+    read('src/account-ui.mjs'),
+    read('sw.js')
+  ]);
+  assert.match(push,/get_push_installation_status/);
+  assert.match(accountUi,/pushInstallationStatus\(cloud\.client\)/);
+  assert.match(accountUi,/hide\('pushEnable',checking\|\|pushInstallationActive===true/);
+  assert.match(accountUi,/hide\('pushDisable',checking\|\|pushInstallationActive!==true/);
+  assert.match(accountUi,/Notificações ativadas neste aparelho/);
+  assert.match(accountUi,/routine:true,refill:true,operational:true,security:true/);
+  assert.match(sw,/pepday-v3-profile-sync-16/);
+});

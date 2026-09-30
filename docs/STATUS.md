@@ -759,8 +759,13 @@ lembretes”. A permissão nativa continua sendo solicitada somente após clique
 O Perfil permanece como área de manutenção e preferências.
 
 A landing e as ofertas PRO/Trial passaram a destacar “Lembretes no celular, mesmo com
-o PepDay fechado” e a experiência PRO sem anúncios. Após o fechamento do dispatcher,
-FCM/UX push ficou em `16/16 PASS` e a regressão completa em `347/347 PASS`.
+o PepDay fechado” e a experiência PRO sem anúncios. Durante o QA físico Android, o Perfil
+foi corrigido para reidratar o vínculo do aparelho após reload por meio da RPC autenticada
+`get_push_installation_status`, mantendo Ativar/Desativar mutuamente exclusivos e marcando
+as quatro categorias no momento da ativação. Migration TEST:
+`20260930235204_push_installation_status.sql`; cache V3: `pepday-v3-profile-sync-16`.
+FCM/UX push ficou em `18/18 PASS` e a regressão completa em `349/349 PASS`; falta apenas
+o reteste humano deste patch no Android.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com

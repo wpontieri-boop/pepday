@@ -98,6 +98,21 @@ export async function disablePush(client){
   return {outcome:'disabled',changed};
 }
 
+export async function pushInstallationStatus(client){
+  const permission=notificationPermission();
+  if(permission!=='granted')return {outcome:permission,active:false};
+  let token;
+  try{token=await currentToken()}
+  catch(error){
+    if(String(error?.message||'').startsWith('PUSH_TIMEOUT:'))return {outcome:'unavailable',active:null};
+    throw error;
+  }
+  if(!token)return {outcome:'unavailable',active:null};
+  const {data,error}=await client.rpc('get_push_installation_status',{p_installation_id:token});
+  if(error)throw error;
+  return {outcome:'ready',active:data?.active===true};
+}
+
 export async function savePushPreferences(client,preferences){
   const payload={
     p_routine_reminders:preferences.routine===true,

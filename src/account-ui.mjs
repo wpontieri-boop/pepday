@@ -9,12 +9,12 @@ import { createTabCoordinator } from './tab-coordinator.mjs';
 import { summarizeSync } from './sync-status.mjs';
 import { readConfirmedSnapshot } from './remote-snapshot.mjs';
 import { captureCardAcquisition, claimPendingCardAcquisition } from './acquisition.mjs';
-import { enablePush, disablePush, savePushPreferences, notificationPermission } from './push.mjs';
+import { enablePush, disablePush, pushInstallationStatus, savePushPreferences, notificationPermission } from './push.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, pushInviteDismissed=false, syncEngine=null, currentRepository=null;
+let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, pushInviteDismissed=false, pushInstallationActive=null, syncEngine=null, currentRepository=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -70,7 +70,7 @@ function enableMethods() {
     busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
 }
 function clearPrivateUi({preserveAccess=false}={}) {
-  state = null; importErrors=[]; importMode='import'; currentRepository=null;
+  state = null; importErrors=[]; importMode='import'; pushInstallationActive=null; currentRepository=null;
   el('accountIdentity').textContent = '';
   if(!preserveAccess)publishAccess(null);
   el('accountProfileForm').reset();
@@ -159,6 +159,21 @@ function dataStatus(message){
 function pushMessage(message){
   if(el('pushStatus'))el('pushStatus').textContent=message||'';
 }
+function renderPushInstallationState(active,{checking=false,unavailable=false}={}){
+  pushInstallationActive=active===true?true:active===false?false:null;
+  const permission=notificationPermission();
+  hide('pushEnable',checking||pushInstallationActive===true||permission==='unsupported');
+  hide('pushDisable',checking||pushInstallationActive!==true);
+  if(checking){pushMessage('Conferindo o vínculo deste aparelho…');return}
+  if(pushInstallationActive===true){pushMessage('Notificações ativadas neste aparelho.');return}
+  if(unavailable){pushMessage('Não foi possível confirmar o vínculo deste aparelho agora. Tente novamente quando estiver online.');return}
+  pushMessage(
+    permission==='granted'?'Permissão do navegador concedida. Ative este aparelho para vinculá-lo à sua conta.':
+    permission==='denied'?'Notificações estão bloqueadas nas configurações deste navegador.':
+    permission==='unsupported'?'Este navegador não oferece Web Push compatível.':
+    'Notificações ainda não foram autorizadas neste navegador.'
+  );
+}
 function renderPushSettings(settings,complete){
   if(!el('pushSettings'))return;
   hide('pushSettings',!state||!complete);
@@ -167,13 +182,7 @@ function renderPushSettings(settings,complete){
   el('pushRefill').checked=settings?.refill_alerts===true;
   el('pushOperational').checked=settings?.operational_notices!==false;
   el('pushSecurity').checked=settings?.account_security_notices!==false;
-  const permission=notificationPermission();
-  pushMessage(
-    permission==='granted'?'Permissão do navegador concedida. Ative este aparelho para vinculá-lo à sua conta.':
-    permission==='denied'?'Notificações estão bloqueadas nas configurações deste navegador.':
-    permission==='unsupported'?'Este navegador não oferece Web Push compatível.':
-    'Notificações ainda não foram autorizadas neste navegador.'
-  );
+  renderPushInstallationState(null,{checking:true});
 }
 function currentPushPreferences(){
   return {
@@ -196,6 +205,8 @@ async function enableReminderPush(statusTarget='pushInviteStatus'){
     return false;
   }
   await savePushPreferences(cloud.client,{routine:true,refill:true,operational:true,security:true});
+  ['pushRoutine','pushRefill','pushOperational','pushSecurity'].forEach(id=>{if(el(id))el(id).checked=true});
+  renderPushInstallationState(true);
   pushInviteDismissed=true;hide('pushInvite');
   if(el('pushRoutineDialog')?.open)el('pushRoutineDialog').close();
   if(target)target.textContent='Lembretes ativados neste aparelho.';
@@ -255,6 +266,16 @@ async function refresh() {
     const complete=profileLegalCurrent(next.profile);
     publishAccess({...next.entitlement,signedIn:true},complete);
     renderPushSettings(next.settings,complete);
+    if(complete){
+      pushInstallationStatus(cloud.client).then(result=>{
+        if(current!==generation||!state)return;
+        renderPushInstallationState(result.active,{unavailable:result.active===null});
+      }).catch(error=>{
+        if(current!==generation||!state)return;
+        console.warn('PepDay status de push adiado:',error?.code||error?.name||'erro');
+        renderPushInstallationState(null,{unavailable:true});
+      });
+    }
     renderPushInvite(complete);
     if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
@@ -349,8 +370,9 @@ el('pushEnable').addEventListener('click',()=>run(async()=>{
     pushMessage(result.outcome==='denied'?'Permissão negada pelo navegador.':result.outcome==='timeout'?'O Firebase demorou demais para registrar este aparelho. Atualize a página e tente novamente.':'Não foi possível ativar neste navegador.');
     return
   }
-  await savePushPreferences(cloud.client,currentPushPreferences());
-  pushMessage('Notificações ativadas neste aparelho.');
+  ['pushRoutine','pushRefill','pushOperational','pushSecurity'].forEach(id=>el(id).checked=true);
+  await savePushPreferences(cloud.client,{routine:true,refill:true,operational:true,security:true});
+  renderPushInstallationState(true);
 }));
 
 el('pushSave').addEventListener('click',()=>run(async()=>{
@@ -362,7 +384,7 @@ el('pushSave').addEventListener('click',()=>run(async()=>{
 el('pushDisable').addEventListener('click',()=>run(async()=>{
   if(!state)return;
   await disablePush(cloud.client);
-  pushMessage('Notificações desativadas neste aparelho.');
+  renderPushInstallationState(false);
 }));
 
 el('accountExportData').addEventListener('click',()=>run(async()=>{
