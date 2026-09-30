@@ -123,3 +123,28 @@ test('config declara worker FCM sem JWT público e com segredo próprio',async()
   assert.match(config,/\[functions\.fcm-push-worker\][^]*verify_jwt = false[^]*fcm-push-worker\/index\.mjs/);
   assert.match(config,/autenticação por segredo próprio/i);
 });
+
+
+test('cliente Web Push exige gesto do usuário, VAPID público e RPCs de instalação/preferência',async()=>{
+  const [source,html,publicConfig,worker]=await Promise.all([
+    read('src/push.mjs'),
+    read('index.html'),
+    read('src/firebase-public-config.mjs'),
+    read('firebase-messaging-sw.js')
+  ]);
+  assert.match(source,/Notification\.requestPermission\(\)/);
+  assert.match(source,/getToken\(messaging/);
+  assert.match(source,/vapidKey:firebasePublicConfig\.vapidKey/);
+  assert.match(source,/register_push_installation/);
+  assert.match(source,/update_push_preferences/);
+  assert.match(source,/disable_push_installation/);
+  assert.match(html,/id="pushEnable"/);
+  assert.match(html,/id="pushRoutine"/);
+  assert.match(html,/id="pushRefill"/);
+  assert.match(html,/id="pushSecurity"/);
+  assert.match(publicConfig,/pepday-v3-test/);
+  assert.match(publicConfig,/vapidKey/);
+  assert.doesNotMatch(publicConfig,/private_key|client_email/i);
+  assert.match(worker,/firebase-messaging-compat\.js/);
+  assert.match(worker,/firebase\.messaging\(\)/);
+});

@@ -270,6 +270,20 @@
             </div>
           </div>
           <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
+          <div class="account-details hidden" id="pushSettings">
+            <h3>Notificações neste aparelho</h3>
+            <p class="muted">Você escolhe o que deseja receber. A tela bloqueada usa mensagens genéricas e não mostra substância, dose ou histórico.</p>
+            <label class="account-check"><input id="pushRoutine" type="checkbox">Lembretes de rotina</label>
+            <label class="account-check"><input id="pushRefill" type="checkbox">Alertas de reposição</label>
+            <label class="account-check"><input id="pushOperational" type="checkbox">Avisos operacionais</label>
+            <label class="account-check"><input id="pushSecurity" type="checkbox">Avisos da conta e segurança</label>
+            <div class="account-actions">
+              <button class="secondary" id="pushEnable" type="button">Ativar neste aparelho</button>
+              <button class="ghost" id="pushSave" type="button">Salvar preferências</button>
+              <button class="ghost" id="pushDisable" type="button">Desativar neste aparelho</button>
+            </div>
+            <p class="muted" id="pushStatus" role="status" aria-live="polite"></p>
+          </div>
           <div class="account-details data-rights" id="accountDataRights">
             <h3>Seus dados</h3>
             <p class="muted">Exporte os dados confirmados na sua conta em JSON. Alterações ainda não sincronizadas neste aparelho podem não aparecer no arquivo.</p>

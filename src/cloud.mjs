@@ -77,6 +77,16 @@ export async function loadAccountState(client, account) {
   const profile = await client.from('profiles').select('id,name,email,country,timezone,is_adult_confirmed,terms_accepted_at,terms_version,privacy_accepted_at,privacy_version')
     .eq('id',user.id).single();
   if (profile.error) throw profile.error;
+  const settings = await client.from('settings')
+    .select('routine_reminders,refill_alerts,operational_notices,account_security_notices')
+    .eq('user_id',user.id).maybeSingle();
+  if (settings.error) throw settings.error;
   const entitlement = await account.entitlement();
-  return { status: 'signed_in', user, profile: profile.data, entitlement };
+  return {
+    status: 'signed_in', user, profile: profile.data, entitlement,
+    settings: settings.data || {
+      routine_reminders:false, refill_alerts:false,
+      operational_notices:true, account_security_notices:true
+    }
+  };
 }

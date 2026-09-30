@@ -32,7 +32,7 @@ test('manifest PWA possui identidade, start_url, standalone e ícone maskable',a
 
 test('Service Worker usa cache V3 isolado, inclui jurídico e não cacheia Auth',async()=>{
   const sw=await read('sw.js');
-  assert.match(sw,/pepday-v3-profile-sync-13-/);
+  assert.match(sw,/pepday-v3-profile-sync-14-/);
   assert.match(sw,/'\.\/termos\.html'/);
   assert.match(sw,/'\.\/privacidade\.html'/);
   assert.match(sw,/request\.headers\.has\('Authorization'\)/);

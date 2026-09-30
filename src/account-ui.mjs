@@ -9,6 +9,7 @@ import { createTabCoordinator } from './tab-coordinator.mjs';
 import { summarizeSync } from './sync-status.mjs';
 import { readConfirmedSnapshot } from './remote-snapshot.mjs';
 import { captureCardAcquisition, claimPendingCardAcquisition } from './acquisition.mjs';
+import { enablePush, disablePush, savePushPreferences, notificationPermission } from './push.mjs';
 
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
@@ -63,6 +64,7 @@ function enableMethods() {
   if(el('accountExportData'))el('accountExportData').disabled=busy;
   if(el('accountDeleteOpen'))el('accountDeleteOpen').disabled=busy;
   if(el('accountDeleteCancel'))el('accountDeleteCancel').disabled=busy;
+  ['pushEnable','pushSave','pushDisable'].forEach(id=>{if(el(id))el(id).disabled=busy});
   if(el('accountDeleteConfirmBtn'))el('accountDeleteConfirmBtn').disabled=
     busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
 }
@@ -77,6 +79,8 @@ function clearPrivateUi({preserveAccess=false}={}) {
   el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
   if(el('accountDataStatus'))el('accountDataStatus').textContent='';
+  if(el('pushStatus'))el('pushStatus').textContent='';
+  if(el('pushSettings'))hide('pushSettings');
   if(el('promoStatus'))el('promoStatus').textContent='';
   if(el('promoCode'))el('promoCode').value='';
   if(el('accountDeleteText'))el('accountDeleteText').value='';
@@ -149,6 +153,33 @@ async function run(action) {
 function dataStatus(message){
   if(el('accountDataStatus'))el('accountDataStatus').textContent=message||'';
 }
+function pushMessage(message){
+  if(el('pushStatus'))el('pushStatus').textContent=message||'';
+}
+function renderPushSettings(settings,complete){
+  if(!el('pushSettings'))return;
+  hide('pushSettings',!state||!complete);
+  if(!state||!complete)return;
+  el('pushRoutine').checked=settings?.routine_reminders===true;
+  el('pushRefill').checked=settings?.refill_alerts===true;
+  el('pushOperational').checked=settings?.operational_notices!==false;
+  el('pushSecurity').checked=settings?.account_security_notices!==false;
+  const permission=notificationPermission();
+  pushMessage(
+    permission==='granted'?'Permissão do navegador concedida. Ative este aparelho para vinculá-lo à sua conta.':
+    permission==='denied'?'Notificações estão bloqueadas nas configurações deste navegador.':
+    permission==='unsupported'?'Este navegador não oferece Web Push compatível.':
+    'Notificações ainda não foram autorizadas neste navegador.'
+  );
+}
+function currentPushPreferences(){
+  return {
+    routine:el('pushRoutine').checked,
+    refill:el('pushRefill').checked,
+    operational:el('pushOperational').checked,
+    security:el('pushSecurity').checked
+  };
+}
 function downloadJson(data){
   const stamp=new Date().toISOString().slice(0,10);
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -202,6 +233,7 @@ async function refresh() {
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete=profileLegalCurrent(next.profile);
     publishAccess({...next.entitlement,signedIn:true},complete);
+    renderPushSettings(next.settings,complete);
     if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
@@ -265,13 +297,36 @@ el('accountChangeEmail').addEventListener('click',()=>{
 });
 el('accountGoogle').addEventListener('click',()=>run(()=>cloud.account.google()));
 el('accountLogout').addEventListener('click',()=>run(async()=>{
-  const previousUser=state?.user?.id;++generation;stopSync();clearPrivateUi();repositoryScope?.suspend();
+  const previousUser=state?.user?.id;
+  if(previousUser){try{await disablePush(cloud.client)}catch{}}
+  ++generation;stopSync();clearPrivateUi();repositoryScope?.suspend();
   try { await cloud.account.logout(); }
   catch(error) { if(previousUser)startSync(await repositoryScope?.signedIn(previousUser));hide('accountSignedIn',false);throw error; }
   await repositoryScope?.signedOut();
   pendingEmail=''; el('accountEmailForm').reset(); el('accountEmail').readOnly=false;
   hide('accountCodeForm'); hide('accountSignedOut',false);
   status('Você saiu da conta. Os dados locais deste aparelho foram preservados.');
+}));
+
+el('pushEnable').addEventListener('click',()=>run(async()=>{
+  if(!state)return;
+  pushMessage('Ativando neste aparelho…');
+  const result=await enablePush(cloud.client);
+  if(result.outcome!=='registered'){pushMessage(result.outcome==='denied'?'Permissão negada pelo navegador.':'Não foi possível ativar neste navegador.');return}
+  await savePushPreferences(cloud.client,currentPushPreferences());
+  pushMessage('Notificações ativadas neste aparelho.');
+}));
+
+el('pushSave').addEventListener('click',()=>run(async()=>{
+  if(!state)return;
+  await savePushPreferences(cloud.client,currentPushPreferences());
+  pushMessage('Preferências de notificações salvas.');
+}));
+
+el('pushDisable').addEventListener('click',()=>run(async()=>{
+  if(!state)return;
+  await disablePush(cloud.client);
+  pushMessage('Notificações desativadas neste aparelho.');
 }));
 
 el('accountExportData').addEventListener('click',()=>run(async()=>{
