@@ -45,7 +45,7 @@ Mensagens comerciais aprovadas:
 - PRO destaca **experiência sem anúncios**.
 - Trial de 7 dias apresenta recursos PRO, lembretes no celular e experiência sem anúncios.
 
-A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Trial. O refinamento comercial final foi aplicado na `/site/`: FAQ, economia anual explícita (`R$ 99,90/ano` equivalente a `R$ 8,33/mês` e economia de `R$ 78,90` frente a 12 mensalidades), transparência de trial/cancelamento/preservação de dados, CTA móvel fixo e remoção de texto público de “depoimentos em coleta”. O template de relatos reais autorizados continua oculto. Falta apenas a conferência visual humana final da landing em celular.
+A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Trial. O refinamento comercial final foi aplicado na `/site/`: FAQ, economia anual explícita (`R$ 99,90/ano` equivalente a `R$ 8,33/mês` e economia de `R$ 78,90` frente a 12 mensalidades), transparência de trial/cancelamento/preservação de dados, CTA móvel fixo e remoção de texto público de “depoimentos em coleta”. O template de relatos reais autorizados continua oculto. O proprietário conferiu a versão final no celular e aprovou FAQ, botão fixo e apresentação geral: **landing PASS humano final**.
 
 ## Testes atuais
 
@@ -57,10 +57,18 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-Push, exclusão de conta, QA físico mobile/PWA, segurança técnica e hardening jurídico funcional em TEST estão fechados. O proprietário refez o reaceite dos documentos atualizados no celular e confirmou o fluxo como **PASS humano**. Próximos passos:
-1. confirmar com a contadora o CNAE/atividade econômica adequado para a operação comercial do PepDay antes da cobrança em produção;
-2. fazer uma conferência visual humana final da landing de marketing `/site/` no celular após o deploy deste refinamento;
-3. depois, fechar os últimos smokes de RC e somente então solicitar aprovação expressa para promoção à produção.
+Push, exclusão de conta, QA físico mobile/PWA, segurança técnica, hardening jurídico e landing final em TEST estão fechados. O proprietário refez o reaceite dos documentos atualizados no celular e aprovou também a landing final como **PASS humano**.
+
+### Próximo bloco — PWA Install & Release Finish
+1. implementar UX de instalação profissional sem alterar o produto aprovado: Android usa o prompt instalável do navegador quando disponível; iPhone/iPad detecta iOS fora do modo standalone e mostra instrução curta e visual para `Compartilhar → Adicionar à Tela de Início`, desaparecendo quando o PepDay já estiver instalado;
+2. registrar telemetria mínima de instalação/abertura instalada para permitir acompanhar adoção no painel, sem conteúdo sensível;
+3. testar fisicamente Android e iPhone: instalar, fechar, abrir pelo ícone, login, push e atualização do PWA;
+4. executar smoke real final do cancelamento de assinatura com conta/assinatura TEST descartável, sem cancelar a assinatura de teste principal;
+5. confirmar com a contadora o CNAE/atividade econômica adequado antes de cobrança em produção;
+6. definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
+7. rodar regressão final, revisão de segredos e checklist RC; somente então solicitar aprovação expressa para promoção à produção.
+
+Versão nativa iOS/Android fica como projeto paralelo posterior ao lançamento PWA, quando houver dados reais de instalação/uso. A base web atual será reaproveitada, preferencialmente com trabalho pesado em Codex numa branch separada.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 
