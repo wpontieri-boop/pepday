@@ -41,5 +41,13 @@ export async function claimPendingCardAcquisition(client,storage=globalThis.loca
   if(!marker||!client?.rpc)return null;
   const {data,error}=await client.rpc('claim_card_acquisition',{p_first_seen_at:marker.firstSeenAt});
   if(error)throw error;
+  try{safeStorage(storage)?.removeItem(STORAGE_KEY)}catch{}
+  return data||null;
+}
+
+export async function markCardBenefitUsed(client){
+  if(!client?.rpc)return null;
+  const {data,error}=await client.rpc('mark_card_pro_usage');
+  if(error)throw error;
   return data||null;
 }

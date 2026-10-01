@@ -15,6 +15,8 @@ O cartão físico vem antes de Instagram/automação e será o primeiro canal co
 - Sem cartão para ativar.
 - Sem cobrança automática.
 - O benefício do QR substitui o trial padrão de 7 dias; não acumula os dois períodos.
+- Benefício único por conta. Uma conta que já usou os 7 dias padrão pode receber os 30 dias do cartão, desde que não esteja com PRO pago ativo no momento da concessão.
+- Depois que o benefício do cartão foi concedido, o trial padrão não pode ser iniciado posteriormente.
 - Após os 30 dias, a conta volta ao FREE e o usuário pode contratar PRO mensal/anual normalmente.
 
 ## Frente — copy aprovada
@@ -45,7 +47,8 @@ Escaneie o QR Code, crie sua conta e comece seus 30 dias PRO grátis.
 Ferramenta de cálculo e organização. Não recomenda doses, tratamentos ou protocolos.
 
 ## QR e rastreamento
-- O QR deve apontar para a landing curta `/cartao/` ou redirect público equivalente no domínio definitivo.
+- Domínio definitivo escolhido, registrado e pago: `pepday.com.br`.
+- O QR final deve apontar para `https://pepday.com.br/cartao/` ou redirect público permanente equivalente.
 - Não imprimir QR apontando para ambiente de homologação.
-- A origem do QR/cartão deve ser registrada para aparecer no painel de aquisição/conversão.
-- A arte pode ser finalizada antes; o QR funcional entra somente quando a URL pública permanente estiver definida.
+- A origem do QR/cartão é registrada como `card / qr / cartao-v1` e o painel acompanha concessão dos 30 dias, primeiro uso, término e conversão posterior para PRO mensal/anual.
+- Backend TEST ativo pela migration `20261001184711_card_qr_30d_benefit.sql`; o QR físico definitivo só entra na arte depois do cutover/validação do domínio de produção.

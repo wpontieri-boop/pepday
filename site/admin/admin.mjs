@@ -57,6 +57,17 @@ function renderPwaMetrics(data){
   setText('pwaStandaloneLaunches',fmt(data?.standalone_launches));
 }
 
+function renderCardCampaign(data){
+  setText('cardBenefitGranted',fmt(data?.grants_started));
+  setText('cardBenefitUsed',fmt(data?.grants_used));
+  setText('cardBenefitActive',fmt(data?.grants_active_now));
+  setText('cardBenefitEnded',fmt(data?.grants_ended));
+  setText('cardBenefitPaid',fmt(data?.paid_after_grant));
+  setText('cardBenefitPlans',`${fmt(data?.paid_monthly_after_grant)} / ${fmt(data?.paid_annual_after_grant)}`);
+  setText('cardTrialRate',fmtPercent(data?.qr_to_grant_percent));
+  setText('cardPaidRate',fmtPercent(data?.grant_to_paid_percent));
+}
+
 function renderMetrics(data){
   setText('newAccounts',fmt(data.new_accounts));
   setText('cardAccounts',fmt(data.card_accounts));
@@ -66,8 +77,6 @@ function renderMetrics(data){
   setText('paidConversions',fmt(data.paid_conversions));
   setText('cardPaid',`${fmt(data.card_paid_conversions)} via cartão`);
   setText('paidActive',fmt(data.paid_active_now));
-  setText('cardTrialRate',fmtPercent(data.card_to_trial_percent));
-  setText('cardPaidRate',fmtPercent(data.card_to_paid_percent));
   setText('totalUsers',fmt(data.total_users_now));
   setText('freeNow',fmt(data.free_now));
   setText('trialActive',fmt(data.trial_active_now));
@@ -153,16 +162,19 @@ async function loadMetrics(){
   try{
     const user=await currentUser();
     if(!user){hide('dashboard');hide('authCard',false);authStatus('Entre para acessar o painel.');return}
-    const [acquisition,pwa]=await Promise.all([
+    const [acquisition,pwa,card]=await Promise.all([
       client.rpc('get_admin_acquisition_metrics',{p_days:days}),
-      client.rpc('get_admin_pwa_metrics',{p_days:days})
+      client.rpc('get_admin_pwa_metrics',{p_days:days}),
+      client.rpc('get_admin_card_campaign_metrics',{p_days:days})
     ]);
     if(acquisition.error)throw acquisition.error;
     if(pwa.error)throw pwa.error;
+    if(card.error)throw card.error;
     hide('authCard');
     hide('dashboard',false);
     renderMetrics(acquisition.data);
     renderPwaMetrics(pwa.data);
+    renderCardCampaign(card.data);
     await loadPromoCodes();
   }catch(error){
     if(error?.code==='42501'){

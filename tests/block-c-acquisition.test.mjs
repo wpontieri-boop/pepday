@@ -33,8 +33,9 @@ test('landing /cartao registra origem e comunica benefício sem inventar percent
   assert.match(html,/captureCardAcquisition\(\)/);
   assert.match(html,/href="\.\.\/\?from=cartao"/);
   assert.match(html,/BENEFÍCIO EXCLUSIVO DO CARTÃO/);
-  assert.match(html,/Condições exclusivas poderão ser disponibilizadas para este acesso/);
-  assert.match(html,/descubra as condições exclusivas disponíveis para você/i);
+  assert.match(html,/30 dias de PepDay PRO grátis/i);
+  assert.match(html,/Sem cartão .* Sem cobrança automática/i);
+  assert.match(html,/substitui o teste padrão de 7 dias/i);
   assert.doesNotMatch(html,/\d+%\s*(off|desconto)/i);
 });
 

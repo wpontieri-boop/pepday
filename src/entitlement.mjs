@@ -50,13 +50,16 @@ export function postTrialExperience(access) {
   const normalized = normalizeEntitlement(access, { signedIn: access?.signedIn === true });
   const visible = normalized.signedIn
     && normalized.status === 'pro_expired'
-    && normalized.source === 'trial'
-    && normalized.trialUsed;
+    && (normalized.source === 'trial' || normalized.source === 'card')
+    && (normalized.source === 'card' || normalized.trialUsed);
   if (!visible) return Object.freeze({ visible:false });
+  const card=normalized.source==='card';
   return Object.freeze({
     visible:true,
-    title:'Seu teste PRO terminou',
-    message:'Você continua no PepDay FREE com a calculadora e o tutorial. Seus dados PRO permanecem salvos para quando quiser voltar.',
+    title:card?'Seus 30 dias PRO terminaram':'Seu teste PRO terminou',
+    message:card
+      ?'Você voltou ao PepDay FREE. Seus dados continuam salvos e você pode assinar o PRO quando quiser continuar com todos os recursos.'
+      :'Você continua no PepDay FREE com a calculadora e o tutorial. Seus dados PRO permanecem salvos para quando quiser voltar.',
     primaryLabel:'Ver planos PRO',
     secondaryLabel:'Continuar no FREE'
   });
@@ -73,16 +76,22 @@ export function entitlementPresentation(access, locale = 'pt-BR') {
     return { label:'PEPDAY PRO — TESTE GRÁTIS', description:notice ? `${base} ${notice.message}` : base };
   }
   if (normalized.status === 'pro_active' && normalized.pro) return {
-    label: normalized.source === 'promo' ? 'PEPDAY PRO — CÓDIGO PROMOCIONAL' : 'PEPDAY PRO ATIVO',
-    description: normalized.source === 'promo'
-      ? (end ? `Acesso PRO promocional ativo até ${end}.` : 'Acesso PRO promocional ativo.')
-      : (end ? `Acesso PRO ativo até ${end}.` : 'Acesso PRO ativo.')
+    label: normalized.source === 'card'
+      ? 'PEPDAY PRO — CARTÃO 30 DIAS'
+      : normalized.source === 'promo' ? 'PEPDAY PRO — CÓDIGO PROMOCIONAL' : 'PEPDAY PRO ATIVO',
+    description: normalized.source === 'card'
+      ? (end ? `Benefício do cartão ativo até ${end}. Sem cartão e sem cobrança automática.` : 'Benefício de 30 dias PRO do cartão ativo.')
+      : normalized.source === 'promo'
+        ? (end ? `Acesso PRO promocional ativo até ${end}.` : 'Acesso PRO promocional ativo.')
+        : (end ? `Acesso PRO ativo até ${end}.` : 'Acesso PRO ativo.')
   };
   if (normalized.status === 'pro_expired') return {
     label: 'PEPDAY PRO EXPIRADO',
     description: normalized.source === 'trial'
       ? 'Seu teste PRO terminou. Seus dados continuam salvos e os recursos FREE permanecem disponíveis.'
-      : 'Seu acesso PRO terminou. Seus dados continuam salvos e os recursos FREE permanecem disponíveis.'
+      : normalized.source === 'card'
+        ? 'Seus 30 dias PRO do cartão terminaram. Seus dados continuam salvos e você pode assinar o PRO quando quiser.'
+        : 'Seu acesso PRO terminou. Seus dados continuam salvos e os recursos FREE permanecem disponíveis.'
   };
   return {
     label: 'PEPDAY FREE',

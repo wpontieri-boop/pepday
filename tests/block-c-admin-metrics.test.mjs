@@ -40,11 +40,11 @@ test('painel usa sessão Supabase compartilhada e não cria conta nova',async()=
   assert.doesNotMatch(source,/service_role|SUPABASE_SERVICE_ROLE_KEY|sb_secret_/i);
 });
 
-test('painel oferece 7, 30 e 90 dias e mostra conversão cartão para trial e PRO',async()=>{
+test('painel oferece 7, 30 e 90 dias e mostra funil QR para 30 dias PRO e pago',async()=>{
   const html=await read('site/admin/index.html');
   for(const days of ['7','30','90']) assert.match(html,new RegExp(`data-days="${days}"`));
-  assert.match(html,/CARTÃO → TRIAL/);
-  assert.match(html,/CARTÃO → PRO PAGO/);
+  assert.match(html,/QR → 30 DIAS PRO/);
+  assert.match(html,/30 DIAS PRO → PAGO/);
   assert.match(html,/CONVERSÕES PRO/);
 });
 

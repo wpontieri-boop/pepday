@@ -8,7 +8,7 @@ import { createSyncEngine } from './sync-engine.mjs';
 import { createTabCoordinator } from './tab-coordinator.mjs';
 import { summarizeSync } from './sync-status.mjs';
 import { readConfirmedSnapshot } from './remote-snapshot.mjs';
-import { captureCardAcquisition, claimPendingCardAcquisition } from './acquisition.mjs';
+import { captureCardAcquisition, claimPendingCardAcquisition, markCardBenefitUsed } from './acquisition.mjs';
 import { enablePush, disablePush, pushInstallationStatus, savePushPreferences, notificationPermission } from './push.mjs';
 
 const el = id => document.getElementById(id);
@@ -19,6 +19,7 @@ const {view:accessView,authority:accessAuthority}=createAccessController(documen
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
+const cardUsageMarked = new Set();
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 if(new URL(location.href).searchParams.get('from')==='cartao')captureCardAcquisition();
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
@@ -312,6 +313,13 @@ async function refresh() {
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete=profileLegalCurrent(next.profile);
     publishAccess({...next.entitlement,signedIn:true},complete);
+    if(complete&&next.entitlement?.source==='card'&&next.entitlement?.pro===true&&!cardUsageMarked.has(next.user.id)){
+      cardUsageMarked.add(next.user.id);
+      markCardBenefitUsed(cloud.client).catch(error=>{
+        cardUsageMarked.delete(next.user.id);
+        console.warn('PepDay uso do benefício do cartão adiado:',error?.code||error?.name||'erro');
+      });
+    }
     renderBillingManagement(next.subscription,complete);
     renderPushSettings(next.settings,complete);
     if(complete){
@@ -325,7 +333,26 @@ async function refresh() {
       });
     }
     renderPushInvite(complete);
-    if(complete)claimPendingCardAcquisition(cloud.client).catch(error=>console.warn('PepDay attribution adiada:',error?.code||error?.name||'erro'));
+    if(complete)claimPendingCardAcquisition(cloud.client).then(result=>{
+      if(current!==generation||!state||!result)return;
+      const benefit=result.benefit;
+      const entitlement=result.entitlement;
+      if(entitlement){
+        state.entitlement=entitlement;
+        publishAccess({...entitlement,signedIn:true},true);
+      }
+      if(benefit?.active&&entitlement?.source==='card'&&!cardUsageMarked.has(next.user.id)){
+        cardUsageMarked.add(next.user.id);
+        markCardBenefitUsed(cloud.client).catch(error=>{
+          cardUsageMarked.delete(next.user.id);
+          console.warn('PepDay uso do benefício do cartão adiado:',error?.code||error?.name||'erro');
+        });
+      }
+      if(benefit?.code==='CARD_PRO_GRANTED'&&benefit.ends_at){
+        const until=new Intl.DateTimeFormat('pt-BR',{dateStyle:'long'}).format(new Date(benefit.ends_at));
+        status(`Benefício do cartão ativado: 30 dias de PepDay PRO grátis até ${until}. Sem cartão e sem cobrança automática.`);
+      }
+    }).catch(error=>console.warn('PepDay atribuição do cartão adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
       :'Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');

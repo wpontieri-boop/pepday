@@ -42,7 +42,8 @@ A V2.9 permanece em produção.
 | FREE | PASS | calculadora/tutorial e gates |
 | PRO | PASS | entitlement/gates/backend |
 | códigos promocionais PRO | PASS | 30/60/90 dias, limite/validade/exclusividade, resgate único, RLS/RPC admin no TEST |
-| admin | PASS | métricas agregadas + gestão controlada de códigos promocionais |
+| benefício QR/cartão 30 dias PRO | PASS TÉCNICO / URL FINAL PENDENTE | uso único por conta; aceita conta que já usou trial, bloqueia PRO pago ativo, substitui o trial futuro, não gera cobrança/assinatura; smokes SQL com rollback PASS e funil no admin |
+| admin | PASS | métricas agregadas + gestão controlada de códigos promocionais + funil do cartão 30d → uso → pago mensal/anual |
 | migração V2.9 | PASS | snapshot/backup/importação e teste humano |
 | sincronização | PASS | outbox/hydration/conflitos |
 | offline/online | PASS | sync engine e reconexão |
@@ -55,15 +56,16 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-20; módulo de instalação incluído e vínculo de push aprovado preservado |
+| cache/update | PASS | cache profile-sync-21; módulo de instalação e campanha do cartão atualizados sem reabrir os fluxos já aprovados |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
 | Termos/Privacidade | PASS TÉCNICO | versões `terms-2026-09-30-2` / `privacy-2026-09-30-2`; consentimento sensível separado/versionado; bases legais, CDC/assinatura, transferências e incidentes cobertos; fornecedor/controlador identificado como Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90 |
 
 ## Testes atuais
 
-- Regressão completa: **371/371 PASS**
+- Regressão completa: **381/381 PASS**
 - PWA Install: **6/6 PASS**
+- Cartão/QR 30 dias PRO: **10/10 PASS** + smokes SQL reais com rollback
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **37/37 PASS**
@@ -127,14 +129,14 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 371/371;
+7. regressão completa verde — PASS 381/381;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
 12. UX/telemetria de instalação PWA — PASS TÉCNICO; Android **PASS humano**; iPhone/iPad **PENDENTE** somente para o novo guia/estado instalado;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
-14. URL/domínio público definitivo + configurações de produção — PENDENTE antes do cutover;
+14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` ainda não apontados; `homologacao.pepday.com.br` aguarda CNAME/propagação no Registro.br; cutover de produção PENDENTE;
 15. release candidate final — aguarda itens 9, 12 e 14;
 16. aprovação expressa do proprietário — somente após RC final.
 

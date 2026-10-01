@@ -832,3 +832,30 @@ ativos e aberturas standalone. Smoke real da RPC retornou HTTP 200 e a fixture d
 removida. Cache V3: `pepday-v3-profile-sync-20`.
 
 Testes direcionados: **6/6 PASS**. Regressão completa: **371/371 PASS**. O novo fluxo recebeu **PASS humano no Android** em aparelho real: após desinstalar o PWA existente, o Chrome exibiu **Instalar PepDay**, o prompt nativo concluiu a reinstalação e a reabertura pelo ícone ficou standalone, sem barra do Chrome e sem CTA de instalação. A única validação humana nova ainda pendente é iPhone/iPad, somente para o guia `Compartilhar → Adicionar à Tela de Início` e o estado já instalado. Nenhum QA manual antigo deve ser repetido. Produção, `main` e V2.9 seguem intocados.
+
+### Cartão físico / QR — benefício automático de 30 dias PRO (01/10/2026)
+
+A regra comercial do cartão foi fechada e implementada somente no TEST: 30 dias de PepDay PRO
+grátis, sem cartão e sem cobrança automática, uso único por conta. Uma conta que já consumiu
+o trial padrão de 7 dias continua elegível para o cartão; uma assinatura Mercado Pago paga e
+ativa bloqueia a concessão. Depois de concedido o benefício do cartão, o trial padrão não pode
+ser iniciado nem acumulado. Ao terminar os 30 dias, a conta volta ao FREE se não houver assinatura.
+
+A migration TEST `20261001184711_card_qr_30d_benefit.sql` cria `card_pro_grants` backend-only,
+integra `source='card'` ao entitlement, torna `claim_card_acquisition()` idempotente e responsável
+pela concessão, registra primeiro uso por `mark_card_pro_usage()` e inclui o benefício na exportação
+self-service do titular. Nenhuma linha de assinatura paga ou `billing_events` é fabricada.
+
+O painel administrativo passou a acompanhar QR/contas atribuídas, 30d ativados, primeiro uso,
+benefícios ativos/encerrados e assinatura posterior mensal/anual. Dois smokes SQL reais, sempre
+com rollback, confirmaram: concessão + entitlement + substituição do trial + uso + idempotência;
+e bloqueio correto quando há PRO pago ativo. Advisors não mostraram novo bloqueio crítico.
+
+Testes direcionados do cartão/QR: **10/10 PASS**. Regressão completa: **381/381 PASS**.
+Cache V3: `pepday-v3-profile-sync-21`.
+
+O domínio definitivo `pepday.com.br` foi registrado e pago. O raiz e `www` não foram apontados
+para TEST. `homologacao.pepday.com.br` já foi cadastrado no Render, mas o Registro.br ainda
+mostrava “Domínio em transição”; o CNAME para `pepday-v3-homologacao.onrender.com` permanece
+pendente. O QR físico final será `pepday.com.br/cartao/` (ou redirect permanente equivalente)
+somente após o cutover de produção; nunca será impresso apontando para homologação.
