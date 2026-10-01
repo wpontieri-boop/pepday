@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
 
-const authBase='https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/';
-const legalBase='https://pepday-v3-homologacao.onrender.com/';
+const authBase='https://homologacao.pepday.com.br/';
+const legalBase='https://homologacao.pepday.com.br/';
 const read=name=>readFile(new URL(`../${name}`,import.meta.url),'utf8');
 
 test('documentos jurídicos usam homologação atual e versões vigentes',()=>{

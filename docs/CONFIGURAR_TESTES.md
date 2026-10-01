@@ -32,14 +32,14 @@ O proprietário confirmou aplicação de
 
 Não repetir esses arquivos nem os SQL anteriores.
 
-## 3. Google e endereço de retorno
+## 3. Auth e endereço de retorno
 
-Google está desabilitado no projeto. Habilitar o provedor pelo painel para
-testá-lo. O endereço isolado existente é
-`https://pepday-v3-bloco-a-test.wpontieri.chatgpt.site/`. Para Google, cadastrar
-esse retorno no Supabase e configurar o callback indicado pelo próprio painel
-no provedor Google. Depois atualizar authRedirectUrl/allowedRedirects no código.
-Apenas o proprietário configura credenciais OAuth no painel; não enviá-las no chat.
+O endereço oficial de homologação é
+`https://homologacao.pepday.com.br/`. Manter esse endereço como `Site URL` e na
+lista de redirects autorizados do Supabase Auth. O frontend usa o mesmo hostname em
+`authRedirectUrl`/`allowedRedirects`. Se o provedor Google estiver habilitado, preservar
+as credenciais existentes e manter o callback do próprio projeto Supabase no provedor;
+não expor Client Secret no chat ou no repositório.
 
 Não usar o endereço de produção como retorno dos testes. O frontend de testes
 tem um bloqueio adicional para o caminho de produção do PepDay.

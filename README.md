@@ -34,25 +34,25 @@ A produção ainda é a **V2.9**, hospedada separadamente. Ela deve permanecer i
 Frontend público de teste:
 
 ```
-https://pepday-v3-homologacao.onrender.com/
+https://homologacao.pepday.com.br/
 ```
 
 Landing principal:
 
 ```
-https://pepday-v3-homologacao.onrender.com/site/
+https://homologacao.pepday.com.br/site/
 ```
 
 Landing do cartão/QR:
 
 ```
-https://pepday-v3-homologacao.onrender.com/cartao/
+https://homologacao.pepday.com.br/cartao/
 ```
 
 Painel administrativo:
 
 ```
-https://pepday-v3-homologacao.onrender.com/site/admin/
+https://homologacao.pepday.com.br/site/admin/
 ```
 
 O Render publica automaticamente a branch `v3.0-bloco-b` da homologação. Isso **não** equivale a publicar a V3 em produção.

@@ -56,7 +56,7 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-21; módulo de instalação e campanha do cartão atualizados sem reabrir os fluxos já aprovados |
+| cache/update | PASS | cache profile-sync-22; domínio customizado de homologação e URLs públicas atualizados sem reabrir os fluxos já aprovados |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
 | Termos/Privacidade | PASS TÉCNICO | versões `terms-2026-09-30-2` / `privacy-2026-09-30-2`; consentimento sensível separado/versionado; bases legais, CDC/assinatura, transferências e incidentes cobertos; fornecedor/controlador identificado como Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90 |
@@ -136,7 +136,7 @@ A promoção para produção exige:
 11. conferência visual humana da landing final no celular — PASS;
 12. UX/telemetria de instalação PWA — PASS TÉCNICO; Android **PASS humano**; iPhone/iPad **PENDENTE** somente para o novo guia/estado instalado;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
-14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` ainda não apontados; `homologacao.pepday.com.br` aguarda CNAME/propagação no Registro.br; cutover de produção PENDENTE;
+14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` reservados e fora do TEST; `homologacao.pepday.com.br` **PASS** com CNAME, Render Verified, certificado emitido e HTTPS 200; validação de Auth no hostname customizado em andamento; cutover de produção PENDENTE;
 15. release candidate final — aguarda itens 9, 12 e 14;
 16. aprovação expressa do proprietário — somente após RC final.
 
