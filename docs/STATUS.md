@@ -781,6 +781,10 @@ O reteste destrutivo posterior concluiu a exclusão com sucesso: preflight 200, 
 principal 200, sessão encerrada e ausência dos registros vinculados da conta descartável.
 Exclusão de conta: **PASS final**.
 
+O QA físico Android/PWA também foi encerrado como **PASS final**, cobrindo calculadora, Perfil, tutorial, instalação/reabertura, offline → online, jurídico, exportação, push real com o app fechado e exclusão destrutiva. A regressão permanece em `351/351 PASS`.
+
+Na revisão final do repositório não foram encontrados `.env`, PEM, arquivos de credenciais/service-account ou bloco real de chave privada versionado. O GitHub Secret Scanning mantém 1 alerta aberto de `google_api_key` referente à configuração pública do Firebase TEST; antes da RC final é necessário confirmar no Google Cloud que essa Firebase Web API key está restrita somente às APIs Firebase apropriadas. A revisão jurídica profissional final também permanece pendente. Produção/V2.9 seguem intocados.
+
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com
 `origin/v3.0-bloco-b` antes de retomar desenvolvimento.

@@ -82,21 +82,29 @@ O Firebase TEST e o cliente Web Push estão configurados. O navegador de teste c
 
 ### Mobile / PWA
 
-QA físico Android já aprovou Home, Calculadora, Perfil, tutorial, reinstalação do PWA, ciclo offline → online e persistência do vínculo de push após reload. A UX do Perfil foi então simplificada para mostrar **“Alterar preferências”** no estado ativo e abrir os checkboxes somente sob demanda; falta apenas retestar essa apresentação e concluir os itens restantes abaixo.
+QA físico Android: **PASS final**.
 
-No celular real, validar:
-1. abrir a homologação;
-2. Home/Calculadora/Perfil;
-3. 30/50/100 UI;
-4. mg/mcg;
-5. tutorial;
-6. instalar PWA;
-7. fechar e abrir pelo ícone;
-8. modo offline da parte local;
-9. voltar online e observar sincronização;
-10. Termos/Privacidade;
-11. exportação em conta de teste;
-12. seringa sem corte horizontal.
+Validado em aparelho real:
+1. abertura da homologação;
+2. Home / Calculadora / Perfil;
+3. seringas 30 / 50 / 100 UI;
+4. mg / mcg;
+5. tutorial completo;
+6. instalação e reinstalação do PWA;
+7. fechamento e reabertura pelo ícone;
+8. funcionamento offline da parte local;
+9. retorno online e sincronização;
+10. Termos / Privacidade;
+11. exportação JSON em conta autenticada;
+12. seringa sem corte horizontal;
+13. persistência do vínculo de push após reload;
+14. UX **“Alterar preferências”**;
+15. push físico recebido com o PepDay fechado;
+16. exclusão destrutiva de conta descartável com confirmação no backend.
+
+## Segurança final
+
+A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/service-account ou bloco real de chave privada versionado. O GitHub Secret Scanning mantém o alerta #1 aberto para `google_api_key` nos arquivos públicos de configuração Firebase TEST. Firebase Web API keys são públicas por design, porém é obrigatório confirmar no Google Cloud que a chave está restrita somente às APIs Firebase apropriadas antes de classificar/resolver o alerta. Esta verificação permanece pendente.
 
 ## Jurídico
 
@@ -105,16 +113,16 @@ Os documentos estão funcionais e versionados, mas a revisão jurídica profissi
 ## Critério para RC final
 
 A promoção para produção exige:
-1. homologação externa de pagamentos;
-2. homologação real de e-mail;
-3. homologação real de push;
-4. teste físico mobile/PWA;
-5. teste destrutivo de exclusão com conta descartável;
-6. revisão jurídica final;
-7. regressão completa verde;
-8. revisão de segredos/arquivos;
-9. release candidate final;
-10. aprovação expressa do proprietário.
+1. homologação externa de pagamentos — PASS em TEST;
+2. homologação real de e-mail — PASS em TEST;
+3. homologação real de push — PASS em TEST;
+4. teste físico mobile/PWA — PASS;
+5. teste destrutivo de exclusão com conta descartável — PASS;
+6. revisão jurídica final — PENDENTE revisão profissional;
+7. regressão completa verde — PASS 351/351;
+8. revisão de segredos/arquivos — PASS técnico, com verificação de restrições da Firebase Web API key ainda PENDENTE;
+9. release candidate final — aguarda itens 6 e 8;
+10. aprovação expressa do proprietário — somente após RC final.
 
 ## Produção
 
