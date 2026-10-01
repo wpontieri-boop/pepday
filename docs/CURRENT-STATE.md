@@ -25,8 +25,8 @@ Atualização: 30/09/2026.
 - A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. Cache V3: `profile-sync-17`; reteste humano Android aprovado.
 - O primeiro teste destrutivo de exclusão de conta no Android revelou CORS preflight incorreto: `OPTIONS` recebia 405 e nenhum `POST` de exclusão era executado. `account-delete` foi corrigida para responder CORS/OPTIONS e implantada somente no TEST como versão 20. O reteste destrutivo passou: `OPTIONS 200`, `POST 200`, sessão encerrada e verificação direta confirmou **zero registros** da conta descartável em `auth.users` e nas tabelas vinculadas conferidas (perfil, settings, assinatura, trial, frascos, rotinas, histórico, push e outboxes). Exclusão de conta: **PASS final**.
 - QA físico Android/PWA concluído: Home, Calculadora, Perfil, 30/50/100 UI, mg/mcg, tutorial, instalação/reabertura PWA, offline → online, Termos/Privacidade, exportação JSON, seringa sem corte, preferências de push, push real com app fechado e exclusão destrutiva de conta descartável: **PASS**.
-- Revisão final de arquivos: nenhum `.env`, PEM, service-account/credentials JSON ou bloco real de chave privada está versionado. O GitHub mantém 1 alerta aberto de `google_api_key` referente à configuração pública do Firebase TEST. A chave Web do Firebase é pública por design, mas a RC fica pendente de confirmar no Google Cloud que ela está restrita somente às APIs Firebase apropriadas antes de resolver o alerta.
-- Revisão jurídica profissional final também permanece pendente antes do lançamento comercial.
+- Revisão final de arquivos: nenhum `.env`, PEM, service-account/credentials JSON ou bloco real de chave privada está versionado. A Firebase Web API key do projeto TEST foi restrita no Google Cloud ao domínio de homologação e às APIs Firebase/FCM necessárias; um push real no Android com o PWA fechado continuou funcionando após a mudança. O alerta #1 do GitHub Secret Scanning (`google_api_key`) foi resolvido como `wont_fix` com justificativa de chave pública intencional e restrita. Segurança técnica da RC: **PASS**.
+- Revisão jurídica profissional final continua sendo a única pendência externa antes do fechamento comercial da RC.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -56,10 +56,10 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-Push, exclusão de conta e QA físico mobile/PWA em TEST estão fechados com validação técnica e humana: **PASS final**. Próximos passos:
-1. confirmar no Google Cloud as restrições da API key pública do Firebase TEST e então resolver/classificar o alerta #1 do GitHub;
-2. obter revisão jurídica profissional final dos Termos/Privacidade;
-3. executar o fechamento formal da Release Candidate e somente depois solicitar aprovação expressa para produção.
+Push, exclusão de conta, QA físico mobile/PWA e revisão técnica de segurança em TEST estão fechados: **PASS final**. Próximos passos:
+1. obter revisão jurídica profissional final dos Termos/Privacidade;
+2. após essa revisão, fechar formalmente a Release Candidate;
+3. somente então solicitar aprovação expressa para promoção à produção.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 

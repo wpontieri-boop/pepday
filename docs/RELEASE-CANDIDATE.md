@@ -104,7 +104,7 @@ Validado em aparelho real:
 
 ## Segurança final
 
-A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/service-account ou bloco real de chave privada versionado. O GitHub Secret Scanning mantém o alerta #1 aberto para `google_api_key` nos arquivos públicos de configuração Firebase TEST. Firebase Web API keys são públicas por design, porém é obrigatório confirmar no Google Cloud que a chave está restrita somente às APIs Firebase apropriadas antes de classificar/resolver o alerta. Esta verificação permanece pendente.
+A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/service-account ou bloco real de chave privada versionado. A Firebase Web API key do projeto TEST foi restringida no Google Cloud ao domínio de homologação e às APIs Firebase/FCM necessárias; um push real no Android com o PWA fechado foi validado depois da mudança. O alerta #1 do GitHub Secret Scanning (`google_api_key`) foi encerrado como `wont_fix`, com justificativa de chave pública intencional e restrita. **Segurança técnica: PASS.**
 
 ## Jurídico
 
@@ -120,8 +120,8 @@ A promoção para produção exige:
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. revisão jurídica final — PENDENTE revisão profissional;
 7. regressão completa verde — PASS 351/351;
-8. revisão de segredos/arquivos — PASS técnico, com verificação de restrições da Firebase Web API key ainda PENDENTE;
-9. release candidate final — aguarda itens 6 e 8;
+8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
+9. release candidate final — aguarda somente o item 6;
 10. aprovação expressa do proprietário — somente após RC final.
 
 ## Produção
