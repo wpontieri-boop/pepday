@@ -141,7 +141,7 @@ export default {
       const [profile,subscription]=await Promise.all([
         oneRow(
           supabaseUrl,adminKey,"profiles",{id:user.id},
-          "id,is_adult_confirmed,terms_accepted_at,privacy_accepted_at"
+          "id,is_adult_confirmed,terms_accepted_at,privacy_accepted_at,sensitive_data_consent_at"
         ),
         oneRow(
           supabaseUrl,adminKey,"subscriptions",{user_id:user.id},
@@ -149,7 +149,7 @@ export default {
         )
       ]);
 
-      if(!profile.is_adult_confirmed||!profile.terms_accepted_at||!profile.privacy_accepted_at){
+      if(!profile.is_adult_confirmed||!profile.terms_accepted_at||!profile.privacy_accepted_at||!profile.sensitive_data_consent_at){
         return response(409,"PROFILE_INCOMPLETE");
       }
       if(!canCreateCheckout(subscription))return response(409,"SUBSCRIPTION_ALREADY_ACTIVE");

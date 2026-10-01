@@ -5,6 +5,7 @@ Atualização: 30/09/2026.
 Estados:
 - **PASS** — validado por teste automatizado, SQL real, smoke ou teste humano já aprovado.
 - **PASS TÉCNICO / MOBILE PENDENTE** — implementação validada; falta conferência física final em celular/PWA.
+- **PASS TÉCNICO / SMOKE REAL PENDENTE** — implementação e testes automatizados validados; operação externa destrutiva não foi disparada para preservar o estado de teste.
 - **BLOQUEADO POR CONFIGURAÇÃO** — arquitetura pronta; falta configuração externa de homologação.
 - **NÃO EXECUTAR** — depende de autorização final para produção.
 
@@ -15,10 +16,10 @@ A V2.9 permanece em produção.
 | Item | Estado | Evidência / observação |
 |---|---|---|
 | HTML/CSS/JS | PASS | syntax checks, smoke HTTP e suíte completa |
-| PWA | PASS TÉCNICO / MOBILE PENDENTE | manifest, SW e assets validados |
+| PWA | PASS | manifest/SW/assets + QA físico Android aprovados |
 | manifest | PASS | suíte release candidate static |
 | service worker | PASS | cache isolado V3 e Auth fora do cache |
-| mobile | PASS TÉCNICO / MOBILE PENDENTE | viewport/media queries validados |
+| mobile | PASS | viewport/media queries + QA físico Android aprovados |
 | desktop | PASS | smoke local/público e layout homologado |
 | calculadora | PASS | fórmula e interface cobertas |
 | 30/50/100 UI | PASS | opções U-100 + cálculo exemplo |
@@ -47,19 +48,19 @@ A V2.9 permanece em produção.
 | isolamento entre usuários | PASS | RLS/testes reais anteriores |
 | pagamento de teste | PASS | sandbox validado com pagamento mensal aprovado |
 | webhooks de pagamento | PASS | eventos automáticos do Mercado Pago recebidos e aplicados no TEST |
-| cancelamento de assinatura | PASS | cancelamento do sandbox recebido automaticamente por webhook |
+| cancelamento de assinatura | PASS TÉCNICO / SMOKE REAL PENDENTE | cancelamento sandbox/webhook anterior PASS; novo botão de cancelamento normal + Edge Function v1 ACTIVE; OPTIONS 200 e confirmação inválida 400; clique real preservado para não cancelar a assinatura TEST ativa |
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-17; vínculo de push reidratado após reload e preferências recolhidas até “Alterar preferências” |
+| cache/update | PASS | cache profile-sync-18; vínculo de push reidratado e hardening jurídico forçado por nova versão |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
-| Termos/Privacidade | PASS TÉCNICO | versões vigentes; revisão jurídica profissional pendente |
+| Termos/Privacidade | PASS TÉCNICO | versões 2026-09-30, consentimento sensível separado/versionado, bases legais refinadas, CDC/assinatura/transferências/incidentes cobertos; falta identificação jurídica real do fornecedor/controlador |
 
 ## Testes atuais
 
-- Regressão completa: **351/351 PASS**
+- Regressão completa: **362/362 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **37/37 PASS**
@@ -108,7 +109,9 @@ A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/s
 
 ## Jurídico
 
-Os documentos estão funcionais e versionados, mas a revisão jurídica profissional final permanece obrigatória antes do lançamento comercial.
+O hardening jurídico funcional foi concluído em TEST: consentimento específico e destacado para dados sensíveis separado da ciência da Política, registro de versão/data, bases legais sensíveis refinadas, transparência sobre assinaturas recorrentes e direito de arrependimento, transferência internacional, finalidade não médica e procedimento interno de incidentes. A implementação foi revisada tecnicamente e coberta pela regressão.
+
+**Bloqueio remanescente para produção:** inserir a identificação jurídica real do fornecedor/controlador (nome ou razão social, CPF/CNPJ quando aplicável, endereço físico e eletrônico). Esses dados não estão no repositório e não foram inventados. Parecer externo de advogado permanece recomendável, mas não foi obtido nesta etapa.
 
 ## Critério para RC final
 
@@ -118,11 +121,12 @@ A promoção para produção exige:
 3. homologação real de push — PASS em TEST;
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
-6. revisão jurídica final — PENDENTE revisão profissional;
-7. regressão completa verde — PASS 351/351;
+6. hardening jurídico funcional — PASS TÉCNICO; identificação jurídica real do fornecedor/controlador ainda PENDENTE;
+7. regressão completa verde — PASS 362/362;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
-9. release candidate final — aguarda somente o item 6;
-10. aprovação expressa do proprietário — somente após RC final.
+9. conferência humana do novo reaceite jurídico/gestão de assinatura — PENDENTE após deploy da homologação;
+10. release candidate final — aguarda itens 6 e 9;
+11. aprovação expressa do proprietário — somente após RC final.
 
 ## Produção
 

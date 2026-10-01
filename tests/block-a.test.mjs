@@ -89,11 +89,14 @@ test('OTP de seis dígitos e erro do provedor são propagados', async () => {
   assert.throws(()=>svc.verifyCode('a@example.test','123'),/6 dígitos/);
   await assert.rejects(svc.verifyCode('a@example.test','123456'),/expirado/);
 });
-test('aceites são obrigatórios; marketing é opcional', async () => {
+test('aceites e consentimento sensível são obrigatórios; marketing é opcional', async () => {
   let args;
   const svc=createAccountService({rpc:async(n,p)=>{args=p;return {data:null};}},options);
   assert.throws(()=>svc.completeProfile({adult:false}),/maioridade/);
-  await svc.completeProfile({adult:true,termsAccepted:true,privacyAccepted:true,name:'Teste',country:'BR',
-    timezone:'America/Sao_Paulo',termsVersion:'test',privacyVersion:'test'});
+  assert.throws(()=>svc.completeProfile({adult:true,termsAccepted:true,privacyAccepted:true,sensitiveDataConsent:false}),/consentimento específico/);
+  await svc.completeProfile({adult:true,termsAccepted:true,privacyAccepted:true,sensitiveDataConsent:true,name:'Teste',country:'BR',
+    timezone:'America/Sao_Paulo',termsVersion:'test',privacyVersion:'test',sensitiveDataConsentVersion:'health-test'});
+  assert.equal(args.p_sensitive_consent,true);
+  assert.equal(args.p_sensitive_consent_version,'health-test');
   assert.equal(args.p_marketing,false);
 });

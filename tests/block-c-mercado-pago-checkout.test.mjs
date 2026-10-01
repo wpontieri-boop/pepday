@@ -68,6 +68,7 @@ test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no 
   const index=await read('supabase/functions/mercado-pago-checkout/index.mjs');
   assert.ok(index.indexOf('authenticatedUser')<index.indexOf('"https://api.mercadopago.com/preapproval"'));
   assert.match(index,/\/auth\/v1\/user/);
+  assert.match(index,/sensitive_data_consent_at/);
   assert.match(index,/MERCADO_PAGO_LIVE_MODE/);
   assert.match(index,/MERCADO_PAGO_TEST_PAYER_EMAIL/);
   assert.match(index,/MP_TEST_PAYER_EMAIL_MISSING/);

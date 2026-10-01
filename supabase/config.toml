@@ -37,3 +37,9 @@ enabled = true
 verify_jwt = false
 # A função valida o JWT do usuário diretamente no Supabase Auth e cancela billing antes da exclusão.
 entrypoint = "./functions/account-delete/index.mjs"
+
+[functions.mercado-pago-cancel-subscription]
+enabled = true
+verify_jwt = false
+# A função valida o JWT do usuário diretamente no Supabase Auth antes de cancelar a assinatura no Mercado Pago.
+entrypoint = "./functions/mercado-pago-cancel-subscription/index.mjs"

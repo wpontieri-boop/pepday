@@ -74,16 +74,20 @@ export async function loadAccountState(client, account) {
   }
   if (!identity.data?.user) return { status: 'signed_out' };
   const user = identity.data.user;
-  const profile = await client.from('profiles').select('id,name,email,country,timezone,is_adult_confirmed,terms_accepted_at,terms_version,privacy_accepted_at,privacy_version')
+  const profile = await client.from('profiles').select('id,name,email,country,timezone,is_adult_confirmed,terms_accepted_at,terms_version,privacy_accepted_at,privacy_version,sensitive_data_consent_at,sensitive_data_consent_version')
     .eq('id',user.id).single();
   if (profile.error) throw profile.error;
   const settings = await client.from('settings')
     .select('routine_reminders,refill_alerts,operational_notices,account_security_notices')
     .eq('user_id',user.id).maybeSingle();
   if (settings.error) throw settings.error;
+  const subscription = await client.from('subscriptions')
+    .select('status,plan,provider,provider_status,billing_status,current_period_end,cancel_at_period_end,cancelled_at')
+    .eq('user_id',user.id).maybeSingle();
+  if (subscription.error) throw subscription.error;
   const entitlement = await account.entitlement();
   return {
-    status: 'signed_in', user, profile: profile.data, entitlement,
+    status: 'signed_in', user, profile: profile.data, entitlement, subscription: subscription.data || null,
     settings: settings.data || {
       routine_reminders:false, refill_alerts:false,
       operational_notices:true, account_security_notices:true

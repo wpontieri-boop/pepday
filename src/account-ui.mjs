@@ -45,14 +45,16 @@ function publishAccess(raw, profileComplete=false) {
   if(!showCommercial&&el('billingStatus'))el('billingStatus').textContent='';
 }
 function legalReady() {
-  return Boolean(config.termsVersion && config.privacyVersion && config.termsUrl && config.privacyUrl &&
+  return Boolean(config.termsVersion && config.privacyVersion && config.sensitiveDataConsentVersion && config.termsUrl && config.privacyUrl &&
     [config.termsUrl,config.privacyUrl].every(value => {
       try { return new URL(value,location.href).protocol === 'https:'; } catch { return false; }
     }));
 }
 function profileLegalCurrent(profile){
   return Boolean(profile?.is_adult_confirmed && profile?.terms_accepted_at && profile?.privacy_accepted_at &&
-    profile?.terms_version===config.termsVersion && profile?.privacy_version===config.privacyVersion);
+    profile?.sensitive_data_consent_at && profile?.terms_version===config.termsVersion &&
+    profile?.privacy_version===config.privacyVersion &&
+    profile?.sensitive_data_consent_version===config.sensitiveDataConsentVersion);
 }
 function enableMethods() {
   el('accountGoogle').disabled = busy || !methods.google || !config.authRedirectUrl;
@@ -65,6 +67,7 @@ function enableMethods() {
   if(el('accountExportData'))el('accountExportData').disabled=busy;
   if(el('accountDeleteOpen'))el('accountDeleteOpen').disabled=busy;
   if(el('accountDeleteCancel'))el('accountDeleteCancel').disabled=busy;
+  if(el('accountCancelSubscription'))el('accountCancelSubscription').disabled=busy;
   ['pushEnable','pushEdit','pushSave','pushCancel','pushDisable'].forEach(id=>{if(el(id))el(id).disabled=busy});
   if(el('accountDeleteConfirmBtn'))el('accountDeleteConfirmBtn').disabled=
     busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
@@ -80,6 +83,8 @@ function clearPrivateUi({preserveAccess=false}={}) {
   el('accountImportList').replaceChildren();
   el('accountImportIssues').textContent = '';
   if(el('accountDataStatus'))el('accountDataStatus').textContent='';
+  if(el('billingManageStatus'))el('billingManageStatus').textContent='';
+  if(el('billingManagement'))hide('billingManagement');
   if(el('pushStatus'))el('pushStatus').textContent='';
   if(el('pushPreferencesEditor'))hide('pushPreferencesEditor');
   if(el('pushEdit'))hide('pushEdit');
@@ -157,6 +162,24 @@ async function run(action) {
 }
 function dataStatus(message){
   if(el('accountDataStatus'))el('accountDataStatus').textContent=message||'';
+}
+function renderBillingManagement(subscription,complete){
+  const box=el('billingManagement'),summary=el('billingSummary'),button=el('accountCancelSubscription');
+  if(!box||!summary||!button)return;
+  const paid=Boolean(complete&&subscription?.provider==='mercado_pago'&&['monthly','annual'].includes(subscription?.plan));
+  hide('billingManagement',!paid);
+  if(!paid)return;
+  const plan=subscription.plan==='annual'?'anual':'mensal';
+  const end=subscription.current_period_end?new Date(subscription.current_period_end):null;
+  const endText=end&&Number.isFinite(end.getTime())?new Intl.DateTimeFormat('pt-BR',{dateStyle:'medium'}).format(end):null;
+  const canceled=subscription.cancel_at_period_end===true||subscription.billing_status==='canceled'||subscription.provider_status==='canceled';
+  if(canceled){
+    summary.textContent=`Plano ${plan}. Renovação cancelada${endText?`; acesso vigente até ${endText}`:''}. Seus dados permanecem preservados.`;
+    hide('accountCancelSubscription');
+    return;
+  }
+  summary.textContent=`Plano ${plan} com renovação automática${endText?`; período atual até ${endText}`:''}. Você pode cancelar futuras renovações a qualquer momento.`;
+  hide('accountCancelSubscription',false);
 }
 function pushMessage(message){
   if(el('pushStatus'))el('pushStatus').textContent=message||'';
@@ -289,6 +312,7 @@ async function refresh() {
     el('accountIdentity').textContent = next.user.email || 'Conta conectada';
     const complete=profileLegalCurrent(next.profile);
     publishAccess({...next.entitlement,signedIn:true},complete);
+    renderBillingManagement(next.subscription,complete);
     renderPushSettings(next.settings,complete);
     if(complete){
       pushInstallationStatus(cloud.client).then(result=>{
@@ -312,7 +336,7 @@ async function refresh() {
       el('accountName').value=next.profile.name || '';
       el('accountCountry').value=next.profile.country || 'BR';
       el('accountTimezone').textContent=`Fuso horário: ${timezone}`;
-      if(priorLegal)status('Há uma versão atualizada dos Termos de Uso e da Política de Privacidade. Seus dados foram preservados; revise e aceite os documentos atuais para continuar usando os recursos da conta.');
+      if(priorLegal)status('Há documentos jurídicos atualizados e um consentimento específico para dados sensíveis a revisar. Seus dados foram preservados; confirme os itens atuais para continuar usando os recursos da conta.');
     }
     // Até os aceites serem reais, não enviar conteúdo potencialmente sensível.
     if (complete && !later.has(next.user.id)) {
@@ -431,6 +455,30 @@ el('pushDisable').addEventListener('click',()=>run(async()=>{
   pushMessage('Notificações desativadas neste aparelho.');
 }));
 
+el('accountCancelSubscription').addEventListener('click',()=>{
+  if(busy||!state)return;
+  const confirmed=window.confirm('Cancelar a renovação automática do PepDay PRO? O acesso já pago continua até o fim do período vigente, quando aplicável.');
+  if(!confirmed)return;
+  run(async()=>{
+  el('billingManageStatus').textContent='Cancelando futuras renovações…';
+  const {data,error}=await cloud.client.functions.invoke('mercado-pago-cancel-subscription',{
+    body:{confirm:'CANCELAR'}
+  });
+  if(error||!['SUBSCRIPTION_CANCELED','ALREADY_CANCELED'].includes(data?.code)){
+    el('billingManageStatus').textContent='Não foi possível cancelar a renovação agora. Tente novamente.';
+    if(error)throw error;
+    throw new Error('Cancelamento não confirmado.');
+  }
+  if(state.subscription){
+    state.subscription.cancel_at_period_end=true;
+    state.subscription.billing_status='canceled';
+    state.subscription.provider_status='canceled';
+    renderBillingManagement(state.subscription,true);
+  }
+    el('billingManageStatus').textContent='Renovação cancelada no Mercado Pago. Não haverá nova cobrança desta assinatura. Seu acesso atual permanece até o fim do período já pago, quando aplicável.';
+  });
+});
+
 el('accountExportData').addEventListener('click',()=>run(async()=>{
   if(!state)throw new Error('Entre na conta para exportar seus dados.');
   dataStatus('Preparando seu arquivo…');
@@ -489,7 +537,9 @@ el('accountProfileForm').addEventListener('submit',event=>{
   run(async()=>{
     await cloud.account.completeProfile({ name:el('accountName').value.trim(),country:el('accountCountry').value.toUpperCase(),
       timezone,adult:el('accountAdult').checked,termsAccepted:el('accountTerms').checked,privacyAccepted:el('accountPrivacy').checked,
-      termsVersion:config.termsVersion,privacyVersion:config.privacyVersion,marketing:el('accountMarketing').checked });
+      sensitiveDataConsent:el('accountSensitiveData').checked,termsVersion:config.termsVersion,
+      privacyVersion:config.privacyVersion,sensitiveDataConsentVersion:config.sensitiveDataConsentVersion,
+      marketing:el('accountMarketing').checked });
     await refresh();
     if(notificationPermission()==='default'){
       document.querySelector('nav [data-go="home"]')?.click();
@@ -621,7 +671,7 @@ try {
   cloud=initializeCloud(globalThis.supabase.createClient,config,location.href);
   if (legalReady()) {
     el('accountTermsLink').href=config.termsUrl; el('accountPrivacyLink').href=config.privacyUrl;
-    el('accountTerms').disabled=false; el('accountPrivacy').disabled=false; hide('legalStatus');
+    el('accountTerms').disabled=false; el('accountPrivacy').disabled=false; el('accountSensitiveData').disabled=false; hide('legalStatus');
   }
   // Nunca aguardar chamadas Supabase dentro do callback de Auth (evita deadlock).
   cloud.account.onChange((_event,session)=>{

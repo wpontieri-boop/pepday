@@ -36,13 +36,15 @@ export function createAccountService(client, { redirectTo = null, allowedRedirec
     onChange: listener => client.auth.onAuthStateChange(listener),
     logout: () => unwrap(client.auth.signOut({ scope: 'local' })),
     completeProfile(profile) {
-      if (profile.adult !== true || profile.termsAccepted !== true || profile.privacyAccepted !== true) {
-        throw new Error('Confirme maioridade, Termos e Política de Privacidade.');
+      if (profile.adult !== true || profile.termsAccepted !== true || profile.privacyAccepted !== true || profile.sensitiveDataConsent !== true) {
+        throw new Error('Confirme maioridade, Termos, ciência da Política de Privacidade e o consentimento específico para dados sensíveis.');
       }
       return unwrap(client.rpc('complete_onboarding', {
         p_name: profile.name, p_country: profile.country, p_timezone: profile.timezone,
         p_adult: true, p_terms_version: profile.termsVersion,
-        p_privacy_version: profile.privacyVersion, p_marketing: profile.marketing === true
+        p_privacy_version: profile.privacyVersion,
+        p_sensitive_consent: true, p_sensitive_consent_version: profile.sensitiveDataConsentVersion,
+        p_marketing: profile.marketing === true
       }));
     },
     entitlement: () => unwrap(client.rpc('get_entitlement')),

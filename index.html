@@ -250,6 +250,7 @@
           </div>
           <p class="muted" id="promoStatus" role="status" aria-live="polite"></p>
         </form>
+        <p class="pro-data-note">Mensal e anual são assinaturas com renovação automática pelo Mercado Pago. Você pode cancelar futuras renovações no Perfil. O cancelamento não apaga seus dados, e o acesso já pago permanece até o fim do período vigente quando aplicável. O direito de arrependimento previsto em lei permanece assegurado.</p>
         <p class="pro-data-note">Seus dados permanecem salvos mesmo se o teste ou a assinatura terminar. Isso também vale para acesso por código promocional. Ao voltar ao PRO, tudo é liberado novamente.</p>
       </section>
       <section class="card form" id="accountPanel" aria-labelledby="accountTitle">
@@ -282,6 +283,12 @@
             </div>
           </div>
           <button class="ghost" id="accountLogout" type="button">Sair da conta</button>
+          <div class="account-details hidden" id="billingManagement">
+            <h3>Assinatura PRO</h3>
+            <p class="muted" id="billingSummary"></p>
+            <div class="account-actions"><button class="ghost" id="accountCancelSubscription" type="button">Cancelar renovação</button></div>
+            <p class="muted" id="billingManageStatus" role="status" aria-live="polite"></p>
+          </div>
           <div class="account-details hidden" id="pushSettings">
             <h3>Notificações neste aparelho</h3>
             <p class="muted">Você escolhe o que deseja receber. A tela bloqueada usa mensagens genéricas e não mostra substância, dose ou histórico.</p>
@@ -329,7 +336,8 @@
             <p class="muted" id="accountTimezone"></p>
             <label class="account-check"><input id="accountAdult" type="checkbox" required>Confirmo que tenho 18 anos ou mais.</label>
             <label class="account-check"><input id="accountTerms" type="checkbox" required disabled><span>Li e aceito os <a id="accountTermsLink" target="_blank" rel="noopener noreferrer">Termos de Uso</a>.</span></label>
-            <label class="account-check"><input id="accountPrivacy" type="checkbox" required disabled><span>Li a <a id="accountPrivacyLink" target="_blank" rel="noopener noreferrer">Política de Privacidade</a> e autorizo o tratamento dos dados de rotina e frascos que eu optar por enviar à conta, inclusive possíveis dados sensíveis de saúde, para as finalidades nela descritas.</span></label>
+            <label class="account-check"><input id="accountPrivacy" type="checkbox" required disabled><span>Li e estou ciente da <a id="accountPrivacyLink" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span></label>
+            <label class="account-check"><input id="accountSensitiveData" type="checkbox" required disabled><span><strong>Consentimento específico:</strong> autorizo, de forma específica e destacada, o tratamento e a sincronização dos dados de rotinas, frascos, quantidades, frequências e aplicações que eu optar por enviar à conta, os quais podem revelar dados pessoais sensíveis relacionados à saúde, exclusivamente para fornecer os recursos do PepDay descritos na Política de Privacidade.</span></label>
             <p class="muted" id="legalStatus">O cadastro completo será liberado quando os Termos e a Política de Privacidade estiverem disponíveis.</p>
             <label class="account-check"><input id="accountMarketing" type="checkbox">Quero receber novidades e ofertas (opcional).</label>
             <button class="secondary" id="accountSaveProfile" type="submit" disabled>Salvar cadastro</button>
