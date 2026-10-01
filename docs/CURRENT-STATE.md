@@ -45,11 +45,11 @@ Mensagens comerciais aprovadas:
 - PRO destaca **experiência sem anúncios**.
 - Trial de 7 dias apresenta recursos PRO, lembretes no celular e experiência sem anúncios.
 
-A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Trial.
+A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Trial. O refinamento comercial final foi aplicado na `/site/`: FAQ, economia anual explícita (`R$ 99,90/ano` equivalente a `R$ 8,33/mês` e economia de `R$ 78,90` frente a 12 mensalidades), transparência de trial/cancelamento/preservação de dados, CTA móvel fixo e remoção de texto público de “depoimentos em coleta”. O template de relatos reais autorizados continua oculto. Falta apenas a conferência visual humana final da landing em celular.
 
 ## Testes atuais
 
-- Regressão completa após hardening jurídico/billing: **362/362 PASS**.
+- Regressão completa após refinamento final da landing: **365/365 PASS**.
 - FCM/UX push: **19/19 PASS**.
 - Bloco D / direitos de dados: **12/12 PASS**, incluindo CORS do `account-delete`.
 - Sintaxe de `fcm-push-worker` e `fcm-push-cron-dispatcher`: PASS.
@@ -57,10 +57,10 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-Push, exclusão de conta, QA físico mobile/PWA, segurança técnica e hardening jurídico funcional em TEST estão fechados. Próximos passos:
+Push, exclusão de conta, QA físico mobile/PWA, segurança técnica e hardening jurídico funcional em TEST estão fechados. O proprietário refez o reaceite dos documentos atualizados no celular e confirmou o fluxo como **PASS humano**. Próximos passos:
 1. confirmar com a contadora o CNAE/atividade econômica adequado para a operação comercial do PepDay antes da cobrança em produção;
-2. fazer uma conferência humana curta do novo reaceite jurídico e da apresentação de gestão da assinatura na homologação; o cancelamento real não foi disparado porque existe uma assinatura TEST ativa;
-3. fechar formalmente a Release Candidate e somente depois solicitar aprovação expressa para promoção à produção.
+2. fazer uma conferência visual humana final da landing de marketing `/site/` no celular após o deploy deste refinamento;
+3. depois, fechar os últimos smokes de RC e somente então solicitar aprovação expressa para promoção à produção.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 

@@ -14,7 +14,7 @@ test('landing principal contém a arquitetura comercial aprovada',async()=>{
     'Por que criamos o PepDay',
     'PEPDAY FREE',
     'PEPDAY PRO ANUAL',
-    'Construído para problemas reais',
+    'Transparência no produto',
     'Começar grátis agora'
   ]) assert.match(html,new RegExp(text,'i'));
 });
@@ -30,7 +30,7 @@ test('landing separa FREE e PRO com preços aprovados',async()=>{
 
 test('landing não publica depoimento fictício e mantém template para relatos reais',async()=>{
   const html=await read('site/index.html');
-  assert.match(html,/sem inventar experiências de clientes/i);
+  assert.match(html,/Benefícios verificáveis do próprio produto/i);
   assert.match(html,/id="testimonialTemplate"/);
   assert.match(html,/Relato publicado com autorização/);
   assert.doesNotMatch(html,/“[^”]{8,}”\s*<small>[^<]*(cliente|usuário)/i);
@@ -86,4 +86,34 @@ test('landing destaca lembretes no celular e benefícios PRO/Trial',async()=>{
   assert.match(html,/mesmo com o PepDay fechado/i);
   assert.match(html,/Teste o PRO por 7 dias/i);
   assert.match(html,/sem anúncios/i);
+});
+
+test('landing final reforça conversão com economia anual e transparência',async()=>{
+  const html=await read('site/index.html');
+  assert.match(html,/Equivale a R\$ 8,33\/mês/i);
+  assert.match(html,/economiza R\$ 78,90 no ano/i);
+  assert.match(html,/Teste PRO por 7 dias sem cartão/i);
+  assert.match(html,/Renovação pode ser cancelada pelo Perfil/i);
+  assert.match(html,/Seus dados não são apagados quando o PRO termina/i);
+  assert.match(html,/Começar grátis e testar o PRO/i);
+});
+
+test('landing final inclui FAQ comercial sem promessas médicas',async()=>{
+  const html=await read('site/index.html');
+  assert.match(html,/id="faq"/);
+  assert.match(html,/Preciso pagar para usar o PepDay\?/i);
+  assert.match(html,/O teste PRO pede cartão\?/i);
+  assert.match(html,/Posso cancelar a renovação\?/i);
+  assert.match(html,/Meus dados somem se eu voltar para o FREE\?/i);
+  assert.match(html,/O PepDay recomenda dose ou tratamento\?/i);
+  assert.match(html,/Consigo controlar meus dados\?/i);
+  assert.match(html,/não prescreve, indica ou recomenda substâncias, doses, tratamentos ou protocolos/i);
+});
+
+test('landing final mantém CTA móvel sem JavaScript obrigatório',async()=>{
+  const [html,css]=await Promise.all([read('site/index.html'),read('site/site.css')]);
+  assert.match(html,/class="mobile-cta"[^>]*href="\.\.\/\?from=site"/);
+  assert.match(css,/\.mobile-cta\{display:none\}/);
+  assert.match(css,/body\{padding-bottom:74px\}/);
+  assert.match(css,/\.mobile-cta\{position:fixed/);
 });

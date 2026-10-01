@@ -21,6 +21,7 @@ A V2.9 permanece em produção.
 | service worker | PASS | cache isolado V3 e Auth fora do cache |
 | mobile | PASS | viewport/media queries + QA físico Android aprovados |
 | desktop | PASS | smoke local/público e layout homologado |
+| landing de marketing | PASS TÉCNICO / MOBILE PENDENTE | estrutura comercial final, FAQ, planos/transparência, economia anual, telas reais e CTA móvel cobertos por testes; falta conferência visual humana final no celular |
 | calculadora | PASS | fórmula e interface cobertas |
 | 30/50/100 UI | PASS | opções U-100 + cálculo exemplo |
 | mg/mcg | PASS | conversão e cálculo |
@@ -60,7 +61,7 @@ A V2.9 permanece em produção.
 
 ## Testes atuais
 
-- Regressão completa: **362/362 PASS**
+- Regressão completa: **365/365 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **37/37 PASS**
@@ -122,12 +123,13 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 362/362;
+7. regressão completa verde — PASS 365/365;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
-10. conferência humana do novo reaceite jurídico/gestão de assinatura — PENDENTE após deploy da homologação;
-11. release candidate final — aguarda itens 9 e 10;
-12. aprovação expressa do proprietário — somente após RC final.
+10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
+11. conferência visual humana da landing final no celular — PENDENTE após deploy;
+12. release candidate final — aguarda itens 9 e 11 e fechamento dos smokes remanescentes;
+13. aprovação expressa do proprietário — somente após RC final.
 
 ## Produção
 

@@ -22,9 +22,11 @@ A landing principal deve receber tráfego de Instagram, anúncios, link patrocin
 5. Demonstração visual das telas/recursos.
 6. História: por que o PepDay foi criado e qual problema real motivou o produto.
 7. FREE x PRO com os preços aprovados e preservação dos dados.
-8. Prova social/depoimentos: somente relatos reais autorizados. Enquanto não existirem, deixar estrutura pronta sem inventar experiência.
-9. CTA final: começar grátis / usar calculadora / instalar PepDay.
-10. Rodapé com Termos, Privacidade e aviso de que o PepDay é ferramenta de cálculo e organização e não recomenda tratamento/protocolo.
+8. Transparência do produto: benefícios verificáveis, sem depoimentos inventados; template de relatos reais permanece oculto até existirem autorizações.
+9. Planos com transparência comercial: trial de 7 dias sem cartão, renovação cancelável pelo Perfil, preservação dos dados e economia anual explícita.
+10. FAQ: FREE x PRO, trial, cobrança, cancelamento, preservação dos dados, controle dos dados e finalidade não médica.
+11. CTA final + CTA móvel fixo: começar grátis / usar calculadora / abrir PepDay.
+12. Rodapé com Termos, Privacidade e aviso de que o PepDay é ferramenta de cálculo e organização e não recomenda tratamento/protocolo.
 
 ## Regras de comunicação
 - Não afirmar que o PepDay recomenda dose, tratamento ou protocolo.
