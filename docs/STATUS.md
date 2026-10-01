@@ -859,3 +859,13 @@ para TEST. `homologacao.pepday.com.br` já foi cadastrado no Render, mas o Regis
 mostrava “Domínio em transição”; o CNAME para `pepday-v3-homologacao.onrender.com` permanece
 pendente. O QR físico final será `pepday.com.br/cartao/` (ou redirect permanente equivalente)
 somente após o cutover de produção; nunca será impresso apontando para homologação.
+
+### Domínio customizado de homologação + Auth — checkpoint de 01/10/2026
+
+`homologacao.pepday.com.br` foi publicado via CNAME para o Render, ficou **Verified**, recebeu certificado HTTPS e respondeu HTTP 200. O domínio raiz `pepday.com.br` e `www` foram removidos do serviço de homologação e continuam reservados para o cutover de produção.
+
+O frontend TEST foi atualizado para usar o hostname customizado em `authRedirectUrl`, `allowedRedirects`, Termos e Privacidade; o cache V3 passou a `pepday-v3-profile-sync-22`. Render publicou o commit correspondente e os smokes HTTP de `/`, `/termos.html`, `/privacidade.html`, `/site/` e `/cartao/` retornaram 200. Testes dirigidos: **45/45 PASS**. Regressão completa: **381/381 PASS**.
+
+No Supabase TEST, `auth.site_url` e `auth.additional_redirect_urls` foram alterados para `https://homologacao.pepday.com.br/` via CLI autenticada e confirmados por novo `config pull`. Email e Google permanecem habilitados; o endpoint OAuth com o novo `redirect_to` respondeu 302 para `accounts.google.com`, confirmando aceitação técnica do hostname pelo Auth.
+
+A troca de hostname revelou um bloqueio específico da Firebase Web API key: uma chamada de validação com `Referer: https://homologacao.pepday.com.br/` retornou **403 `API_KEY_HTTP_REFERRER_BLOCKED`**. Antes de testar push no hostname customizado, adicionar `https://homologacao.pepday.com.br/*` à restrição HTTP referrer da chave Firebase TEST no Google Cloud e executar somente o teste dirigido afetado. Produção, `main` e V2.9 permanecem intocados.

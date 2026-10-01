@@ -136,7 +136,7 @@ A promoção para produção exige:
 11. conferência visual humana da landing final no celular — PASS;
 12. UX/telemetria de instalação PWA — PASS TÉCNICO; Android **PASS humano**; iPhone/iPad **PENDENTE** somente para o novo guia/estado instalado;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
-14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` reservados e fora do TEST; `homologacao.pepday.com.br` **PASS** com CNAME, Render Verified, certificado emitido e HTTPS 200; validação de Auth no hostname customizado em andamento; cutover de produção PENDENTE;
+14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` reservados e fora do TEST; `homologacao.pepday.com.br` **PASS** com CNAME, Render Verified, certificado emitido e HTTPS 200; Supabase Auth custom hostname **PASS técnico** (Site URL/redirect atualizados e OAuth authorize 302 para Google); Firebase Web API key ainda bloqueia o novo referrer e precisa incluir `https://homologacao.pepday.com.br/*` antes do teste dirigido de push; cutover de produção PENDENTE;
 15. release candidate final — aguarda itens 9, 12 e 14;
 16. aprovação expressa do proprietário — somente após RC final.
 
