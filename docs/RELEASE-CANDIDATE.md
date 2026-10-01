@@ -17,7 +17,7 @@ A V2.9 permanece em produção.
 |---|---|---|
 | HTML/CSS/JS | PASS | syntax checks, smoke HTTP e suíte completa |
 | PWA | PASS | manifest/SW/assets + QA físico Android já aprovados |
-| novo fluxo de instalação PWA | PASS TÉCNICO / MOBILE PENDENTE | Android com prompt nativo quando disponível; iOS/iPadOS com guia visual; telemetria mínima agregada no TEST. Falta somente validação física do que mudou |
+| novo fluxo de instalação PWA | PASS TÉCNICO / iOS PENDENTE | Android **PASS humano**: botão apareceu após desinstalação, prompt nativo instalou e reabertura pelo ícone ficou standalone sem barra do Chrome e sem CTA de instalação. iOS/iPadOS ainda pendente para guia visual/estado instalado |
 | manifest | PASS | suíte release candidate static |
 | service worker | PASS | cache isolado V3 e Auth fora do cache |
 | mobile | PASS | viewport/media queries + QA físico Android aprovados |
@@ -106,7 +106,7 @@ Validado em aparelho real:
 15. push físico recebido com o PepDay fechado;
 16. exclusão destrutiva de conta descartável com confirmação no backend.
 
-O novo fluxo de instalação adicionado em 01/10/2026 está tecnicamente validado, mas ainda não recebe PASS humano: Android ganhou botão `Instalar PepDay` ligado ao prompt nativo quando o navegador o disponibiliza; iPhone/iPad ganhou orientação visual `Compartilhar → Adicionar à Tela de Início`; o botão é ocultado em modo standalone. A migration TEST `20261001175011_pwa_install_telemetry.sql` registra somente identificador aleatório, evento e plataforma ampla. O painel mostra métricas agregadas. A RPC teve smoke HTTP 200 e a fixture foi removida. As métricas são direcionais e não são fonte de autorização ou faturamento.
+O novo fluxo de instalação adicionado em 01/10/2026 recebeu **PASS humano no Android**: após desinstalar o PWA existente, o Chrome exibiu `Instalar PepDay`, o prompt nativo concluiu a reinstalação e a reabertura pelo novo ícone ficou em modo standalone, sem barra do Chrome e sem CTA de instalação. iPhone/iPad continua pendente apenas para validar a orientação `Compartilhar → Adicionar à Tela de Início` e o estado já instalado. A migration TEST `20261001175011_pwa_install_telemetry.sql` registra somente identificador aleatório, evento e plataforma ampla. O painel mostra métricas agregadas. A RPC teve smoke HTTP 200 e a fixture foi removida. As métricas são direcionais e não são fonte de autorização ou faturamento.
 
 ## Segurança final
 
@@ -132,7 +132,7 @@ A promoção para produção exige:
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
-12. UX/telemetria de instalação PWA Android + iOS — PASS TÉCNICO; validação física **somente do novo fluxo de instalação** — PENDENTE;
+12. UX/telemetria de instalação PWA — PASS TÉCNICO; Android **PASS humano**; iPhone/iPad **PENDENTE** somente para o novo guia/estado instalado;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — PENDENTE antes do cutover;
 15. release candidate final — aguarda itens 9, 12 e 14;

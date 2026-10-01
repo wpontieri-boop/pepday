@@ -831,7 +831,4 @@ O painel administrativo passou a mostrar instalações detectadas, dispositivos 
 ativos e aberturas standalone. Smoke real da RPC retornou HTTP 200 e a fixture de smoke foi
 removida. Cache V3: `pepday-v3-profile-sync-20`.
 
-Testes direcionados: **6/6 PASS**. Regressão completa: **371/371 PASS**. A única validação
-humana nova pendente é o fluxo de instalação: botão/prompt no Android e guia/estado instalado
-no iPhone/iPad. Nenhum QA manual antigo deve ser repetido. Produção, `main` e V2.9 seguem
-intocados.
+Testes direcionados: **6/6 PASS**. Regressão completa: **371/371 PASS**. O novo fluxo recebeu **PASS humano no Android** em aparelho real: após desinstalar o PWA existente, o Chrome exibiu **Instalar PepDay**, o prompt nativo concluiu a reinstalação e a reabertura pelo ícone ficou standalone, sem barra do Chrome e sem CTA de instalação. A única validação humana nova ainda pendente é iPhone/iPad, somente para o guia `Compartilhar → Adicionar à Tela de Início` e o estado já instalado. Nenhum QA manual antigo deve ser repetido. Produção, `main` e V2.9 seguem intocados.
