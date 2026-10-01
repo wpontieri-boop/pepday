@@ -230,5 +230,22 @@ test('perfil reidrata vínculo do aparelho e não mostra ativar/desativar ao mes
   assert.match(accountUi,/hide\('pushDisable',checking\|\|pushInstallationActive!==true/);
   assert.match(accountUi,/Notificações ativadas neste aparelho/);
   assert.match(accountUi,/routine:true,refill:true,operational:true,security:true/);
-  assert.match(sw,/pepday-v3-profile-sync-16/);
+  assert.match(sw,/pepday-v3-profile-sync-17/);
+});
+
+
+test('perfil trata preferências como edição opcional após a ativação',async()=>{
+  const [html,accountUi]=await Promise.all([
+    read('index.html'),
+    read('src/account-ui.mjs')
+  ]);
+  assert.match(html,/id="pushPreferencesEditor" class="hidden"/);
+  assert.match(html,/id="pushEdit"[^>]*>Alterar preferências</);
+  assert.match(html,/id="pushSave"[^>]*>Salvar alterações</);
+  assert.match(html,/id="pushCancel"[^>]*>Cancelar</);
+  assert.match(accountUi,/setPushPreferencesEditing\(true\)/);
+  assert.match(accountUi,/setPushPreferencesEditing\(false\)/);
+  assert.match(accountUi,/savedPushPreferences=\{\.\.\.preferences\}/);
+  assert.match(accountUi,/const defaults=\{routine:true,refill:true,operational:true,security:true\}/);
+  assert.match(accountUi,/pushMessage\('Preferências atualizadas\.'\)/);
 });

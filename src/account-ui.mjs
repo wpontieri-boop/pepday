@@ -14,7 +14,7 @@ import { enablePush, disablePush, pushInstallationStatus, savePushPreferences, n
 const el = id => document.getElementById(id);
 let cloud, state, generation = 0, busy = false, pendingEmail = '', methods = { email:false, google:false };
 let importMode='import', importErrors=[];
-let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, pushInviteDismissed=false, pushInstallationActive=null, syncEngine=null, currentRepository=null;
+let access=normalizeEntitlement(null), declinedTrial=false, postTrialDismissed=false, pushInviteDismissed=false, pushInstallationActive=null, savedPushPreferences=null, pushPreferencesEditing=false, syncEngine=null, currentRepository=null;
 const {view:accessView,authority:accessAuthority}=createAccessController(document);
 Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false,configurable:false});
 const repositoryScope=globalThis.PepDayRepositoryScope;
@@ -65,12 +65,12 @@ function enableMethods() {
   if(el('accountExportData'))el('accountExportData').disabled=busy;
   if(el('accountDeleteOpen'))el('accountDeleteOpen').disabled=busy;
   if(el('accountDeleteCancel'))el('accountDeleteCancel').disabled=busy;
-  ['pushEnable','pushSave','pushDisable'].forEach(id=>{if(el(id))el(id).disabled=busy});
+  ['pushEnable','pushEdit','pushSave','pushCancel','pushDisable'].forEach(id=>{if(el(id))el(id).disabled=busy});
   if(el('accountDeleteConfirmBtn'))el('accountDeleteConfirmBtn').disabled=
     busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
 }
 function clearPrivateUi({preserveAccess=false}={}) {
-  state = null; importErrors=[]; importMode='import'; pushInstallationActive=null; currentRepository=null;
+  state = null; importErrors=[]; importMode='import'; pushInstallationActive=null; savedPushPreferences=null; pushPreferencesEditing=false; currentRepository=null;
   el('accountIdentity').textContent = '';
   if(!preserveAccess)publishAccess(null);
   el('accountProfileForm').reset();
@@ -81,6 +81,8 @@ function clearPrivateUi({preserveAccess=false}={}) {
   el('accountImportIssues').textContent = '';
   if(el('accountDataStatus'))el('accountDataStatus').textContent='';
   if(el('pushStatus'))el('pushStatus').textContent='';
+  if(el('pushPreferencesEditor'))hide('pushPreferencesEditor');
+  if(el('pushEdit'))hide('pushEdit');
   if(el('pushSettings'))hide('pushSettings');
   if(el('pushInvite'))hide('pushInvite');
   if(el('pushRoutineDialog')?.open)el('pushRoutineDialog').close();
@@ -159,11 +161,32 @@ function dataStatus(message){
 function pushMessage(message){
   if(el('pushStatus'))el('pushStatus').textContent=message||'';
 }
+function normalizePushPreferences(settings){
+  return {
+    routine:settings?.routine_reminders===true||settings?.routine===true,
+    refill:settings?.refill_alerts===true||settings?.refill===true,
+    operational:settings?.operational_notices!==false&&settings?.operational!==false,
+    security:settings?.account_security_notices!==false&&settings?.security!==false
+  };
+}
+function applyPushPreferences(preferences){
+  if(!preferences)return;
+  el('pushRoutine').checked=preferences.routine===true;
+  el('pushRefill').checked=preferences.refill===true;
+  el('pushOperational').checked=preferences.operational===true;
+  el('pushSecurity').checked=preferences.security===true;
+}
+function setPushPreferencesEditing(editing){
+  pushPreferencesEditing=editing===true&&pushInstallationActive===true;
+  hide('pushPreferencesEditor',!pushPreferencesEditing);
+  hide('pushEdit',pushInstallationActive!==true||pushPreferencesEditing);
+}
 function renderPushInstallationState(active,{checking=false,unavailable=false}={}){
   pushInstallationActive=active===true?true:active===false?false:null;
   const permission=notificationPermission();
   hide('pushEnable',checking||pushInstallationActive===true||permission==='unsupported');
   hide('pushDisable',checking||pushInstallationActive!==true);
+  setPushPreferencesEditing(false);
   if(checking){pushMessage('Conferindo o vínculo deste aparelho…');return}
   if(pushInstallationActive===true){pushMessage('Notificações ativadas neste aparelho.');return}
   if(unavailable){pushMessage('Não foi possível confirmar o vínculo deste aparelho agora. Tente novamente quando estiver online.');return}
@@ -178,10 +201,9 @@ function renderPushSettings(settings,complete){
   if(!el('pushSettings'))return;
   hide('pushSettings',!state||!complete);
   if(!state||!complete)return;
-  el('pushRoutine').checked=settings?.routine_reminders===true;
-  el('pushRefill').checked=settings?.refill_alerts===true;
-  el('pushOperational').checked=settings?.operational_notices!==false;
-  el('pushSecurity').checked=settings?.account_security_notices!==false;
+  savedPushPreferences=normalizePushPreferences(settings);
+  applyPushPreferences(savedPushPreferences);
+  setPushPreferencesEditing(false);
   renderPushInstallationState(null,{checking:true});
 }
 function currentPushPreferences(){
@@ -204,8 +226,10 @@ async function enableReminderPush(statusTarget='pushInviteStatus'){
     if(target)target.textContent=result.outcome==='denied'?'Permissão negada pelo navegador.':result.outcome==='timeout'?'O Firebase demorou demais. Atualize a página e tente novamente.':'Não foi possível ativar neste navegador.';
     return false;
   }
-  await savePushPreferences(cloud.client,{routine:true,refill:true,operational:true,security:true});
-  ['pushRoutine','pushRefill','pushOperational','pushSecurity'].forEach(id=>{if(el(id))el(id).checked=true});
+  const defaults={routine:true,refill:true,operational:true,security:true};
+  await savePushPreferences(cloud.client,defaults);
+  savedPushPreferences={...defaults};
+  applyPushPreferences(savedPushPreferences);
   renderPushInstallationState(true);
   pushInviteDismissed=true;hide('pushInvite');
   if(el('pushRoutineDialog')?.open)el('pushRoutineDialog').close();
@@ -370,21 +394,41 @@ el('pushEnable').addEventListener('click',()=>run(async()=>{
     pushMessage(result.outcome==='denied'?'Permissão negada pelo navegador.':result.outcome==='timeout'?'O Firebase demorou demais para registrar este aparelho. Atualize a página e tente novamente.':'Não foi possível ativar neste navegador.');
     return
   }
-  ['pushRoutine','pushRefill','pushOperational','pushSecurity'].forEach(id=>el(id).checked=true);
-  await savePushPreferences(cloud.client,{routine:true,refill:true,operational:true,security:true});
+  const defaults={routine:true,refill:true,operational:true,security:true};
+  await savePushPreferences(cloud.client,defaults);
+  savedPushPreferences={...defaults};
+  applyPushPreferences(savedPushPreferences);
   renderPushInstallationState(true);
 }));
 
+el('pushEdit').addEventListener('click',()=>{
+  if(busy||!state||pushInstallationActive!==true)return;
+  applyPushPreferences(savedPushPreferences);
+  setPushPreferencesEditing(true);
+  pushMessage('Escolha quais avisos deseja receber neste aparelho.');
+});
+
+el('pushCancel').addEventListener('click',()=>{
+  if(busy)return;
+  applyPushPreferences(savedPushPreferences);
+  setPushPreferencesEditing(false);
+  pushMessage('Notificações ativadas neste aparelho.');
+});
+
 el('pushSave').addEventListener('click',()=>run(async()=>{
-  if(!state)return;
-  await savePushPreferences(cloud.client,currentPushPreferences());
-  pushMessage('Preferências de notificações salvas.');
+  if(!state||pushInstallationActive!==true)return;
+  const preferences=currentPushPreferences();
+  await savePushPreferences(cloud.client,preferences);
+  savedPushPreferences={...preferences};
+  setPushPreferencesEditing(false);
+  pushMessage('Preferências atualizadas.');
 }));
 
 el('pushDisable').addEventListener('click',()=>run(async()=>{
   if(!state)return;
   await disablePush(cloud.client);
   renderPushInstallationState(false);
+  pushMessage('Notificações desativadas neste aparelho.');
 }));
 
 el('accountExportData').addEventListener('click',()=>run(async()=>{

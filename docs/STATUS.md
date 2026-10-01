@@ -763,9 +763,13 @@ o PepDay fechado” e a experiência PRO sem anúncios. Durante o QA físico And
 foi corrigido para reidratar o vínculo do aparelho após reload por meio da RPC autenticada
 `get_push_installation_status`, mantendo Ativar/Desativar mutuamente exclusivos e marcando
 as quatro categorias no momento da ativação. Migration TEST:
-`20260930235204_push_installation_status.sql`; cache V3: `pepday-v3-profile-sync-16`.
-FCM/UX push ficou em `18/18 PASS` e a regressão completa em `349/349 PASS`; falta apenas
-o reteste humano deste patch no Android.
+`20260930235204_push_installation_status.sql`. O reteste humano no Android confirmou que
+o vínculo permanece ativo após reload. Em seguida, a tela foi simplificada para esconder
+as quatro opções no estado normal e mostrar **“Alterar preferências”**; somente no modo de
+edição aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. A ativação inicial
+continua em um único passo e liga as quatro categorias por padrão. Cache V3:
+`pepday-v3-profile-sync-17`. FCM/UX push ficou em `19/19 PASS` e a regressão completa em
+`350/350 PASS`; falta apenas o reteste humano dessa apresentação no Android.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com
