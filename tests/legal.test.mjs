@@ -12,14 +12,14 @@ test('documentos jurídicos usam homologação atual e versões vigentes',()=>{
   assert.deepEqual(config.allowedRedirects,[authBase]);
   assert.equal(config.termsUrl,`${legalBase}termos.html`);
   assert.equal(config.privacyUrl,`${legalBase}privacidade.html`);
-  assert.equal(config.termsVersion,'terms-2026-09-30');
-  assert.equal(config.privacyVersion,'privacy-2026-09-30');
+  assert.equal(config.termsVersion,'terms-2026-09-30-2');
+  assert.equal(config.privacyVersion,'privacy-2026-09-30-2');
   assert.equal(config.sensitiveDataConsentVersion,'health-data-2026-09-30');
 });
 
 test('Termos preservam escopo não médico, responsabilidade e direitos de dados',async()=>{
   const html=await read('termos.html');
-  assert.match(html,/VERSÃO TERMS-2026-09-30/i);
+  assert.match(html,/VERSÃO TERMS-2026-09-30-2/i);
   assert.match(html,/não prescreve, indica ou recomenda substâncias, doses, tratamentos ou protocolos/i);
   assert.match(html,/não substitui avaliação ou orientação de profissional habilitado/i);
   assert.match(html,/Nada nestes Termos exclui garantias, responsabilidades ou direitos/i);
@@ -29,7 +29,12 @@ test('Termos preservam escopo não médico, responsabilidade e direitos de dados
   assert.match(html,/renovação automática/i);
   assert.match(html,/cancelar futuras renovações pelo Perfil/i);
   assert.match(html,/direito de arrependimento/i);
-  assert.match(html,/identificação jurídica completa do fornecedor\/controlador/i);
+  assert.match(html,/Wagner Pontieri Junior/i);
+  assert.match(html,/WP Imports/i);
+  assert.match(html,/21\.756\.593\/0001-90/);
+  assert.match(html,/Rua Doutor Pompilio Mercadante, 398, Sala 1408/i);
+  assert.match(html,/wagnerpontieri@gmail\.com/i);
+  assert.match(html,/adequação fiscal\/contábil/i);
   assert.match(html,/privacidade\.html/);
 });
 
@@ -44,13 +49,14 @@ test('Política informa dados sensíveis, fornecedores, direitos, exportação e
   for(const text of [
     'dados pessoais sensíveis','Supabase','Google','Mercado Pago','Brevo',
     'Firebase Cloud Messaging','direitos do titular','exportação em JSON',
-    'exclusão da conta','wpontieri@gmail.com'
-  ]) assert.match(html,new RegExp(text,'i'));
+    'exclusão da conta','wagnerpontieri@gmail.com','Wagner Pontieri Junior','WP Imports','21.756.593/0001-90'
+  ]) assert.match(html,new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));
   assert.match(html,/não vende dados pessoais/i);
   assert.match(html,/consentimento específico e destacado/i);
   assert.match(html,/não são tratados com base genérica em interesse legítimo ou simples execução contratual/i);
   assert.match(html,/Transferências internacionais/i);
-  assert.match(html,/identificação jurídica completa do controlador/i);
+  assert.match(html,/Rua Doutor Pompilio Mercadante, 398, Sala 1408/i);
+  assert.match(html,/adequação fiscal\/contábil/i);
   assert.match(html,/termos\.html/);
 });
 

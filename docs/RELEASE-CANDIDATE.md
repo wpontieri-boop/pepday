@@ -53,10 +53,10 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-18; vínculo de push reidratado e hardening jurídico forçado por nova versão |
+| cache/update | PASS | cache profile-sync-19; vínculo de push reidratado e atualização jurídica empresarial forçada por nova versão |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
-| Termos/Privacidade | PASS TÉCNICO | versões 2026-09-30, consentimento sensível separado/versionado, bases legais refinadas, CDC/assinatura/transferências/incidentes cobertos; falta identificação jurídica real do fornecedor/controlador |
+| Termos/Privacidade | PASS TÉCNICO | versões `terms-2026-09-30-2` / `privacy-2026-09-30-2`; consentimento sensível separado/versionado; bases legais, CDC/assinatura, transferências e incidentes cobertos; fornecedor/controlador identificado como Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90 |
 
 ## Testes atuais
 
@@ -111,7 +111,7 @@ A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/s
 
 O hardening jurídico funcional foi concluído em TEST: consentimento específico e destacado para dados sensíveis separado da ciência da Política, registro de versão/data, bases legais sensíveis refinadas, transparência sobre assinaturas recorrentes e direito de arrependimento, transferência internacional, finalidade não médica e procedimento interno de incidentes. A implementação foi revisada tecnicamente e coberta pela regressão.
 
-**Bloqueio remanescente para produção:** inserir a identificação jurídica real do fornecedor/controlador (nome ou razão social, CPF/CNPJ quando aplicável, endereço físico e eletrônico). Esses dados não estão no repositório e não foram inventados. Parecer externo de advogado permanece recomendável, mas não foi obtido nesta etapa.
+A identificação jurídica do fornecedor/controlador foi preenchida com os dados empresariais aprovados de Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90, endereço empresarial e e-mail de contato. O bloqueio jurídico de identificação está encerrado. A adequação de CNAE/atividade econômica para software/serviço digital será confirmada com a contadora antes da cobrança em produção e permanece como pendência fiscal/contábil. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa.
 
 ## Critério para RC final
 
@@ -121,12 +121,13 @@ A promoção para produção exige:
 3. homologação real de push — PASS em TEST;
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
-6. hardening jurídico funcional — PASS TÉCNICO; identificação jurídica real do fornecedor/controlador ainda PENDENTE;
+6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
 7. regressão completa verde — PASS 362/362;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
-9. conferência humana do novo reaceite jurídico/gestão de assinatura — PENDENTE após deploy da homologação;
-10. release candidate final — aguarda itens 6 e 9;
-11. aprovação expressa do proprietário — somente após RC final.
+9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
+10. conferência humana do novo reaceite jurídico/gestão de assinatura — PENDENTE após deploy da homologação;
+11. release candidate final — aguarda itens 9 e 10;
+12. aprovação expressa do proprietário — somente após RC final.
 
 ## Produção
 

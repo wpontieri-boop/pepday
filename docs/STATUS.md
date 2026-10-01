@@ -787,7 +787,7 @@ Na revisão final do repositório não foram encontrados `.env`, PEM, arquivos d
 
 ### Hardening jurídico e cancelamento normal de assinatura — checkpoint de 30/09/2026
 
-Termos e Política foram revisados para `terms-2026-09-30` e `privacy-2026-09-30`. O cadastro passa a separar o aceite dos Termos, a ciência da Política e um consentimento específico/destacado para dados de rotinas e frascos que possam revelar informações de saúde. O consentimento sensível recebe data e versão próprias (`health-data-2026-09-30`) e não houve backfill presumido para contas existentes.
+Termos e Política foram revisados para `terms-2026-09-30-2` e `privacy-2026-09-30-2`. O cadastro passa a separar o aceite dos Termos, a ciência da Política e um consentimento específico/destacado para dados de rotinas e frascos que possam revelar informações de saúde. O consentimento sensível recebe data e versão próprias (`health-data-2026-09-30`) e não houve backfill presumido para contas existentes.
 
 A migration `20261001020400_legal_consent_fields.sql` foi aplicada somente no `pepday-v3-test`. O onboarding antigo foi substituído pela assinatura que exige consentimento específico; `anon` não possui EXECUTE e `authenticated` possui. O trial e o checkout também exigem o novo consentimento. As contas TEST existentes permanecem preservadas e devem renovar o aceite antes de continuar com recursos vinculados à conta.
 
@@ -795,7 +795,7 @@ A política jurídica foi endurecida com bases legais específicas para dados se
 
 O Perfil ganhou gestão normal da assinatura PRO. A Edge Function `mercado-pago-cancel-subscription` está ACTIVE v1 e cancela o preapproval no Mercado Pago somente após autenticar o usuário e confirmar o recurso canônico; `mercado-pago-checkout` foi atualizado para v27. Smoke não destrutivo do novo cancelamento: `OPTIONS 200` com CORS e confirmação inválida `400 CANCEL_CONFIRMATION_REQUIRED`. O clique real não foi disparado para preservar a assinatura TEST ativa.
 
-Regressão completa após o delta: **362/362 PASS**. Advisors Supabase foram executados após o DDL e não introduziram novo bloqueio crítico. O bloqueio jurídico concreto para produção é preencher a identificação jurídica real do fornecedor/controlador (nome ou razão social, CPF/CNPJ quando aplicável, endereço físico e eletrônico); esses dados não foram inventados. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa. Produção/V2.9 seguem intocados.
+Regressão completa após o delta: **362/362 PASS**. Advisors Supabase foram executados após o DDL e não introduziram novo bloqueio crítico. A identificação jurídica do fornecedor/controlador foi preenchida com os dados empresariais aprovados de Wagner Pontieri Junior / WP Imports, CNPJ `21.756.593/0001-90`, endereço empresarial em Jacareí/SP e e-mail `wagnerpontieri@gmail.com`; o bloqueio jurídico de identificação foi encerrado. A adequação de CNAE/atividade econômica para software/serviço digital será confirmada com a contadora antes da cobrança em produção e permanece como pendência fiscal/contábil. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa. Produção/V2.9 seguem intocados.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com
