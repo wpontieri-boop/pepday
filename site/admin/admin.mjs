@@ -51,6 +51,12 @@ async function currentUser(){
   return data?.user||null;
 }
 
+function renderPwaMetrics(data){
+  setText('pwaDetectedInstalls',fmt(data?.detected_installs));
+  setText('pwaActiveDevices',fmt(data?.active_installed_devices));
+  setText('pwaStandaloneLaunches',fmt(data?.standalone_launches));
+}
+
 function renderMetrics(data){
   setText('newAccounts',fmt(data.new_accounts));
   setText('cardAccounts',fmt(data.card_accounts));
@@ -147,11 +153,16 @@ async function loadMetrics(){
   try{
     const user=await currentUser();
     if(!user){hide('dashboard');hide('authCard',false);authStatus('Entre para acessar o painel.');return}
-    const {data,error}=await client.rpc('get_admin_acquisition_metrics',{p_days:days});
-    if(error)throw error;
+    const [acquisition,pwa]=await Promise.all([
+      client.rpc('get_admin_acquisition_metrics',{p_days:days}),
+      client.rpc('get_admin_pwa_metrics',{p_days:days})
+    ]);
+    if(acquisition.error)throw acquisition.error;
+    if(pwa.error)throw pwa.error;
     hide('authCard');
     hide('dashboard',false);
-    renderMetrics(data);
+    renderMetrics(acquisition.data);
+    renderPwaMetrics(pwa.data);
     await loadPromoCodes();
   }catch(error){
     if(error?.code==='42501'){

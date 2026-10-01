@@ -537,9 +537,6 @@ $('#closeHistory').onclick=()=>$('#historyCard').classList.add('hidden');
 
 $('#eraseData').onclick=async()=>{if(localDataState!=='ready')return false;if(confirm('Apagar todas as rotinas salvas neste aparelho?')){let repository=await requireLocalRepository();if(!repository)return false;if(!(await localOperation(()=>repository.clearUserData())).ok)return false;routines=[];vials=[];renderToday();renderRoutines();renderVials();alert('Dados locais apagados.')}};
 
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});
-$('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden')}};
 if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 renderLocalData();
 

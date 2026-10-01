@@ -1,6 +1,6 @@
 # PepDay V3.0 — Matriz de Release Candidate
 
-Atualização: 30/09/2026.
+Atualização: 01/10/2026.
 
 Estados:
 - **PASS** — validado por teste automatizado, SQL real, smoke ou teste humano já aprovado.
@@ -16,7 +16,8 @@ A V2.9 permanece em produção.
 | Item | Estado | Evidência / observação |
 |---|---|---|
 | HTML/CSS/JS | PASS | syntax checks, smoke HTTP e suíte completa |
-| PWA | PASS | manifest/SW/assets + QA físico Android aprovados |
+| PWA | PASS | manifest/SW/assets + QA físico Android já aprovados |
+| novo fluxo de instalação PWA | PASS TÉCNICO / MOBILE PENDENTE | Android com prompt nativo quando disponível; iOS/iPadOS com guia visual; telemetria mínima agregada no TEST. Falta somente validação física do que mudou |
 | manifest | PASS | suíte release candidate static |
 | service worker | PASS | cache isolado V3 e Auth fora do cache |
 | mobile | PASS | viewport/media queries + QA físico Android aprovados |
@@ -54,14 +55,15 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-19; vínculo de push reidratado e atualização jurídica empresarial forçada por nova versão |
+| cache/update | PASS | cache profile-sync-20; módulo de instalação incluído e vínculo de push aprovado preservado |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
 | Termos/Privacidade | PASS TÉCNICO | versões `terms-2026-09-30-2` / `privacy-2026-09-30-2`; consentimento sensível separado/versionado; bases legais, CDC/assinatura, transferências e incidentes cobertos; fornecedor/controlador identificado como Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90 |
 
 ## Testes atuais
 
-- Regressão completa: **365/365 PASS**
+- Regressão completa: **371/371 PASS**
+- PWA Install: **6/6 PASS**
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
 - Bloco D jurídico/direitos/local: **37/37 PASS**
@@ -104,6 +106,8 @@ Validado em aparelho real:
 15. push físico recebido com o PepDay fechado;
 16. exclusão destrutiva de conta descartável com confirmação no backend.
 
+O novo fluxo de instalação adicionado em 01/10/2026 está tecnicamente validado, mas ainda não recebe PASS humano: Android ganhou botão `Instalar PepDay` ligado ao prompt nativo quando o navegador o disponibiliza; iPhone/iPad ganhou orientação visual `Compartilhar → Adicionar à Tela de Início`; o botão é ocultado em modo standalone. A migration TEST `20261001175011_pwa_install_telemetry.sql` registra somente identificador aleatório, evento e plataforma ampla. O painel mostra métricas agregadas. A RPC teve smoke HTTP 200 e a fixture foi removida. As métricas são direcionais e não são fonte de autorização ou faturamento.
+
 ## Segurança final
 
 A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/service-account ou bloco real de chave privada versionado. A Firebase Web API key do projeto TEST foi restringida no Google Cloud ao domínio de homologação e às APIs Firebase/FCM necessárias; um push real no Android com o PWA fechado foi validado depois da mudança. O alerta #1 do GitHub Secret Scanning (`google_api_key`) foi encerrado como `wont_fix`, com justificativa de chave pública intencional e restrita. **Segurança técnica: PASS.**
@@ -123,12 +127,12 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 365/365;
+7. regressão completa verde — PASS 371/371;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
-12. UX/telemetria de instalação PWA Android + iOS e validação física **somente do novo fluxo de instalação** — PENDENTE;
+12. UX/telemetria de instalação PWA Android + iOS — PASS TÉCNICO; validação física **somente do novo fluxo de instalação** — PENDENTE;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — PENDENTE antes do cutover;
 15. release candidate final — aguarda itens 9, 12 e 14;

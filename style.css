@@ -384,3 +384,22 @@ body.tutorial-open{overflow:hidden}
   .tutorial-card h3{font-size:19px}
   .tutorial-card p{font-size:13.5px}
 }
+
+/* ===== PepDay V3 — instalação PWA ===== */
+#installBtn{white-space:nowrap;padding:10px 12px;font-size:12px}
+.pwa-install-dialog{
+  width:min(92vw,430px);border:1px solid rgba(53,190,235,.28);border-radius:22px;
+  padding:24px;background:linear-gradient(160deg,#0d2231,#06131e);color:#f4fbff;
+  box-shadow:0 28px 80px rgba(0,0,0,.62)
+}
+.pwa-install-dialog::backdrop{background:rgba(0,7,12,.76);backdrop-filter:blur(4px)}
+.pwa-install-dialog>small:first-of-type{color:var(--pep-cyan);font-weight:900;letter-spacing:1.1px}
+.pwa-install-dialog h3{margin:8px 34px 8px 0;font-size:24px}
+.pwa-install-dialog>p{margin:0 0 18px;color:#9db9c7;line-height:1.5}
+.pwa-install-close{position:absolute;right:14px;top:12px;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid #24495c;background:#0a1b27;color:#cfe8f4;font-size:22px}
+.pwa-install-steps{display:grid;gap:10px;margin:0 0 18px;padding:0;list-style:none}
+.pwa-install-steps li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(58,144,181,.18);border-radius:14px;background:rgba(4,17,27,.55);line-height:1.4}
+.pwa-install-steps li>span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(35,213,255,.12);color:var(--pep-cyan);font-weight:900}
+.pwa-install-dialog>.primary{margin:2px 0 10px}
+.pwa-install-dialog>small:last-child{display:block;text-align:center;color:#7897a9;line-height:1.4}
+@media(max-width:420px){#installBtn{padding:9px 10px;font-size:11px}.brand small{max-width:150px}.pwa-install-dialog{padding:20px}.pwa-install-dialog h3{font-size:22px}}

@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 30/09/2026.
+Atualização: 01/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -22,11 +22,12 @@ Atualização: 30/09/2026.
 - Quatro smokes operacionais reais foram processados ponta a ponta: todos ficaram em `sent` e todos persistiram `provider_message_id` do Firebase.
 - O quarto smoke foi exibido fisicamente no Mac como banner **PepDay — “Há um aviso operacional no PepDay.”** após habilitar as notificações do Google Chrome no macOS. Push: **PASS final**.
 - No QA físico Android, a reidratação do vínculo do aparelho após reload foi corrigida e retestada com sucesso: a RPC por usuário `get_push_installation_status` mantém o aparelho ativo após reload e Ativar/Desativar não aparecem juntos. Migration TEST: `20260930235204_push_installation_status.sql`.
-- A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. Cache V3 atualizado para `profile-sync-19` para forçar a atualização jurídica empresarial; o comportamento de push aprovado permanece preservado.
+- A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. O cache V3 chegou a `profile-sync-20` no bloco de instalação PWA; o comportamento de push aprovado permanece preservado.
 - O primeiro teste destrutivo de exclusão de conta no Android revelou CORS preflight incorreto: `OPTIONS` recebia 405 e nenhum `POST` de exclusão era executado. `account-delete` foi corrigida para responder CORS/OPTIONS e implantada somente no TEST como versão 20. O reteste destrutivo passou: `OPTIONS 200`, `POST 200`, sessão encerrada e verificação direta confirmou **zero registros** da conta descartável em `auth.users` e nas tabelas vinculadas conferidas (perfil, settings, assinatura, trial, frascos, rotinas, histórico, push e outboxes). Exclusão de conta: **PASS final**.
 - QA físico Android/PWA concluído: Home, Calculadora, Perfil, 30/50/100 UI, mg/mcg, tutorial, instalação/reabertura PWA, offline → online, Termos/Privacidade, exportação JSON, seringa sem corte, preferências de push, push real com app fechado e exclusão destrutiva de conta descartável: **PASS**.
 - Revisão final de arquivos: nenhum `.env`, PEM, service-account/credentials JSON ou bloco real de chave privada está versionado. A Firebase Web API key do projeto TEST foi restrita no Google Cloud ao domínio de homologação e às APIs Firebase/FCM necessárias; um push real no Android com o PWA fechado continuou funcionando após a mudança. O alerta #1 do GitHub Secret Scanning (`google_api_key`) foi resolvido como `wont_fix` com justificativa de chave pública intencional e restrita. Segurança técnica da RC: **PASS**.
 - Hardening jurídico implementado em TEST: Termos `terms-2026-09-30-2`, Política `privacy-2026-09-30-2`, consentimento específico e versionado para dados sensíveis (`health-data-2026-09-30`), bases legais refinadas, regras de PRO/renovação/arrependimento, gestão normal de cancelamento da assinatura e procedimento interno de incidentes LGPD. Migration TEST: `20261001020400_legal_consent_fields.sql`; `mercado-pago-checkout` v27 e `mercado-pago-cancel-subscription` v1 estão ACTIVE. Smoke não destrutivo do cancelamento: OPTIONS 200 e confirmação inválida 400.
+- **PWA Install técnico concluído em TEST/código:** Android usa `beforeinstallprompt` e o prompt nativo quando disponível; iPhone/iPad mostra guia visual `Compartilhar → Adicionar à Tela de Início`; o botão some no modo standalone. Telemetria mínima e anônima registra somente identificador aleatório da instalação, evento (`installed`/`standalone_launch`) e plataforma ampla, sem conta, rotina, frasco ou conteúdo de saúde. Migration TEST: `20261001175011_pwa_install_telemetry.sql`. O painel admin exibe instalações detectadas, dispositivos instalados ativos e aberturas instaladas. Smoke real da RPC pública retornou HTTP 200 e a fixture foi removida. A métrica é **direcional**, não é fonte de autorização/faturamento e pode sofrer ruído de clientes anônimos. O advisor sinaliza a RPC `SECURITY DEFINER` disponível para `anon`; isso é intencional para medir instalação antes do login, com entrada estritamente limitada e tabela sem acesso direto.
 - Identificação jurídica do fornecedor/controlador preenchida com os dados empresariais aprovados do **Wagner Pontieri Junior / WP Imports**, CNPJ `21.756.593/0001-90`, endereço empresarial em Jacareí/SP e e-mail `wagnerpontieri@gmail.com`. O bloqueio de identificação jurídica foi encerrado. A adequação de CNAE/atividade econômica para software/serviço digital será confirmada com a contadora antes da cobrança em produção; isso permanece como pendência fiscal/contábil. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa.
 - Produção continua intocada.
 
@@ -49,7 +50,8 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Testes atuais
 
-- Regressão completa após refinamento final da landing: **365/365 PASS**.
+- Regressão completa após o bloco técnico de instalação PWA: **371/371 PASS**.
+- Testes direcionados PWA Install: **6/6 PASS**.
 - FCM/UX push: **19/19 PASS**.
 - Bloco D / direitos de dados: **12/12 PASS**, incluindo CORS do `account-delete`.
 - Sintaxe de `fcm-push-worker` e `fcm-push-cron-dispatcher`: PASS.
@@ -61,13 +63,13 @@ Push, exclusão de conta, QA físico mobile/PWA, assinatura/pagamentos, seguran�
 
 **Regra de encerramento da RC:** itens já validados como PASS não serão repetidos. Só haverá novo teste manual de uma área já aprovada se uma alteração futura tocar diretamente nela ou se a regressão apontar falha relacionada. Testes automatizados de regressão continuam sendo executados normalmente porque não exigem repetir o QA manual do proprietário.
 
-### Próximo bloco — PWA Install & Release Finish
-1. implementar UX de instalação profissional sem alterar o produto aprovado: Android usa o prompt instalável do navegador quando disponível; iPhone/iPad detecta iOS fora do modo standalone e mostra instrução curta e visual para `Compartilhar → Adicionar à Tela de Início`, desaparecendo quando o PepDay já estiver instalado;
-2. registrar telemetria mínima de instalação/abertura instalada para permitir acompanhar adoção no painel, sem conteúdo sensível;
-3. validar fisicamente **somente o novo fluxo de instalação**: no Android, o novo botão/prompt; no iPhone/iPad, a orientação visual e o estado já instalado. Não repetir login, assinatura, exclusão, push, calculadora, sincronização ou demais fluxos já aprovados;
-4. confirmar com a contadora o CNAE/atividade econômica adequado antes de cobrança em produção;
-5. definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
-6. rodar regressão automatizada final, revisão de segredos e checklist RC, sem repetir os testes humanos já concluídos; somente então solicitar aprovação expressa para promoção à produção.
+### Bloco atual — PWA Install & Release Finish
+1. **PASS TÉCNICO:** UX profissional implementada: Android usa o prompt instalável do navegador quando disponível; iPhone/iPad detecta iOS fora do modo standalone e mostra instrução visual para `Compartilhar → Adicionar à Tela de Início`; o botão desaparece quando o PepDay está em modo instalado;
+2. **PASS TÉCNICO:** telemetria mínima de instalação/abertura instalada e métricas agregadas no painel implementadas no TEST, sem conteúdo sensível;
+3. **PENDENTE HUMANO:** validar fisicamente **somente o novo fluxo de instalação**: no Android, o novo botão/prompt; no iPhone/iPad, a orientação visual e o estado já instalado. Não repetir login, assinatura, exclusão, push, calculadora, sincronização ou demais fluxos já aprovados;
+4. confirmação contábil permanece em paralelo e não será tratada neste bloco técnico;
+5. **PENDENTE:** definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
+6. regressão automatizada do delta está verde em **371/371 PASS**; após a validação física nova e a definição do endereço final, executar revisão final de segredos/checklist RC e só então solicitar aprovação expressa para promoção à produção.
 
 ### Prioridade comercial imediata — cartão físico com QR
 Antes de Instagram/automação, produzir o cartão físico PepDay para distribuição em lojas, inclusive no Paraguai. Padrão aprovado: frente e verso, visual dark premium azul/ciano, formato 9 × 5 cm com 3 mm de sangria, QR grande e mensagem de benefício. A oferta do cartão será **30 dias de PepDay PRO grátis**, sem cartão e sem cobrança automática; esse benefício substitui o trial padrão de 7 dias para quem entrar pela campanha do QR, sem acumular os dois períodos. A frente destaca a oferta; o verso explica rapidamente o que é o PepDay e lista calculadora mg/mcg/mL/UI, seringa U-100, rotinas/lembretes, frascos e histórico, com aviso de finalidade não médica. A arte pode ser fechada antes, mas o QR final só será gerado para uma URL permanente/redirect definitivo, nunca para homologação. O canal deve ser rastreável no painel.

@@ -18,7 +18,7 @@
       <img src="icon.svg" alt="PepDay"/>
       <div><b>PEP<span>DAY</span></b><small>Sua rotina. Seus números. Seu controle.</small></div>
     </div>
-    <button id="installBtn" class="ghost hidden">Instalar</button>
+    <button id="installBtn" class="ghost hidden" type="button">Instalar PepDay</button>
   </header>
 
   <main>
@@ -407,6 +407,20 @@
     <small>Você pode alterar suas preferências depois no Perfil.</small>
   </dialog>
 
+  <dialog id="pwaInstallDialog" class="pwa-install-dialog" aria-labelledby="pwaInstallTitle">
+    <button class="pwa-install-close" id="pwaInstallClose" type="button" aria-label="Fechar">×</button>
+    <small>PEPDAY NO CELULAR</small>
+    <h3 id="pwaInstallTitle">Instalar PepDay no iPhone</h3>
+    <p>Adicione o PepDay à Tela de Início para abrir como aplicativo, sem precisar procurar o site novamente.</p>
+    <ol class="pwa-install-steps">
+      <li><span>1</span><div>Toque em <strong>Compartilhar</strong> no navegador.</div></li>
+      <li><span>2</span><div>Escolha <strong>Adicionar à Tela de Início</strong>.</div></li>
+      <li><span>3</span><div>Confirme em <strong>Adicionar</strong>. O ícone do PepDay aparecerá na sua tela.</div></li>
+    </ol>
+    <button class="primary" id="pwaInstallDone" type="button">Entendi</button>
+    <small>Depois de instalado, este aviso não aparece novamente.</small>
+  </dialog>
+
   <dialog id="proGateDialog" class="pro-gate" aria-labelledby="proGateTitle" aria-describedby="proGateMessage">
     <h3 id="proGateTitle">Este é um recurso PepDay PRO</h3>
     <p id="proGateMessage"></p>
@@ -420,6 +434,7 @@
 </div>
 <script src="app.js"></script>
 <script defer src="vendor/supabase-2.116.0.js"></script>
+<script type="module" src="src/pwa-install.mjs"></script>
 <script type="module" src="src/account-ui.mjs"></script>
 <script type="module" src="src/pro-gate.mjs"></script>
 </body>

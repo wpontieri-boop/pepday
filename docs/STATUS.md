@@ -810,3 +810,28 @@ O proprietário determinou que os fluxos já aprovados como PASS não serão rep
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com
 `origin/v3.0-bloco-b` antes de retomar desenvolvimento.
+
+### PWA Install & Release Finish — checkpoint técnico de 01/10/2026
+
+O novo fluxo profissional de instalação foi implementado sem reabrir os fluxos já aprovados.
+No Android/Chromium, `beforeinstallprompt` é capturado e o botão **Instalar PepDay** chama
+o prompt nativo quando disponível. No iPhone/iPad, o botão abre uma orientação curta para
+**Compartilhar → Adicionar à Tela de Início**; o estado standalone oculta o CTA.
+
+Foi criada a telemetria mínima `pwa_install_events`, aplicada somente no Supabase TEST pela
+migration `20261001175011_pwa_install_telemetry.sql`. Ela guarda identificador aleatório da
+instalação, evento (`installed` ou `standalone_launch`), plataforma ampla e timestamp; não
+guarda usuário, e-mail, rotina, frasco, dose ou conteúdo de saúde. A tabela tem RLS e acesso
+direto revogado. A RPC de gravação é intencionalmente acessível antes do login e possui
+allowlist estrita. O advisor sinaliza essa RPC `SECURITY DEFINER` para `anon`; a decisão é
+intencional para telemetria anônima e os números são tratados como indicadores direcionais,
+não como fonte de autorização, faturamento ou segurança.
+
+O painel administrativo passou a mostrar instalações detectadas, dispositivos instalados
+ativos e aberturas standalone. Smoke real da RPC retornou HTTP 200 e a fixture de smoke foi
+removida. Cache V3: `pepday-v3-profile-sync-20`.
+
+Testes direcionados: **6/6 PASS**. Regressão completa: **371/371 PASS**. A única validação
+humana nova pendente é o fluxo de instalação: botão/prompt no Android e guia/estado instalado
+no iPhone/iPad. Nenhum QA manual antigo deve ser repetido. Produção, `main` e V2.9 seguem
+intocados.
