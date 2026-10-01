@@ -57,16 +57,17 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-Push, exclusão de conta, QA físico mobile/PWA, segurança técnica, hardening jurídico e landing final em TEST estão fechados. O proprietário refez o reaceite dos documentos atualizados no celular e aprovou também a landing final como **PASS humano**.
+Push, exclusão de conta, QA físico mobile/PWA, assinatura/pagamentos, segurança técnica, hardening jurídico e landing final em TEST estão fechados. O proprietário refez o reaceite dos documentos atualizados no celular e aprovou também a landing final como **PASS humano**.
+
+**Regra de encerramento da RC:** itens já validados como PASS não serão repetidos. Só haverá novo teste manual de uma área já aprovada se uma alteração futura tocar diretamente nela ou se a regressão apontar falha relacionada. Testes automatizados de regressão continuam sendo executados normalmente porque não exigem repetir o QA manual do proprietário.
 
 ### Próximo bloco — PWA Install & Release Finish
 1. implementar UX de instalação profissional sem alterar o produto aprovado: Android usa o prompt instalável do navegador quando disponível; iPhone/iPad detecta iOS fora do modo standalone e mostra instrução curta e visual para `Compartilhar → Adicionar à Tela de Início`, desaparecendo quando o PepDay já estiver instalado;
 2. registrar telemetria mínima de instalação/abertura instalada para permitir acompanhar adoção no painel, sem conteúdo sensível;
-3. testar fisicamente Android e iPhone: instalar, fechar, abrir pelo ícone, login, push e atualização do PWA;
-4. executar smoke real final do cancelamento de assinatura com conta/assinatura TEST descartável, sem cancelar a assinatura de teste principal;
-5. confirmar com a contadora o CNAE/atividade econômica adequado antes de cobrança em produção;
-6. definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
-7. rodar regressão final, revisão de segredos e checklist RC; somente então solicitar aprovação expressa para promoção à produção.
+3. validar fisicamente **somente o novo fluxo de instalação**: no Android, o novo botão/prompt; no iPhone/iPad, a orientação visual e o estado já instalado. Não repetir login, assinatura, exclusão, push, calculadora, sincronização ou demais fluxos já aprovados;
+4. confirmar com a contadora o CNAE/atividade econômica adequado antes de cobrança em produção;
+5. definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
+6. rodar regressão automatizada final, revisão de segredos e checklist RC, sem repetir os testes humanos já concluídos; somente então solicitar aprovação expressa para promoção à produção.
 
 Versão nativa iOS/Android fica como projeto paralelo posterior ao lançamento PWA, quando houver dados reais de instalação/uso. A base web atual será reaproveitada, preferencialmente com trabalho pesado em Codex numa branch separada.
 

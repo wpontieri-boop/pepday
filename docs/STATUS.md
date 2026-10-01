@@ -801,7 +801,11 @@ Regressão completa após o delta jurídico: **362/362 PASS**. Advisors Supabase
 
 A landing principal `/site/` recebeu o refinamento comercial final sem alterar o app/PWA: FAQ com dúvidas sobre FREE/PRO, trial, cobrança, cancelamento, preservação e controle de dados; economia do anual explicitada como `R$ 99,90/ano`, equivalente a `R$ 8,33/mês` e `R$ 78,90` de economia frente a 12 mensalidades; faixa de transparência sobre trial sem cartão, cancelamento pelo Perfil e preservação de dados; CTA móvel fixo; e remoção da mensagem pública de que depoimentos ainda estavam sendo coletados. O template interno de depoimentos reais autorizados continua oculto e nenhuma prova social fictícia foi adicionada.
 
-Testes direcionados da landing: **11/11 PASS**. Regressão completa do projeto após o delta: **365/365 PASS**. Smoke local: `/site/` 200, CSS 200, FAQ PASS, economia anual PASS e CTA móvel PASS. Falta apenas conferência visual humana final da landing no celular após o deploy da homologação.
+Testes direcionados da landing: **11/11 PASS**. Regressão completa do projeto após o delta: **365/365 PASS**. Smoke local: `/site/` 200, CSS 200, FAQ PASS, economia anual PASS e CTA móvel PASS. A conferência visual humana final da landing no celular também foi aprovada.
+
+### Regra final de QA antes da produção
+
+O proprietário determinou que os fluxos já aprovados como PASS não serão repetidos. Isso inclui QA físico geral do PWA, login, assinatura/pagamentos, cancelamento já validado por sandbox/webhook + testes técnicos, push, exclusão, sincronização, calculadora, jurídico e landing. A partir deste ponto, cada alteração nova recebe teste dirigido apenas ao que mudou, além da regressão automatizada completa. Para o próximo bloco de instalação PWA, o teste humano será restrito ao novo botão/prompt Android e à orientação/estado instalado no iPhone/iPad.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com

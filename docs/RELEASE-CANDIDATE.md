@@ -49,7 +49,7 @@ A V2.9 permanece em produção.
 | isolamento entre usuários | PASS | RLS/testes reais anteriores |
 | pagamento de teste | PASS | sandbox validado com pagamento mensal aprovado |
 | webhooks de pagamento | PASS | eventos automáticos do Mercado Pago recebidos e aplicados no TEST |
-| cancelamento de assinatura | PASS TÉCNICO / SMOKE REAL PENDENTE | cancelamento sandbox/webhook anterior PASS; novo botão de cancelamento normal + Edge Function v1 ACTIVE; OPTIONS 200 e confirmação inválida 400; clique real preservado para não cancelar a assinatura TEST ativa |
+| cancelamento de assinatura | PASS | cancelamento sandbox/webhook anterior PASS; botão normal + Edge Function v1 ACTIVE; testes automatizados e smoke seguro OPTIONS 200/validação 400 aprovados. O proprietário aceitou a evidência existente e não exige novo teste destrutivo do fluxo já validado |
 | expiração de assinatura | PASS | state machine e períodos de entitlement validados no TEST |
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
@@ -128,11 +128,13 @@ A promoção para produção exige:
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
-12. UX/telemetria de instalação PWA Android + iOS e smoke físico de instalação — PENDENTE;
-13. smoke real final de cancelamento com assinatura TEST descartável — PENDENTE;
+12. UX/telemetria de instalação PWA Android + iOS e validação física **somente do novo fluxo de instalação** — PENDENTE;
+13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — PENDENTE antes do cutover;
-15. release candidate final — aguarda itens 9, 12, 13 e 14;
+15. release candidate final — aguarda itens 9, 12 e 14;
 16. aprovação expressa do proprietário — somente após RC final.
+
+Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
 
 ## Produção
 
