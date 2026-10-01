@@ -52,3 +52,25 @@ Ferramenta de cálculo e organização. Não recomenda doses, tratamentos ou pro
 - Não imprimir QR apontando para ambiente de homologação.
 - A origem do QR/cartão é registrada como `card / qr / cartao-v1` e o painel acompanha concessão dos 30 dias, primeiro uso, término e conversão posterior para PRO mensal/anual.
 - Backend TEST ativo pela migration `20261001184711_card_qr_30d_benefit.sql`; o QR físico definitivo só entra na arte depois do cutover/validação do domínio de produção.
+
+## Recuperação pós-benefício — padrão aprovado
+
+O objetivo após o fim dos 30 dias do cartão/QR é recuperar usuários sem acostumá-los a esperar novas extensões grátis. O fluxo comercial padrão será:
+
+1. **Dia 27–29:** aviso leve de que os 30 dias PRO estão terminando, com CTA para conhecer/assinar os planos mensal e anual.
+2. **Dia 30:** o benefício termina normalmente e a conta volta ao FREE, sem perda de dados.
+3. **Dia 32–33:** se ainda não houver assinatura, enviar mensagem de retomada, por exemplo “Quer continuar de onde parou?”, direcionando para PRO.
+4. **Dia 35–37:** se ainda não houver conversão, disponibilizar uma oferta de recuperação com desconto real na assinatura, a ser definida antes da implementação (primeira mensalidade e/ou condição especial no anual).
+5. **Depois da oferta:** registrar no painel se a pessoa foi recuperada e qual plano contratou (mensal ou anual).
+
+### Separação entre cortesia e desconto
+- Os códigos PRO atuais de 30/60/90 dias permanecem reservados para cortesia, parceiro, loja, suporte, influenciador ou ação especial.
+- O fluxo de recuperação comercial usará um **novo tipo de cupom/desconto**, separado dos códigos que concedem dias grátis.
+- Não conceder automaticamente um novo período de 30 dias como estratégia padrão de recuperação.
+- Valor/percentual do desconto será decidido comercialmente antes da implementação e não deve ser inventado no backend.
+
+### Elegibilidade e contato
+- Mensagens promocionais de recuperação só devem ser enviadas quando houver consentimento de marketing válido.
+- A automação futura deve usar o pipeline do Brevo e respeitar preferências/consentimentos já registrados.
+- O painel deve distinguir: **30 dias encerrados → não assinou → elegível para recuperação → oferta enviada → recuperado → mensal/anual**.
+- Métricas de recuperação devem permanecer separadas de receita paga e de acessos promocionais gratuitos.
