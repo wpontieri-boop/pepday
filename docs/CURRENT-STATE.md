@@ -23,7 +23,7 @@ Atualização: 30/09/2026.
 - O quarto smoke foi exibido fisicamente no Mac como banner **PepDay — “Há um aviso operacional no PepDay.”** após habilitar as notificações do Google Chrome no macOS. Push: **PASS final**.
 - No QA físico Android, a reidratação do vínculo do aparelho após reload foi corrigida e retestada com sucesso: a RPC por usuário `get_push_installation_status` mantém o aparelho ativo após reload e Ativar/Desativar não aparecem juntos. Migration TEST: `20260930235204_push_installation_status.sql`.
 - A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. Cache V3: `profile-sync-17`; reteste humano Android aprovado.
-- O primeiro teste destrutivo de exclusão de conta no Android revelou CORS preflight incorreto: `OPTIONS` recebia 405 e nenhum `POST` de exclusão era executado. `account-delete` foi corrigida para responder CORS/OPTIONS, implantada somente no TEST como versão 20 e validada por smoke não destrutivo (`OPTIONS 200`; confirmação inválida `400` com CORS). Falta repetir a exclusão real com a conta descartável.
+- O primeiro teste destrutivo de exclusão de conta no Android revelou CORS preflight incorreto: `OPTIONS` recebia 405 e nenhum `POST` de exclusão era executado. `account-delete` foi corrigida para responder CORS/OPTIONS e implantada somente no TEST como versão 20. O reteste destrutivo passou: `OPTIONS 200`, `POST 200`, sessão encerrada e verificação direta confirmou **zero registros** da conta descartável em `auth.users` e nas tabelas vinculadas conferidas (perfil, settings, assinatura, trial, frascos, rotinas, histórico, push e outboxes). Exclusão de conta: **PASS final**.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -53,10 +53,9 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Próximo passo técnico
 
-O pipeline automático de push em TEST está fechado com validação técnica e humana: **PASS final**. Próximos passos:
-1. repetir no Android a exclusão real da conta descartável após o patch CORS;
-2. confirmar que a sessão encerra e que a conta some do backend;
-3. concluir as demais pendências da matriz de Release Candidate.
+O pipeline automático de push e a exclusão de conta em TEST estão fechados com validação técnica e humana: **PASS final**. Próximos passos:
+1. concluir as demais validações finais físicas de mobile/PWA;
+2. concluir as pendências restantes da matriz de Release Candidate.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
 

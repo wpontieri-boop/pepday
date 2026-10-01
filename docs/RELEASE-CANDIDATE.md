@@ -54,7 +54,7 @@ A V2.9 permanece em produção.
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
 | cache/update | PASS | cache profile-sync-17; vínculo de push reidratado após reload e preferências recolhidas até “Alterar preferências” |
 | exportação de dados | PASS | RPC real com rollback + UI |
-| exclusão de conta | RETEST PENDENTE | primeiro teste Android falhou por CORS preflight 405 sem executar POST; `account-delete` v20 corrige OPTIONS/CORS e passou smoke não destrutivo; repetir teste real com conta descartável |
+| exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
 | Termos/Privacidade | PASS TÉCNICO | versões vigentes; revisão jurídica profissional pendente |
 
 ## Testes atuais
