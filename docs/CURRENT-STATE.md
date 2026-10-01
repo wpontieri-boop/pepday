@@ -69,6 +69,9 @@ Push, exclusão de conta, QA físico mobile/PWA, assinatura/pagamentos, seguran�
 5. definir e validar URL/domínio público definitivo e configurações de produção, mantendo V2.9/main intocados até autorização expressa;
 6. rodar regressão automatizada final, revisão de segredos e checklist RC, sem repetir os testes humanos já concluídos; somente então solicitar aprovação expressa para promoção à produção.
 
+### Prioridade comercial imediata — cartão físico com QR
+Antes de Instagram/automação, produzir o cartão físico PepDay para distribuição em lojas, inclusive no Paraguai. Padrão aprovado: frente e verso, visual dark premium azul/ciano, formato 9 × 5 cm com 3 mm de sangria, QR grande e mensagem de benefício. A oferta do cartão será **30 dias de PepDay PRO grátis**, sem cartão e sem cobrança automática; esse benefício substitui o trial padrão de 7 dias para quem entrar pela campanha do QR, sem acumular os dois períodos. A frente destaca a oferta; o verso explica rapidamente o que é o PepDay e lista calculadora mg/mcg/mL/UI, seringa U-100, rotinas/lembretes, frascos e histórico, com aviso de finalidade não médica. A arte pode ser fechada antes, mas o QR final só será gerado para uma URL permanente/redirect definitivo, nunca para homologação. O canal deve ser rastreável no painel.
+
 Versão nativa iOS/Android fica como projeto paralelo posterior ao lançamento PWA, quando houver dados reais de instalação/uso. A base web atual será reaproveitada, preferencialmente com trabalho pesado em Codex numa branch separada.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.
