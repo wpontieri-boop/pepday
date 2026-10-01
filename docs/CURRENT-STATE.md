@@ -22,7 +22,8 @@ Atualização: 30/09/2026.
 - Quatro smokes operacionais reais foram processados ponta a ponta: todos ficaram em `sent` e todos persistiram `provider_message_id` do Firebase.
 - O quarto smoke foi exibido fisicamente no Mac como banner **PepDay — “Há um aviso operacional no PepDay.”** após habilitar as notificações do Google Chrome no macOS. Push: **PASS final**.
 - No QA físico Android, a reidratação do vínculo do aparelho após reload foi corrigida e retestada com sucesso: a RPC por usuário `get_push_installation_status` mantém o aparelho ativo após reload e Ativar/Desativar não aparecem juntos. Migration TEST: `20260930235204_push_installation_status.sql`.
-- A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. Cache V3: `profile-sync-17`. Falta apenas o reteste humano desta apresentação no Android.
+- A UX do Perfil foi simplificada: ativar continua sendo um único passo com as quatro categorias ligadas por padrão; no estado ativo, as opções ficam recolhidas e aparece **“Alterar preferências”**. Somente ao editar aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. Cache V3: `profile-sync-17`; reteste humano Android aprovado.
+- O primeiro teste destrutivo de exclusão de conta no Android revelou CORS preflight incorreto: `OPTIONS` recebia 405 e nenhum `POST` de exclusão era executado. `account-delete` foi corrigida para responder CORS/OPTIONS, implantada somente no TEST como versão 20 e validada por smoke não destrutivo (`OPTIONS 200`; confirmação inválida `400` com CORS). Falta repetir a exclusão real com a conta descartável.
 - Produção continua intocada.
 
 ## UX de notificações aprovada
@@ -44,16 +45,17 @@ A landing page já incorpora esses benefícios nos recursos e nos planos PRO/Tri
 
 ## Testes atuais
 
-- Regressão completa: **350/350 PASS**.
+- Regressão completa: **351/351 PASS**.
 - FCM/UX push: **19/19 PASS**.
+- Bloco D / direitos de dados: **12/12 PASS**, incluindo CORS do `account-delete`.
 - Sintaxe de `fcm-push-worker` e `fcm-push-cron-dispatcher`: PASS.
 - Advisors Supabase executados após o DDL; nenhum novo bloqueio crítico foi introduzido.
 
 ## Próximo passo técnico
 
 O pipeline automático de push em TEST está fechado com validação técnica e humana: **PASS final**. Próximos passos:
-1. retestar no Android a nova apresentação **Alterar preferências** no Perfil;
-2. seguir com exportação e demais validações finais físicas de mobile/PWA;
+1. repetir no Android a exclusão real da conta descartável após o patch CORS;
+2. confirmar que a sessão encerra e que a conta some do backend;
 3. concluir as demais pendências da matriz de Release Candidate.
 
 Produção, `main` e V2.9 permanecem fora deste fluxo.

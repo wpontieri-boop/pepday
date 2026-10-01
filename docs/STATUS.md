@@ -768,8 +768,16 @@ o vínculo permanece ativo após reload. Em seguida, a tela foi simplificada par
 as quatro opções no estado normal e mostrar **“Alterar preferências”**; somente no modo de
 edição aparecem os checkboxes, **“Salvar alterações”** e **“Cancelar”**. A ativação inicial
 continua em um único passo e liga as quatro categorias por padrão. Cache V3:
-`pepday-v3-profile-sync-17`. FCM/UX push ficou em `19/19 PASS` e a regressão completa em
-`350/350 PASS`; falta apenas o reteste humano dessa apresentação no Android.
+`pepday-v3-profile-sync-17`. O reteste humano dessa apresentação no Android foi aprovado.
+FCM/UX push ficou em `19/19 PASS`.
+
+No teste destrutivo de exclusão da conta descartável, o navegador Android bloqueou a
+chamada antes do `POST`: a Edge Function `account-delete` devolvia 405 ao preflight
+`OPTIONS`. Nenhum dado remoto ou local foi apagado. O CORS foi corrigido na função,
+implantado somente no TEST como versão 20 e validado sem destruir conta: `OPTIONS 200`
+com headers CORS e `POST` com confirmação inválida retornando `400
+DELETE_CONFIRMATION_REQUIRED` também com CORS. O Bloco D ficou em `12/12 PASS` e a
+regressão completa em `351/351 PASS`. Falta repetir a exclusão real com a conta descartável.
 
 O arquivo `docs/CURRENT-STATE.md` passa a ser o checkpoint curto de continuidade entre
 chats e computadores. Sempre ler `AGENTS.md` + `docs/CURRENT-STATE.md` e sincronizar com

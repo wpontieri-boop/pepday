@@ -10,6 +10,12 @@ class DeleteError extends Error{
   constructor(code,status=400){super(code);this.name="DeleteError";this.code=code;this.status=status}
 }
 
+const CORS_HEADERS=Object.freeze({
+  "Access-Control-Allow-Origin":"*",
+  "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods":"POST, OPTIONS",
+});
+
 const env=name=>(Deno.env.get(name)||"").trim();
 
 function jsonEnvKey(name){
@@ -37,7 +43,7 @@ function backendHeaders(key){
 
 function response(status,code,extra={}){
   return Response.json({ok:status>=200&&status<300,code,...extra},{
-    status,headers:{"Cache-Control":"no-store"}
+    status,headers:{...CORS_HEADERS,"Cache-Control":"no-store"}
   });
 }
 
@@ -114,6 +120,7 @@ async function deleteAuthUser(supabaseUrl,key,userId){
 export default{
   async fetch(req){
     try{
+      if(req.method==="OPTIONS")return new Response("ok",{status:200,headers:CORS_HEADERS});
       if(req.method!=="POST")return response(405,"METHOD_NOT_ALLOWED");
       const size=Number(req.headers.get("content-length")||0);
       if(Number.isFinite(size)&&size>2048)return response(413,"REQUEST_TOO_LARGE");

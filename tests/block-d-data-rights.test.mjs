@@ -73,6 +73,16 @@ test('Edge Function autentica usuário, cancela billing e só então apaga auth.
   assert.match(source,/DELETE_CONFIRMATION_REQUIRED/);
 });
 
+test('Edge Function responde preflight CORS antes de exigir POST e inclui CORS nas respostas',async()=>{
+  const source=await read('supabase/functions/account-delete/index.mjs');
+  assert.match(source,/Access-Control-Allow-Origin/);
+  assert.match(source,/authorization, x-client-info, apikey, content-type/i);
+  const options=source.indexOf('req.method==="OPTIONS"');
+  const post=source.indexOf('req.method!=="POST"');
+  assert.ok(options>=0&&post>options);
+  assert.match(source,/headers:\{\.\.\.CORS_HEADERS,"Cache-Control":"no-store"\}/);
+});
+
 test('Edge Function não registra e-mail, token ou payload sensível em logs',async()=>{
   const source=await read('supabase/functions/account-delete/index.mjs');
   const logs=[...source.matchAll(/console\.(?:log|error|warn)\(([^\n]+)\)/g)].map(m=>m[1]).join('\n');
