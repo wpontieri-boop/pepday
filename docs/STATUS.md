@@ -869,3 +869,7 @@ O frontend TEST foi atualizado para usar o hostname customizado em `authRedirect
 No Supabase TEST, `auth.site_url` e `auth.additional_redirect_urls` foram alterados para `https://homologacao.pepday.com.br/` via CLI autenticada e confirmados por novo `config pull`. Email e Google permanecem habilitados; o endpoint OAuth com o novo `redirect_to` respondeu 302 para `accounts.google.com`, confirmando aceitação técnica do hostname pelo Auth.
 
 A troca de hostname revelou um bloqueio específico da Firebase Web API key: uma chamada de validação com `Referer: https://homologacao.pepday.com.br/` retornou **403 `API_KEY_HTTP_REFERRER_BLOCKED`**. Antes de testar push no hostname customizado, adicionar `https://homologacao.pepday.com.br/*` à restrição HTTP referrer da chave Firebase TEST no Google Cloud e executar somente o teste dirigido afetado. Produção, `main` e V2.9 permanecem intocados.
+
+### Homologação customizada — notificações Android PASS
+
+Após autorizar o novo HTTP referrer `https://homologacao.pepday.com.br/*` na Firebase Web API key TEST, o teste humano no Android conseguiu ativar notificações pelo novo domínio. A confirmação backend mostrou uma nova instalação FCM ativa criada em 2026-10-02 01:31:49 UTC, sem `disabled_at`, validando geração/registro do token no hostname customizado. O teste manual desta área passa a **PASS** e não deve ser repetido salvo mudança direta em domínio/Firebase/push.
