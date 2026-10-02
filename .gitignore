@@ -3,6 +3,7 @@
 !.env.example
 config.local.json
 node_modules/
+public/
 test-output/
 *.dump
 supabase/.temp/
