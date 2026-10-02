@@ -49,6 +49,7 @@ Atualização: 02/10/2026.
 - Regressão após o novo build público: **382/382 PASS**. Teste dedicado do empacotamento garante que a landing não volte a ser substituída pelo app na raiz.
 - **Posicionamento comercial da landing refinado em 02/10/2026:** a primeira dobra agora identifica explicitamente o PepDay como **calculadora e organizador de rotina para peptídeos**, com conversões mg/mcg/mL/UI, seringa U-100, rotinas, frascos e histórico; o FREE é apresentado como calculadora de peptídeos e o PRO como camada de organização/acompanhamento. Linguagem não médica preservada, deixando explícito que o PepDay não prescreve nem recomenda doses, substâncias, tratamentos ou protocolos.
 - Deploy público desse refinamento ficou LIVE no Render no commit `e243e5c`; smoke em `https://pepday.com.br/` confirmou HTTP 200 e presença dos novos textos. Regressão completa: **383/383 PASS**.
+- **Refinamento visual da landing em 02/10/2026:** o hero principal foi preservado; os cards de apoio ganharam referências visuais discretas de rotina/celular e frasco; a segunda captura real do app foi substituída por versão limpa, sem o tutorial sobreposto; o bloco de frascos passou a mostrar visualmente saldo de exemplo (6,4 mg de 10 mg), barra de consumo, previsão de término e histórico preservado, com frasco visual consistente com a identidade do cartão. Deploy público LIVE no commit `779cbaa`; o asset `home-real.png` publicado foi verificado por hash contra o arquivo local. Regressão completa: **384/384 PASS**.
 
 ## UX de notificações aprovada
 
