@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 01/10/2026.
+Atualização: 02/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -30,6 +30,20 @@ Atualização: 01/10/2026.
 - **PWA Install técnico concluído em TEST/código:** Android usa `beforeinstallprompt` e o prompt nativo quando disponível; iPhone/iPad mostra guia visual `Compartilhar → Adicionar à Tela de Início`; o botão some no modo standalone. Telemetria mínima e anônima registra somente identificador aleatório da instalação, evento (`installed`/`standalone_launch`) e plataforma ampla, sem conta, rotina, frasco ou conteúdo de saúde. Migration TEST: `20261001175011_pwa_install_telemetry.sql`. O painel admin exibe instalações detectadas, dispositivos instalados ativos e aberturas instaladas. Smoke real da RPC pública retornou HTTP 200 e a fixture foi removida. A métrica é **direcional**, não é fonte de autorização/faturamento e pode sofrer ruído de clientes anônimos. O advisor sinaliza a RPC `SECURITY DEFINER` disponível para `anon`; isso é intencional para medir instalação antes do login, com entrada estritamente limitada e tabela sem acesso direto.
 - Identificação jurídica do fornecedor/controlador preenchida com os dados empresariais aprovados do **Wagner Pontieri Junior / WP Imports**, CNPJ `21.756.593/0001-90`, endereço empresarial em Jacareí/SP e e-mail `wagnerpontieri@gmail.com`. O bloqueio de identificação jurídica foi encerrado. A adequação de CNAE/atividade econômica para software/serviço digital será confirmada com a contadora antes da cobrança em produção; isso permanece como pendência fiscal/contábil. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa.
 - Produção continua intocada.
+
+## Checkpoint 02/10/2026 — domínio público, cartão/QR e segurança RC
+
+- Serviço público separado `pepday-public` criado no Render a partir do commit `8914ef4`, com auto-deploy desligado; homologação permanece isolada em `pepday-v3-homologacao`.
+- DNS definitivo publicado: `pepday.com.br` aponta para o serviço público, `www.pepday.com.br` redireciona para o raiz e `homologacao.pepday.com.br` continua apontando para homologação.
+- Certificados TLS do domínio público emitidos; smokes HTTP/HTTPS: `/` 200, `/cartao/` 200 e `www` 301 para o domínio raiz.
+- QR definitivo fechado para `https://pepday.com.br/cartao/`; arte aprovada do cartão físico preservada (verso com ampola + celular) e pacote final para gráfica preparado em 9 × 5 cm com 3 mm de sangria.
+- Auditoria final de `SECURITY DEFINER`: funções de usuário autenticado validam `auth.uid()`; funções administrativas validam também `role='admin'`; rotinas internas ficam restritas a `service_role/postgres`; `record_pwa_install_event` permanece anon intencional com entrada estritamente limitada e sem conteúdo sensível.
+- Tabelas operacionais com RLS sem policy não possuem grants diretos para `anon/authenticated`; acesso segue por RPCs/roles internas.
+- GitHub Secret Scanning: 0 alertas abertos. Nenhum `.env`, PEM, service account ou credencial real está versionado; `.env.d2f` e `.env.d4` estão cobertos por `.gitignore` (`.env.*`).
+- Alerta `Leaked Password Protection Disabled` permanece apenas por limitação do plano Supabase Free; a proteção contra senhas vazadas exige plano Pro.
+- PC da loja preparado: GitHub autenticado, Render API funcional com segredo protegido localmente pelo Windows, Firebase CLI instalado/autenticado em `wpontieri@gmail.com` e projeto `PepDay V3 Test` visível.
+- Pendência manual restante da RC: QA físico iPhone/iPad somente do fluxo PWA `Compartilhar → Adicionar à Tela de Início` e estado já instalado. Não repetir áreas já aprovadas.
+- Produção V2.9/`main` seguem intocados até autorização expressa.
 
 ## UX de notificações aprovada
 
