@@ -44,6 +44,9 @@ Atualização: 02/10/2026.
 - PC da loja preparado: GitHub autenticado, Render API funcional com segredo protegido localmente pelo Windows, Firebase CLI instalado/autenticado em `wpontieri@gmail.com` e projeto `PepDay V3 Test` visível.
 - Pendência manual restante da RC: QA físico iPhone/iPad somente do fluxo PWA `Compartilhar → Adicionar à Tela de Início` e estado já instalado. Não repetir áreas já aprovadas.
 - Produção V2.9/`main` seguem intocados até autorização expressa.
+- **Estrutura pública corrigida em 02/10/2026:** o serviço `pepday-public` usa agora o build dedicado `npm run build:public` (auto-deploy continua desligado). Rotas LIVE e validadas: `https://pepday.com.br/` = landing principal, `/app/` = snapshot da V3 TEST, `/admin/` = painel privado, `/cartao/` = benefício/QR. Assets críticos de app/admin/jurídico retornam HTTP 200.
+- O painel `/admin/` está protegido pelo mesmo controle administrativo via RPCs e continua conectado ao **Supabase TEST**; portanto as métricas exibidas são de teste até o cutover definitivo do backend. A homologação permanece intacta e separada.
+- Regressão após o novo build público: **382/382 PASS**. Teste dedicado do empacotamento garante que a landing não volte a ser substituída pelo app na raiz.
 
 ## UX de notificações aprovada
 
