@@ -47,6 +47,8 @@ Atualização: 02/10/2026.
 - **Estrutura pública corrigida em 02/10/2026:** o serviço `pepday-public` usa agora o build dedicado `npm run build:public` (auto-deploy continua desligado). Rotas LIVE e validadas: `https://pepday.com.br/` = landing principal, `/app/` = snapshot da V3 TEST, `/admin/` = painel privado, `/cartao/` = benefício/QR. Assets críticos de app/admin/jurídico retornam HTTP 200.
 - O painel `/admin/` está protegido pelo mesmo controle administrativo via RPCs e continua conectado ao **Supabase TEST**; portanto as métricas exibidas são de teste até o cutover definitivo do backend. A homologação permanece intacta e separada.
 - Regressão após o novo build público: **382/382 PASS**. Teste dedicado do empacotamento garante que a landing não volte a ser substituída pelo app na raiz.
+- **Posicionamento comercial da landing refinado em 02/10/2026:** a primeira dobra agora identifica explicitamente o PepDay como **calculadora e organizador de rotina para peptídeos**, com conversões mg/mcg/mL/UI, seringa U-100, rotinas, frascos e histórico; o FREE é apresentado como calculadora de peptídeos e o PRO como camada de organização/acompanhamento. Linguagem não médica preservada, deixando explícito que o PepDay não prescreve nem recomenda doses, substâncias, tratamentos ou protocolos.
+- Deploy público desse refinamento ficou LIVE no Render no commit `e243e5c`; smoke em `https://pepday.com.br/` confirmou HTTP 200 e presença dos novos textos. Regressão completa: **383/383 PASS**.
 
 ## UX de notificações aprovada
 
