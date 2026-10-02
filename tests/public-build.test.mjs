@@ -21,7 +21,7 @@ test('build público separa landing, app, admin e cartão',async()=>{
       readFile(path.join(dir,'cartao','index.html'),'utf8')
     ]);
 
-    assert.match(landing,/Mais clareza para sua rotina/);
+    assert.match(landing,/Seus cálculos e sua rotina de peptídeos/);
     assert.doesNotMatch(landing,/Resumo de hoje/);
     assert.match(landing,/href="\/app\/\?from=site"/);
     assert.match(app,/Resumo de hoje|PEPDAY · V3\.0 — TESTES/);

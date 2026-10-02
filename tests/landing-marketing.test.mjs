@@ -9,7 +9,7 @@ test('landing principal contém a arquitetura comercial aprovada',async()=>{
   for(const text of [
     'Usar calculadora grátis',
     'O problema não é só fazer a conta',
-    'O PepDay transforma números e rotina em uma visão simples',
+    'Uma calculadora de peptídeos que também organiza sua rotina',
     'Como funciona',
     'Por que criamos o PepDay',
     'PEPDAY FREE',
@@ -24,8 +24,18 @@ test('landing separa FREE e PRO com preços aprovados',async()=>{
   assert.match(html,/R\$ 0/);
   assert.match(html,/R\$ 14,90/);
   assert.match(html,/R\$ 99,90/);
-  assert.match(html,/Calculadora mg, mcg, mL e UI/);
+  assert.match(html,/Calculadora de peptídeos em mg, mcg, mL e UI/);
   assert.match(html,/Rotinas e frascos/);
+});
+
+test('landing explica imediatamente o que é o PepDay',async()=>{
+  const html=await read('site/index.html');
+  assert.match(html,/CALCULADORA \+ ORGANIZADOR DE ROTINA PARA PEPTÍDEOS/i);
+  assert.match(html,/Seus cálculos e sua rotina de peptídeos/i);
+  assert.match(html,/O PepDay é uma calculadora e organizador de rotina para peptídeos/i);
+  assert.match(html,/Converta mg, mcg, mL e UI/i);
+  assert.match(html,/seringa U-100/i);
+  assert.match(html,/sem prescrever ou recomendar doses, substâncias, tratamentos ou protocolos/i);
 });
 
 test('landing não publica depoimento fictício e mantém template para relatos reais',async()=>{
