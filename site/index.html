@@ -48,12 +48,18 @@
         <img class="phone-shot" src="./assets/calculator-u100-real.png" alt="Tela real da Calculadora PepDay com resultado matemático e seringa U-100">
       </div>
       <div class="float-card card-routine">
-        <small>ROTINA DE HOJE</small>
+        <div class="float-card-head">
+          <div class="mini-phone-visual" aria-hidden="true"><i></i><b></b></div>
+          <small>ROTINA DE HOJE</small>
+        </div>
         <strong>Organizada e visível</strong>
         <span>◷ Registro rápido</span>
       </div>
       <div class="float-card card-vial">
-        <small>FRASCO</small>
+        <div class="float-card-head">
+          <div class="vial-bottle vial-bottle-mini" aria-hidden="true"><i class="vial-cap"></i><i class="vial-glass"><b></b></i></div>
+          <small>FRASCO</small>
+        </div>
         <strong>Acompanhe o saldo</strong>
         <span>◉ Previsão de término</span>
       </div>
@@ -100,7 +106,7 @@
         </div>
       </article>
       <article class="feature"><span>PRO</span><h3>Rotinas</h3><p>Organize frequências, dias e registros em uma agenda clara.</p><div class="mini-list"><i>Hoje</i><b>Rotina A</b><b>Rotina B</b></div></article>
-      <article class="feature"><span>PRO</span><h3>Frascos</h3><p>Acompanhe saldo, histórico e previsão de término.</p><div class="meter"><i style="width:64%"></i></div><small>Saldo visual do frasco</small></article>
+      <article class="feature vial-feature"><span>PRO</span><h3>Frascos</h3><p>Acompanhe saldo, histórico e previsão de término conforme os usos são registrados.</p><div class="vial-feature-visual"><div class="vial-bottle vial-bottle-feature" aria-hidden="true"><i class="vial-cap"></i><i class="vial-glass"><b></b></i></div><div class="vial-feature-data"><small>EXEMPLO DE SALDO</small><strong>6,4 mg</strong><span>de 10 mg</span><div class="meter"><i style="width:64%"></i></div></div></div></article>
       <article class="feature"><span>PRO</span><h3>Histórico</h3><p>Consulte registros anteriores sem alterar o que já aconteceu.</p><div class="history-dots"><i></i><i></i><i></i><i></i></div></article>
       <article class="feature"><span>PRO</span><h3>Sincronização</h3><p>Dados locais primeiro e conta sincronizada quando possível.</p><div class="sync-pill">✓ SINCRONIZADO</div></article>
       <article class="feature"><span>PRO</span><h3>Lembretes no celular</h3><p>Receba lembretes direto no celular, mesmo com o PepDay fechado, para não depender só da memória.</p><div class="sync-pill">◷ LEMBRETES ATIVOS</div></article>
@@ -123,11 +129,12 @@
     <div class="showcase-copy">
       <div class="eyebrow">FEITO PARA O DIA A DIA</div>
       <h2>Abra no celular e encontre o que precisa sem complicação.</h2>
-      <p>O app mantém o visual dark premium por dentro, enquanto o site apresenta o produto de forma clara e direta.</p>
+      <p>Veja o resumo do dia, organize sua rotina e acompanhe o saldo de cada frasco conforme os registros são feitos.</p>
       <ul>
         <li>Resumo do dia logo na entrada</li>
         <li>Calculadora sempre disponível no FREE</li>
         <li>Rotinas e frascos no PRO</li>
+        <li>Saldo do frasco e previsão de término</li>
         <li>Lembretes no celular, mesmo com o app fechado</li>
         <li>Histórico preservado</li>
         <li>Instalação como PWA no celular</li>
@@ -137,13 +144,21 @@
       <div class="phone tilted-left real-app-phone">
         <img class="phone-shot" src="./assets/home-real.png" alt="Tela real da Home do PepDay em um celular">
       </div>
-      <div class="phone tilted-right">
+      <div class="phone tilted-right vial-phone">
         <div class="screen-dark">
           <small>FRASCOS</small><h3>Meus frascos</h3>
-          <div class="app-card">Frasco A <b>6,4 mg</b></div>
-          <div class="app-card">Frasco B <b>3,1 mg</b></div>
+          <div class="vial-screen-card">
+            <div class="vial-bottle vial-bottle-screen" aria-hidden="true"><i class="vial-cap"></i><i class="vial-glass"><b></b></i></div>
+            <div class="vial-screen-data"><span>FRASCO A</span><strong>6,4 mg</strong><small>de 10 mg</small></div>
+          </div>
+          <div class="vial-screen-meter"><i style="width:64%"></i></div>
+          <div class="app-card">Previsão de término <b>visível</b></div>
           <div class="app-card muted-card">Histórico preservado</div>
         </div>
+      </div>
+      <div class="showcase-vial-note">
+        <div class="vial-bottle vial-bottle-callout" aria-hidden="true"><i class="vial-cap"></i><i class="vial-glass"><b></b></i></div>
+        <div><small>SALDO DO FRASCO</small><strong>Vai diminuindo conforme os registros</strong></div>
       </div>
     </div>
   </section>

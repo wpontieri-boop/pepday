@@ -90,6 +90,19 @@ test('landing não substitui a Home do app durante homologação',async()=>{
 });
 
 
+test('landing reforça rotina e frascos com apoio visual de saldo',async()=>{
+  const [html,css]=await Promise.all([read('site/index.html'),read('site/site.css')]);
+  assert.match(html,/class="mini-phone-visual"/);
+  assert.match(html,/class="vial-bottle vial-bottle-mini"/);
+  assert.match(html,/class="feature vial-feature"/);
+  assert.match(html,/EXEMPLO DE SALDO/);
+  assert.match(html,/Saldo do frasco e previsão de término/);
+  assert.match(html,/Vai diminuindo conforme os registros/);
+  assert.match(css,/\.vial-bottle/);
+  assert.match(css,/\.vial-screen-card/);
+  assert.match(css,/\.showcase-vial-note/);
+});
+
 test('landing destaca lembretes no celular e benefícios PRO/Trial',async()=>{
   const html=await read('site/index.html');
   assert.match(html,/Lembretes no celular/i);
