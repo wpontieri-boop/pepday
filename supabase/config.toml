@@ -1,4 +1,12 @@
 
+[auth.email.template.confirmation]
+subject = "Seu código de confirmação PepDay: {{ .Token }}"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Seu código de acesso PepDay: {{ .Token }}"
+content_path = "./supabase/templates/magic_link.html"
+
 [functions.mercado-pago-webhook]
 enabled = true
 verify_jwt = false

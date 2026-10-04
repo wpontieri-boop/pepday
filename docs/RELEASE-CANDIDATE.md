@@ -129,7 +129,7 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 385/385;
+7. regressão completa verde — PASS 387/387;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
 9. adequação fiscal/contábil para cobrança do PepDay — **PASS**; a contadora aprovou manter o enquadramento/código de consultoria previamente definido;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
@@ -137,7 +137,7 @@ A promoção para produção exige:
 12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — **PASS TÉCNICO / CUTOVER LIVE**; `pepday.com.br` publicado manualmente no `pepday-public`, Supabase/Firebase/OAuth/Brevo/Mercado Pago separados para PROD e smoke HTTP/configuração pública aprovado. Rollback conhecido: deploy anterior `dep-db03fmc9v7es739patu0` / commit `779cbaa`;
-15. release candidate final — produção técnica LIVE; resta apenas smoke humano de ponta a ponta com conta real para confirmar retorno Google, e-mail/push e abertura do checkout sem concluir cobrança;
+15. release candidate final — produção técnica LIVE; e-mail Auth PROD com OTP de 6 dígitos já passou smoke real de entrega via Brevo/Gmail. Resta apenas smoke humano de ponta a ponta da sessão/login, push real no aparelho e abertura do checkout sem concluir cobrança;
 16. aprovação expressa do proprietário — **PASS**; autorização de produção recebida em 03/10/2026 e utilizada no cutover de 04/10/2026, mantendo `main`/V2.9 intocados.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
