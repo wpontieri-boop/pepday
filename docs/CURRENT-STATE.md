@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 02/10/2026.
+Atualização: 04/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -69,7 +69,7 @@ Atualização: 02/10/2026.
 - Brevo PROD: `BREVO_API_KEY` dedicada foi criada no Brevo e gravada diretamente como secret no Supabase PROD. Os 11 templates transacionais já validados permanecem vinculados pelos `BREVO_TEMPLATE_*` do PROD. Para Auth, o Supabase PROD usa SMTP customizado do Brevo (`smtp-relay.brevo.com:587`) com remetente verificado `PepDay <wpontieri@gmail.com>`. Os templates Auth de confirmação/login foram trocados de link para OTP de 6 dígitos (`{{ .Token }}`). Smoke real em 04/10/2026: pedido `/otp` HTTP 200, Brevo registrou `requests` + `delivered` e o Gmail recebeu `Seu código de acesso PepDay` com o OTP. **E-mail Auth PROD: PASS técnico/entrega.**
 - Firebase PROD separado criado como `PepDay V3 PROD` (`pepday-v3-prod`) e app Web `PepDay Web PROD` registrado. A configuração pública do cliente e a VAPID pública de produção foram incorporadas em arquivos específicos de produção; `npm run build:public` sobrescreve somente os artefatos públicos com Firebase PROD, enquanto homologação continua usando `pepday-v3-test`. O cache do Service Worker avançou para `pepday-v3-profile-sync-24` para forçar a troca segura dos assets de Firebase/config no cutover. Regressão completa após a separação Firebase TEST/PROD: **386/386 PASS**.
 - A service account do Firebase PROD foi validada localmente como `pepday-v3-prod`, gravada diretamente no Supabase PROD como `FIREBASE_SERVICE_ACCOUNT_JSON` e confirmada sem expor o valor. O JSON baixado e o arquivo temporário foram apagados do Mac após a confirmação. O cron `pepday-fcm-push-worker` está ativo a cada minuto no PROD.
-- A Web API key do Firebase PROD foi restringida para `https://pepday.com.br/*` e `https://www.pepday.com.br/*`.
+- A Web API key do Firebase PROD foi restringida para `https://pepday.com.br/*` e `https://www.pepday.com.br/*`. O GitHub Secret Scanning abriu o alerta #2 por essa chave pública de cliente; após confirmar que se tratava da configuração Web Firebase intencional e já restrita, o alerta foi resolvido como `wont_fix` documentado. **Secret Scanning: 0 alertas abertos.**
 - OAuth Google PROD foi criado no projeto Google `PepDay V3 PROD` e configurado no Supabase PROD com origem `https://pepday.com.br` e callback `https://oslefjmwfnddxlotalxu.supabase.co/auth/v1/callback`. O authorize PROD respondeu HTTP 302 para `accounts.google.com` com o client ID de produção e redirect de retorno para `https://pepday.com.br/app/`. O JSON OAuth baixado foi apagado do Mac após a configuração.
 - Smoke público pós-cutover: `/`, `/app/`, `/admin/`, `/cartao/`, `/termos.html` e `/privacidade.html` responderam HTTP 200; `/app/config.js` usa Supabase PROD sem referência TEST; Firebase público usa `pepday-v3-prod` sem referência TEST; Service Worker usa `pepday-v3-profile-sync-24`; landing e cartão apontam para `/app/`; Google authorize PROD responde 302 para `accounts.google.com`; chamadas não autenticadas aos workers/webhook são rejeitadas como esperado; o OTP Auth foi entregue pelo Brevo/Gmail com o template de 6 dígitos. Ainda resta o smoke humano de ponta a ponta da sessão/login, push real no aparelho e abertura de checkout sem concluir cobrança. Segredos nunca devem ser enviados ao Git/chat.
 

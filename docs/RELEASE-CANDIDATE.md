@@ -130,7 +130,7 @@ A promoção para produção exige:
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
 7. regressão completa verde — PASS 387/387;
-8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
+8. revisão de segredos/arquivos — PASS; Firebase Web API keys públicas/intencionais estão restritas aos domínios previstos; alertas #1 e #2 do GitHub Secret Scanning foram resolvidos como `wont_fix` documentado; **0 alertas abertos**;
 9. adequação fiscal/contábil para cobrança do PepDay — **PASS**; a contadora aprovou manter o enquadramento/código de consultoria previamente definido;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
