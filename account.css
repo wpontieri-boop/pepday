@@ -37,7 +37,10 @@
 .account-onboarding-dialog #accountOnboardingIntro{margin:0 0 18px;color:#b7ccd7}
 .account-onboarding-dialog form>label:not(.account-check){display:block;margin-top:12px;font-size:13px;font-weight:700;color:#d7e8f0}
 .account-onboarding-dialog input:not([type=checkbox]){width:100%;margin-top:7px}
-.account-onboarding-dialog .account-check{margin-top:12px;padding:11px 12px;border:1px solid #173b4e;border-radius:12px;background:#071824}
+.account-onboarding-dialog .account-check{display:flex;align-items:flex-start;gap:10px;width:100%;margin-top:12px;padding:11px 12px;border:1px solid #173b4e;border-radius:12px;background:#071824;font-size:14px;line-height:1.45}
+.account-onboarding-dialog .account-check input[type=checkbox]{flex:0 0 auto;width:auto;margin:3px 0 0}
+.account-onboarding-dialog .account-check span{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.account-onboarding-dialog .account-check a{color:var(--cyan)}
 .account-onboarding-dialog #accountSaveProfile{width:100%;margin-top:18px}
 .account-onboarding-dialog #legalStatus{margin:12px 0 0}
 .account-onboarding-dialog :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}

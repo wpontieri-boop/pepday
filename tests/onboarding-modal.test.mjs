@@ -27,6 +27,9 @@ test('onboarding é central no desktop e praticamente full-screen no mobile',asy
   const css=await read('account.css');
   assert.match(css,/\.account-onboarding-dialog\{width:min\(560px,calc\(100% - 32px\)\)/);
   assert.match(css,/@media\(max-width:620px\)\{[^]*\.account-onboarding-dialog\{width:calc\(100% - 12px\);max-width:none;height:calc\(100dvh - 12px\)/);
+  assert.match(css,/\.account-onboarding-dialog \.account-check\{display:flex;align-items:flex-start;gap:10px;width:100%/);
+  assert.match(css,/\.account-onboarding-dialog \.account-check input\[type=checkbox\]\{flex:0 0 auto;width:auto/);
+  assert.match(css,/\.account-onboarding-dialog \.account-check span\{flex:1 1 auto;min-width:0;overflow-wrap:anywhere/);
   assert.match(css,/safe-area-inset-bottom/);
 });
 
