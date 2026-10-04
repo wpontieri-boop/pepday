@@ -112,6 +112,15 @@ Atualização: 04/10/2026.
 - Teste dirigido do checkout: 14/14 PASS. Regressão completa: 393/393 PASS.
 - Esta correção precisa ser publicada somente na Edge Function `mercado-pago-checkout` do Supabase TEST antes de novo QA humano. Não repetir pagamento até a publicação; o pagamento sandbox de R$ 14,90 já foi aprovado no Mercado Pago.
 
+### Checkpoint 04/10/2026 — reconciliação Mercado Pago TEST concluída
+
+- `MERCADO_PAGO_WEBHOOK_SECRET` do Supabase TEST foi atualizado com segurança e a simulação oficial do Mercado Pago TEST passou de `401 Unauthorized / INVALID_SIGNATURE` para **200 OK**. PROD não foi acessado.
+- A cobrança sandbox já aprovada foi recuperada pela API oficial do Mercado Pago sem nova cobrança: preapproval `780d00053e8943fb84096d104c18583e`, authorized payment `7032580442`, payment `182404200654`, status `approved`, plano mensal, external reference `pepday:7fb126ff-4cbf-4bb0-9426-24d2242d7700:monthly`.
+- O mapeamento interno confirmou a assinatura `7fb126ff-4cbf-4bb0-9426-24d2242d7700` da conta `waeletronicos.cia@gmail.com`.
+- Reconciliação idempotente aplicada via `apply_billing_event` com outcome `applied`: conta passou a `pro_active`, plano `monthly`, `billing_status=active`, período 04/10/2026 22:27:54Z → 04/11/2026 22:27:54Z. Não repetir pagamento.
+- A função diagnóstica temporária `mp-reconcile-diagnostic` foi aposentada imediatamente após uso e responde 410 `RETIRED`; não acessa mais secrets/provedor.
+- Próxima validação humana focada: atualizar a homologação na conta W Electronics e confirmar visualmente **PepDay PRO ativo** com validade até 04/11/2026. Se passar, registrar PASS / NÃO REPETIR para este fluxo.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:
