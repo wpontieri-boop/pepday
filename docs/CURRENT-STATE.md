@@ -104,6 +104,9 @@ Atualização: 04/10/2026.
 
 ### Checkpoint 04/10/2026 — retorno Mercado Pago TEST e sessão por domínio
 
+- Em 04/10/2026, `MERCADO_PAGO_WEBHOOK_SECRET` foi atualizado exclusivamente no Supabase TEST (`fsbqpyyprtymwrmzsacp`) por entrada oculta no terminal. A CLI confirmou o valor pelo digest SHA-256, os demais secrets TEST permaneceram inalterados e o projeto PROD não foi acessado. O valor do secret não foi exibido, salvo em arquivo ou registrado no Git/chat.
+- Próxima ação: reenviar no simulador do Mercado Pago TEST a mesma notificação de assinatura já preparada, sem novo pagamento, e confirmar que o webhook deixa de responder `INVALID_SIGNATURE`.
+
 - QA humano identificou que um checkout iniciado na conta W Electronics retornou para `https://pepday-v3-homologacao.onrender.com/`, onde havia uma sessão antiga de `wpontieri@gmail.com`; por isso o Perfil exibiu a conta errada após o pagamento. O pagamento do Mercado Pago não trocou a conta PepDay: o erro foi o `back_url` do billing TEST apontando para o hostname fallback antigo.
 - Correção preparada no código: quando `MERCADO_PAGO_LIVE_MODE=false`, `mercado-pago-checkout` força `back_url=https://homologacao.pepday.com.br/`; em LIVE/PROD continua usando `PEPDAY_BILLING_RETURN_URL`, preservando produção.
 - Teste dirigido do checkout: 14/14 PASS. Regressão completa: 393/393 PASS.
@@ -166,4 +169,3 @@ Ao continuar o PepDay:
 4. comparar `HEAD...origin/v3.0-bloco-b`;
 5. não sobrescrever divergências entre máquinas;
 6. continuar apenas a partir do checkpoint sincronizado no GitHub.
-
