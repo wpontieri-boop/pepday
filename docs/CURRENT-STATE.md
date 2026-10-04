@@ -119,7 +119,7 @@ Atualização: 04/10/2026.
 - O mapeamento interno confirmou a assinatura `7fb126ff-4cbf-4bb0-9426-24d2242d7700` da conta `waeletronicos.cia@gmail.com`.
 - Reconciliação idempotente aplicada via `apply_billing_event` com outcome `applied`: conta passou a `pro_active`, plano `monthly`, `billing_status=active`, período 04/10/2026 22:27:54Z → 04/11/2026 22:27:54Z. Não repetir pagamento.
 - A função diagnóstica temporária `mp-reconcile-diagnostic` foi aposentada imediatamente após uso e responde 410 `RETIRED`; não acessa mais secrets/provedor.
-- Próxima validação humana focada: atualizar a homologação na conta W Electronics e confirmar visualmente **PepDay PRO ativo** com validade até 04/11/2026. Se passar, registrar PASS / NÃO REPETIR para este fluxo.
+- **PASS HUMANO / NÃO REPETIR:** em 04/10/2026, após reconciliação da cobrança sandbox aprovada, a homologação na conta `waeletronicos.cia@gmail.com` exibiu visualmente **PEPDAY PRO ATIVO**, plano mensal com renovação automática e acesso até **04/11/2026 às 19:27**. Fluxo Mercado Pago TEST → reconciliação → entitlement PRO confirmado ponta a ponta. Não repetir este pagamento/teste salvo mudança direta no billing/webhook.
 
 ## UX de notificações aprovada
 
