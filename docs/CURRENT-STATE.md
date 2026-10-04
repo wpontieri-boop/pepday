@@ -78,6 +78,8 @@ Atualização: 04/10/2026.
 
 - **Ajuste visual do onboarding em 04/10/2026:** após mover o dialog para fora da tela Perfil, o QA humano revelou que os estilos account-check ainda estavam escopados a accountPanel, quebrando a disposição dos checkboxes e textos no modal. O modal passou a ter estilos próprios para flex, largura, quebra de texto e links; cache avançado para profile-sync-27. Testes focados 4/4 PASS e regressão completa 391/391 PASS. Mudança permanece somente em homologação até novo PASS humano.
 
+- **Cache-bust do onboarding em 04/10/2026:** o Chrome ainda servia `account.css` antigo pelo Service Worker apesar do deploy novo. O HTML passou a carregar `account.css?v=28`, que pelo fetch handler atual bypassa o cache do SW quando há query string. Cache do SW avançado para `profile-sync-28`. Testes focados 4/4 PASS e regressão 391/391 PASS. Homologação somente, aguardando PASS humano.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:
