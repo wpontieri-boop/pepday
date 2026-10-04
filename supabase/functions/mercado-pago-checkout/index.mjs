@@ -107,7 +107,8 @@ async function oneRow(supabaseUrl,key,table,filters,select){
   return rows[0];
 }
 
-function returnUrl(){
+function returnUrl(liveMode){
+  if(liveMode==="false")return "https://homologacao.pepday.com.br/";
   const value=env("PEPDAY_BILLING_RETURN_URL");
   try{
     const url=new URL(value);
@@ -180,7 +181,7 @@ export default {
             payer_email:payerEmail,
             external_reference:externalReference,
             auto_recurring:recurring,
-            back_url:returnUrl(),
+            back_url:returnUrl(liveMode),
             status:"pending"
           })
         },

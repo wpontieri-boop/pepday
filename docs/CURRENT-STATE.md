@@ -102,6 +102,13 @@ Atualização: 04/10/2026.
 
 - **UX do gate PRO ajustada em 04/10/2026:** contas FREE agora veem no gate os caminhos explícitos Começar 7 dias grátis, Assinar PRO e Agora não. Ao recusar o trial, o gate deixa de repetir a oferta de 7 dias durante a mesma sessão e passa a mostrar somente o caminho para planos PRO; o trial continua disponível no Perfil. src/pro-gate.mjs usa cache-bust v=30. Regressão completa 393/393 PASS.
 
+### Checkpoint 04/10/2026 — retorno Mercado Pago TEST e sessão por domínio
+
+- QA humano identificou que um checkout iniciado na conta W Electronics retornou para `https://pepday-v3-homologacao.onrender.com/`, onde havia uma sessão antiga de `wpontieri@gmail.com`; por isso o Perfil exibiu a conta errada após o pagamento. O pagamento do Mercado Pago não trocou a conta PepDay: o erro foi o `back_url` do billing TEST apontando para o hostname fallback antigo.
+- Correção preparada no código: quando `MERCADO_PAGO_LIVE_MODE=false`, `mercado-pago-checkout` força `back_url=https://homologacao.pepday.com.br/`; em LIVE/PROD continua usando `PEPDAY_BILLING_RETURN_URL`, preservando produção.
+- Teste dirigido do checkout: 14/14 PASS. Regressão completa: 393/393 PASS.
+- Esta correção precisa ser publicada somente na Edge Function `mercado-pago-checkout` do Supabase TEST antes de novo QA humano. Não repetir pagamento até a publicação; o pagamento sandbox de R$ 14,90 já foi aprovado no Mercado Pago.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:

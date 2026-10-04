@@ -79,6 +79,8 @@ test('Edge Function valida JWT e cria assinatura pending sem coletar cartão no 
   assert.match(index,/status:\"pending\"/);
   assert.match(index,/"X-Idempotency-Key":request\.requestId/);
   assert.match(index,/PEPDAY_BILLING_RETURN_URL/);
+  assert.match(index,/liveMode==="false"[^]*homologacao\.pepday\.com\.br/);
+  assert.match(index,/back_url:returnUrl\(liveMode\)/);
   assert.doesNotMatch(index,/card_token_id/);
   assert.doesNotMatch(index,/preapproval_plan_id:/);
 });
