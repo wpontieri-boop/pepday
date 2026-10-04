@@ -20,6 +20,7 @@ test('UX PWA usa prompt nativo Android e guia iOS sem auto-instalação',async()
   assert.match(html,/Fechar instruções/);
   assert.match(html,/Adicionar à Tela de Início/);
   assert.match(html,/id="pwaInstallDialog"/);
+  assert.match(html,/src="src\/pwa-install\.mjs\?v=23"/);
   assert.match(source,/beforeinstallprompt/);
   assert.match(source,/prompt\.prompt\(\)/);
   assert.match(source,/navigator\?\.standalone/);
