@@ -411,14 +411,14 @@
     <button class="pwa-install-close" id="pwaInstallClose" type="button" aria-label="Fechar">×</button>
     <small>PEPDAY NO CELULAR</small>
     <h3 id="pwaInstallTitle">Instalar PepDay no iPhone</h3>
-    <p>Adicione o PepDay à Tela de Início para abrir como aplicativo, sem precisar procurar o site novamente.</p>
+    <p id="pwaInstallLead">Mantenha esta tela aberta e use o menu do seu navegador. Não precisa trocar de navegador.</p>
     <ol class="pwa-install-steps">
-      <li><span>1</span><div>Toque em <strong>Compartilhar</strong> no navegador.</div></li>
-      <li><span>2</span><div>Escolha <strong>Adicionar à Tela de Início</strong>.</div></li>
-      <li><span>3</span><div>Confirme em <strong>Adicionar</strong>. O ícone do PepDay aparecerá na sua tela.</div></li>
+      <li><span>1</span><div id="pwaInstallStep1">Toque em <strong>Compartilhar</strong> no navegador.</div></li>
+      <li><span>2</span><div id="pwaInstallStep2">Escolha <strong>Adicionar à Tela de Início</strong>.</div></li>
+      <li><span>3</span><div id="pwaInstallStep3">Confirme em <strong>Adicionar</strong>. O ícone do PepDay aparecerá na sua tela.</div></li>
     </ol>
-    <button class="primary" id="pwaInstallDone" type="button">Entendi</button>
-    <small>Depois de instalado, este aviso não aparece novamente.</small>
+    <button class="primary" id="pwaInstallDone" type="button">Fechar instruções</button>
+    <small>Depois de instalar, abra o PepDay pelo novo ícone da Tela de Início.</small>
   </dialog>
 
   <dialog id="proGateDialog" class="pro-gate" aria-labelledby="proGateTitle" aria-describedby="proGateMessage">

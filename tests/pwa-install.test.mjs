@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { detectPwaPlatform } from '../src/pwa-install.mjs';
+import { detectIosBrowser, detectPwaPlatform } from '../src/pwa-install.mjs';
 
 const read=name=>readFile(new URL(`../${name}`,import.meta.url),'utf8');
 
@@ -15,6 +15,9 @@ test('detecção de plataforma cobre Android, iPhone e iPadOS com UA desktop',()
 test('UX PWA usa prompt nativo Android e guia iOS sem auto-instalação',async()=>{
   const [html,source]=await Promise.all([read('index.html'),read('src/pwa-install.mjs')]);
   assert.match(html,/id="installBtn"[^>]*>Instalar PepDay</);
+  assert.match(html,/Mantenha esta tela aberta/);
+  assert.match(html,/Não precisa trocar de navegador/);
+  assert.match(html,/Fechar instruções/);
   assert.match(html,/Adicionar à Tela de Início/);
   assert.match(html,/id="pwaInstallDialog"/);
   assert.match(source,/beforeinstallprompt/);
@@ -22,6 +25,13 @@ test('UX PWA usa prompt nativo Android e guia iOS sem auto-instalação',async()
   assert.match(source,/navigator\?\.standalone/);
   assert.match(source,/display-mode: standalone/);
   assert.match(source,/appinstalled/);
+});
+
+test('guia iOS diferencia Chrome e Safari com passos reais observados no aparelho',()=>{
+  const chrome='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 CriOS/140.0.0.0 Mobile/15E148 Safari/604.1';
+  const safari='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
+  assert.equal(detectIosBrowser(chrome),'chrome');
+  assert.equal(detectIosBrowser(safari),'safari');
 });
 test('telemetria PWA envia somente identificador anônimo, evento e plataforma',async()=>{
   const source=await read('src/pwa-install.mjs');
@@ -59,6 +69,6 @@ test('painel admin mostra adoção PWA e consulta RPC agregada',async()=>{
 
 test('service worker atual inclui módulo de instalação e novo cache',async()=>{
   const sw=await read('sw.js');
-  assert.match(sw,/pepday-v3-profile-sync-22/);
+  assert.match(sw,/pepday-v3-profile-sync-23/);
   assert.match(sw,/\.\/src\/pwa-install\.mjs/);
 });

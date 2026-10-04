@@ -21,6 +21,14 @@ export function detectPwaPlatform(userAgent=globalThis.navigator?.userAgent||'',
   return 'other';
 }
 
+export function detectIosBrowser(userAgent=globalThis.navigator?.userAgent||''){
+  const ua=String(userAgent);
+  if(/CriOS/i.test(ua))return 'chrome';
+  if(/EdgiOS/i.test(ua))return 'edge';
+  if(/FxiOS/i.test(ua))return 'firefox';
+  return 'safari';
+}
+
 export function isStandalonePwa(){
   return globalThis.matchMedia?.('(display-mode: standalone)')?.matches===true
     || globalThis.navigator?.standalone===true;
@@ -76,6 +84,10 @@ function bootPwaInstall(){
   const button=document.getElementById('installBtn');
   const dialog=document.getElementById('pwaInstallDialog');
   const title=document.getElementById('pwaInstallTitle');
+  const lead=document.getElementById('pwaInstallLead');
+  const step1=document.getElementById('pwaInstallStep1');
+  const step2=document.getElementById('pwaInstallStep2');
+  const step3=document.getElementById('pwaInstallStep3');
   if(!button)return;
 
   const platform=detectPwaPlatform();
@@ -89,7 +101,20 @@ function bootPwaInstall(){
 
   if(platform==='ios'&&title){
     const ipad=/iPad/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const browser=detectIosBrowser();
     title.textContent=ipad?'Instalar PepDay no iPad':'Instalar PepDay no iPhone';
+    if(lead)lead.textContent='Mantenha esta tela aberta e use o menu do seu navegador. Não precisa trocar de navegador.';
+    if(browser==='chrome'){
+      if(step1)step1.innerHTML='Toque em <strong>Compartilhar</strong> ao lado da barra de endereço.';
+      if(step2)step2.innerHTML='Toque em <strong>Ver Mais</strong> e escolha <strong>Adicionar à Tela de Início</strong>.';
+    }else if(browser==='safari'){
+      if(step1)step1.innerHTML='Toque em <strong>Compartilhar</strong> no Safari.';
+      if(step2)step2.innerHTML='Escolha <strong>Adicionar à Tela de Início</strong>.';
+    }else{
+      if(step1)step1.innerHTML='Abra <strong>Compartilhar</strong> no navegador.';
+      if(step2)step2.innerHTML='Procure <strong>Adicionar à Tela de Início</strong>. Se não aparecer de imediato, abra as opções adicionais.';
+    }
+    if(step3)step3.innerHTML='Confirme em <strong>Adicionar</strong> e depois abra o PepDay pelo novo ícone.';
   }
 
   window.addEventListener('beforeinstallprompt',event=>{
