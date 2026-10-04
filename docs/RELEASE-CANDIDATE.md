@@ -129,7 +129,7 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 387/387;
+7. regressão completa verde — PASS 391/391;
 8. revisão de segredos/arquivos — PASS; Firebase Web API keys públicas/intencionais estão restritas aos domínios previstos; alertas #1 e #2 do GitHub Secret Scanning foram resolvidos como `wont_fix` documentado; **0 alertas abertos**;
 9. adequação fiscal/contábil para cobrança do PepDay — **PASS**; a contadora aprovou manter o enquadramento/código de consultoria previamente definido;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
@@ -137,7 +137,7 @@ A promoção para produção exige:
 12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — **PASS TÉCNICO / CUTOVER LIVE**; `pepday.com.br` publicado manualmente no `pepday-public`, Supabase/Firebase/OAuth/Brevo/Mercado Pago separados para PROD e smoke HTTP/configuração pública aprovado. Rollback conhecido: deploy anterior `dep-db03fmc9v7es739patu0` / commit `779cbaa`;
-15. release candidate final — produção técnica LIVE; e-mail Auth PROD com OTP de 6 dígitos, sessão/login real e push FCM real já passaram. A Web API key Firebase PROD foi corrigida, redeployada e validada com instalação ativa + envio `sent`. O checkout autenticado chegou ao Mercado Pago; o único bloqueio do smoke atual foi `Payer and collector cannot be the same user` por usar a própria conta recebedora. Resta repetir somente a abertura do checkout com outra conta/e-mail, sem concluir cobrança;
+15. release candidate final — produção técnica LIVE; e-mail Auth PROD com OTP de 6 dígitos, sessão/login real e push FCM real já passaram. A Web API key Firebase PROD foi corrigida, redeployada e validada com instalação ativa + envio `sent`. O checkout autenticado chegou ao Mercado Pago; o smoke de cobrança segue pendente por testes de pagador/limite temporário do provedor. Em 04/10, a UX de primeiro acesso foi refinada para onboarding obrigatório em modal central no desktop e quase full-screen no mobile, mantendo a mesma lógica jurídica; 391/391 testes passaram. Como esta área foi alterada, reabre-se somente o QA humano focado do primeiro login/onboarding em homologação antes de republicar;
 16. aprovação expressa do proprietário — **PASS**; autorização de produção recebida em 03/10/2026 e utilizada no cutover de 04/10/2026, mantendo `main`/V2.9 intocados.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
@@ -146,7 +146,7 @@ Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, s
 
 O backend de produção foi criado de forma separada do ambiente TEST no Supabase, sob o projeto `pepday-prod` (`oslefjmwfnddxlotalxu`). Schema/RLS/RPCs, Vault de URL interna e as sete Edge Functions aprovadas estão preparados, sem copiar usuários ou fixtures de homologação. O build público agora injeta configuração exclusiva de produção, enquanto homologação continua presa ao projeto TEST. Regressão após essa separação: **386/386 PASS**.
 
-As credenciais externas de produção foram configuradas com entrada segura fora do Git/chat: Mercado Pago LIVE (access token + webhook secret), Brevo API key, Firebase PROD (VAPID, service account e Web API key restrita ao domínio) e OAuth Google PROD. O serviço público continua com auto-deploy desligado e foi implantado manualmente após smoke técnico não destrutivo. O único passo restante da RC é o smoke humano final de ponta a ponta com conta real.
+As credenciais externas de produção foram configuradas com entrada segura fora do Git/chat: Mercado Pago LIVE (access token + webhook secret), Brevo API key, Firebase PROD (VAPID, service account e Web API key restrita ao domínio) e OAuth Google PROD. O serviço público continua com auto-deploy desligado e foi implantado manualmente após smoke técnico não destrutivo. Os passos focados restantes da RC são: validar visualmente o novo onboarding pós-login em homologação e concluir a abertura do checkout LIVE com um pagador diferente, sem efetuar cobrança. Itens já marcados PASS fora dessas áreas não serão repetidos.
 
 ## Produção
 

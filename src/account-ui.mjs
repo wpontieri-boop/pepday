@@ -23,6 +23,16 @@ const cardUsageMarked = new Set();
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 if(new URL(location.href).searchParams.get('from')==='cartao')captureCardAcquisition();
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
+function closeOnboardingDialog(){
+  const dialog=el('accountOnboardingDialog');
+  if(dialog?.open)dialog.close();
+}
+function openOnboardingDialog(){
+  const dialog=el('accountOnboardingDialog');
+  hide('accountProfileForm',false);
+  if(dialog&&!dialog.open)dialog.showModal();
+  requestAnimationFrame(()=>el('accountName')?.focus({preventScroll:true}));
+}
 function status(text) { el('accountStatus').textContent = text; }
 function publishAccess(raw, profileComplete=false) {
   if(raw?.signedIn===true)accessAuthority.authenticated(raw);
@@ -96,6 +106,7 @@ function clearPrivateUi({preserveAccess=false}={}) {
   if(el('promoCode'))el('promoCode').value='';
   if(el('accountDeleteText'))el('accountDeleteText').value='';
   if(el('accountDeleteConfirm'))hide('accountDeleteConfirm');
+  closeOnboardingDialog();
   ['accountSignedIn','accountProfileForm','accountImport','accountImportReview','syncState'].forEach(id => hide(id));
 }
 function stopSync(){syncEngine?.stop();syncEngine=null}
@@ -356,14 +367,20 @@ async function refresh() {
     status(hydrationDelayed
       ?'Conta conectada. Os dados deste aparelho foram preservados; a leitura da conta será tentada novamente quando possível.'
       :'Conta conectada. Seus dados locais são salvos primeiro neste aparelho e sincronizados quando possível.');
-    hide('accountProfileForm',complete);
-    if (!complete) {
+    if (complete) {
+      hide('accountProfileForm');
+      closeOnboardingDialog();
+    } else {
       const priorLegal=Boolean(next.profile.terms_accepted_at||next.profile.privacy_accepted_at);
       el('accountProfileTitle').textContent=priorLegal?'Revise os documentos atualizados':'Complete seu cadastro';
+      el('accountOnboardingIntro').textContent=priorLegal
+        ?'Sua sessão continua conectada. Revise os documentos atualizados para continuar usando sua conta.'
+        :'Seu e-mail já foi confirmado. Complete estes dados uma única vez para continuar sua sessão no PepDay.';
       el('accountName').value=next.profile.name || '';
       el('accountCountry').value=next.profile.country || 'BR';
       el('accountTimezone').textContent=`Fuso horário: ${timezone}`;
       if(priorLegal)status('Há documentos jurídicos atualizados e um consentimento específico para dados sensíveis a revisar. Seus dados foram preservados; confirme os itens atuais para continuar usando os recursos da conta.');
+      openOnboardingDialog();
     }
     // Até os aceites serem reais, não enviar conteúdo potencialmente sensível.
     if (complete && !later.has(next.user.id)) {
@@ -559,6 +576,7 @@ el('accountDeleteConfirmBtn').addEventListener('click',()=>run(async()=>{
   hide('accountCodeForm');hide('accountSignedOut',false);
   status('Conta excluída. Os dados vinculados a esta conta foram removidos e os dados locais deste aparelho foram limpos.');
 }));
+el('accountOnboardingDialog').addEventListener('cancel',event=>event.preventDefault());
 el('accountProfileForm').addEventListener('submit',event=>{
   event.preventDefault(); if (!legalReady() || !state) return;
   run(async()=>{
