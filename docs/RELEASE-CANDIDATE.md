@@ -137,7 +137,7 @@ A promoção para produção exige:
 12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — **PASS TÉCNICO / CUTOVER LIVE**; `pepday.com.br` publicado manualmente no `pepday-public`, Supabase/Firebase/OAuth/Brevo/Mercado Pago separados para PROD e smoke HTTP/configuração pública aprovado. Rollback conhecido: deploy anterior `dep-db03fmc9v7es739patu0` / commit `779cbaa`;
-15. release candidate final — produção técnica LIVE; e-mail Auth PROD com OTP de 6 dígitos já passou smoke real de entrega via Brevo/Gmail. Resta apenas smoke humano de ponta a ponta da sessão/login, push real no aparelho e abertura do checkout sem concluir cobrança;
+15. release candidate final — produção técnica LIVE; e-mail Auth PROD com OTP de 6 dígitos e sessão/login real já passaram. No smoke de push foi encontrada e corrigida uma Web API key Firebase PROD com um caractere incorreto; `getToken()` real passou após a correção e 387/387 testes seguem verdes. Resta redeploy/confirmar push real no aparelho e abrir o checkout sem concluir cobrança;
 16. aprovação expressa do proprietário — **PASS**; autorização de produção recebida em 03/10/2026 e utilizada no cutover de 04/10/2026, mantendo `main`/V2.9 intocados.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
