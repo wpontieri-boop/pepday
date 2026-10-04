@@ -1,19 +1,35 @@
 import { createAccountService } from './account.mjs';
 
 export function validatePublicConfig(config, locationHref) {
+  const environment=String(config.environment||'');
   const url = new URL(config.supabaseUrl);
-  if (config.environment !== 'test' || url.origin !== `https://${config.projectRef}.supabase.co` ||
+  if (!['test','production'].includes(environment) ||
+      url.origin !== `https://${config.projectRef}.supabase.co` ||
       !/^sb_publishable_[A-Za-z0-9_-]+$/.test(config.supabasePublishableKey)) {
-    throw new Error('Configuração pública de testes inválida.');
+    throw new Error('Configuração pública inválida.');
   }
+
   const location = new URL(locationHref);
-  const production = new URL(config.blockedProductionUrl);
-  if (location.origin === production.origin &&
-      (location.pathname === production.pathname.replace(/\/$/,'') || location.pathname.startsWith(production.pathname))) {
-    throw new Error('A conexão de homologação não pode ser usada no endereço de produção.');
-  }
   if (!['http:','https:'].includes(location.protocol)) {
     throw new Error('Abra o PepDay por um endereço web para usar a conta.');
+  }
+
+  if(environment==='test'&&config.blockedProductionUrl){
+    const production = new URL(config.blockedProductionUrl);
+    if (location.origin === production.origin &&
+        (location.pathname === production.pathname.replace(/\/$/,'') || location.pathname.startsWith(production.pathname))) {
+      throw new Error('A conexão de homologação não pode ser usada no endereço de produção.');
+    }
+  }
+
+  if(environment==='production'){
+    const runtime=new URL(config.runtimeUrl);
+    const base=runtime.pathname.endsWith('/')?runtime.pathname:runtime.pathname+'/';
+    const root=base.replace(/\/$/,'');
+    const validPath=location.pathname===root||location.pathname.startsWith(base);
+    if(location.origin!==runtime.origin||!validPath){
+      throw new Error('A conexão de produção só pode ser usada no endereço oficial do PepDay.');
+    }
   }
   return true;
 }
@@ -23,7 +39,7 @@ export function initializeCloud(createClient, config, locationHref) {
   const client = createClient(config.supabaseUrl, config.supabasePublishableKey, {
     auth: {
       flowType: 'pkce', persistSession: true, autoRefreshToken: true,
-      detectSessionInUrl: true, storageKey: `pepday-test-${config.projectRef}-auth`
+      detectSessionInUrl: true, storageKey: `pepday-${config.environment}-${config.projectRef}-auth`
     }
   });
   return { client, account: createAccountService(client, {
@@ -47,7 +63,7 @@ export async function readPublicAuthSettings(config, fetchImpl = fetch) {
 
 export function accountError(error) {
   const code = String(error?.code || '');
-  if (['PGRST205','PGRST202','42P01','42883'].includes(code)) return 'A conta de testes está aguardando a preparação do banco. Seus dados locais continuam disponíveis.';
+  if (['PGRST205','PGRST202','42P01','42883'].includes(code)) return 'A conta está aguardando a preparação do banco. Seus dados locais continuam disponíveis.';
   if (['otp_expired','otp_disabled'].includes(code)) return 'O código expirou ou não é válido. Solicite um novo código.';
   if (['over_email_send_rate_limit','over_request_rate_limit'].includes(code)) return 'Aguarde alguns minutos antes de solicitar outro código.';
   if (['email_provider_disabled','provider_disabled'].includes(code)) return 'Este método de login ainda não está habilitado.';

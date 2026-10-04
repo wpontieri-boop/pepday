@@ -13,5 +13,6 @@ export const config = Object.freeze({
   privacyUrl: 'https://homologacao.pepday.com.br/privacidade.html',
   privacyVersion: 'privacy-2026-09-30-2',
   sensitiveDataConsentVersion: 'health-data-2026-09-30',
-  blockedProductionUrl: 'https://wpontieri-boop.github.io/pepday/'
+  runtimeUrl: 'https://homologacao.pepday.com.br/',
+  blockedProductionUrl: 'https://pepday.com.br/app/'
 });

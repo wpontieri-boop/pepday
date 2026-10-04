@@ -13,9 +13,10 @@ const copy=async(src,dst)=>cp(path.join(root,src),path.join(out,dst),{recursive:
 await rm(out,{recursive:true,force:true});
 await mkdir(out,{recursive:true});
 
-for(const file of ['icon.svg','config.js','termos.html','privacidade.html']){
+for(const file of ['icon.svg','termos.html','privacidade.html']){
   await copy(file,file);
 }
+await copy('config.production.js','config.js');
 await copy('vendor','vendor');
 await copy('src','src');
 
@@ -42,12 +43,16 @@ card=card.replace('../?from=cartao','/app/?from=cartao');
 await writeFile(path.join(out,'cartao','index.html'),card,'utf8');
 
 await mkdir(path.join(out,'app'),{recursive:true});
+let app=await readFile(path.join(root,'index.html'),'utf8');
+app=app.replace('PEPDAY • V3.0 — TESTES','PEPDAY • V3.0');
+await writeFile(path.join(out,'app','index.html'),app,'utf8');
 for(const file of [
-  'index.html','app.js','style.css','account.css','manifest.json','icon.svg',
-  'sw.js','config.js','termos.html','privacidade.html'
+  'app.js','style.css','account.css','manifest.json','icon.svg',
+  'sw.js','termos.html','privacidade.html'
 ]){
   await copy(file,path.posix.join('app',file));
 }
+await copy('config.production.js','app/config.js');
 await copy('src','app/src');
 await copy('vendor','app/vendor');
 await copy('cartao','app/cartao');

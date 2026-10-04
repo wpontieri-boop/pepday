@@ -33,7 +33,7 @@ test('painel admin explica corretamente que cartão não significa scan anônimo
 
 test('painel usa sessão Supabase compartilhada e não cria conta nova',async()=>{
   const source=await read('site/admin/admin.mjs');
-  assert.match(source,/storageKey:\s*`pepday-test-\$\{config\.projectRef\}-auth`/);
+  assert.match(source,/storageKey:\s*`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-auth`/);
   assert.match(source,/shouldCreateUser:false/);
   assert.match(source,/get_admin_acquisition_metrics/);
   assert.match(source,/p_days:days/);

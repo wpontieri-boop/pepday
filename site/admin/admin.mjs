@@ -20,7 +20,7 @@ const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabase
     persistSession:true,
     autoRefreshToken:true,
     detectSessionInUrl:true,
-    storageKey:`pepday-test-${config.projectRef}-auth`
+    storageKey:`pepday-${config.environment}-${config.projectRef}-auth`
   }
 });
 

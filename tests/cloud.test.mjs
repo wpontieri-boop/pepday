@@ -5,8 +5,11 @@ import vm from 'node:vm';
 import { validatePublicConfig,initializeCloud,readPublicAuthSettings,accountError,loadAccountState } from '../src/cloud.mjs';
 import { createAccountService } from '../src/account.mjs';
 const config={environment:'test',projectRef:'fixture',supabaseUrl:'https://fixture.supabase.co',
-  supabasePublishableKey:'sb_publishable_fixture',blockedProductionUrl:'https://example.test/pepday/',
-  authRedirectUrl:null,allowedRedirects:[]};
+  supabasePublishableKey:'sb_publishable_fixture',runtimeUrl:'https://stage.test/',
+  blockedProductionUrl:'https://example.test/pepday/',authRedirectUrl:null,allowedRedirects:[]};
+const productionConfig={environment:'production',projectRef:'prodfixture',supabaseUrl:'https://prodfixture.supabase.co',
+  supabasePublishableKey:'sb_publishable_prodfixture',runtimeUrl:'https://pepday.example/app/',
+  authRedirectUrl:'https://pepday.example/app/',allowedRedirects:['https://pepday.example/app/']};
 test('chave pública aceita; key elevada e projeto divergente rejeitados',()=>{
   assert.equal(validatePublicConfig(config,'https://stage.test/'),true);
   assert.throws(()=>validatePublicConfig({...config,supabasePublishableKey:'sb_secret_forbidden'},'https://stage.test/'));
@@ -17,6 +20,15 @@ test('homologação bloqueada no caminho de produção e em file://',()=>{
     assert.throws(()=>validatePublicConfig(config,url));
   }
   assert.equal(validatePublicConfig(config,'https://example.test/pepday-test/'),true);
+});
+
+test('produção aceita somente o app no domínio oficial e rejeita config cruzada',()=>{
+  assert.equal(validatePublicConfig(productionConfig,'https://pepday.example/app/'),true);
+  assert.equal(validatePublicConfig(productionConfig,'https://pepday.example/app/index.html'),true);
+  for(const url of ['https://pepday.example/','https://stage.test/','file:///app/index.html']){
+    assert.throws(()=>validatePublicConfig(productionConfig,url));
+  }
+  assert.throws(()=>validatePublicConfig({...productionConfig,environment:'test',blockedProductionUrl:'https://pepday.example/app/'},'https://pepday.example/app/'));
 });
 test('SDK recebe chave pública e armazenamento exclusivo do projeto de testes',()=>{
   let args;
