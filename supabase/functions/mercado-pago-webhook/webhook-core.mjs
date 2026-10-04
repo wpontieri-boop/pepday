@@ -97,7 +97,7 @@ export function canonicalEventDate(body,resource){
 export function normalizeNotification(body,url){
   if(!body||typeof body!=='object')return null;
   const type=clean(String(body.type??''));
-  if(!['subscription_preapproval','subscription_authorized_payment'].includes(type))return null;
+  if(!['subscription_preapproval','subscription_authorized_payment','payment'].includes(type))return null;
   const eventId=clean(String(body.id??'')),action=clean(String(body.action??'')),bodyDataId=clean(String(body.data?.id??''));
   const queryDataId=clean(url.searchParams.get('data.id')||url.searchParams.get('data_id')||'');
   const dataId=queryDataId||bodyDataId;

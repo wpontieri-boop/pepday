@@ -35,12 +35,16 @@ test('assinatura Mercado Pago aceita HMAC correto e rejeita assinatura alterada'
   }),false);
 });
 
-test('notificação só aceita tópicos de assinatura e exige correspondência do data.id',()=>{
+test('notificação aceita tópicos canônicos de assinatura/pagamento e exige correspondência do data.id',()=>{
   const body={id:123,type:'subscription_authorized_payment',action:'updated',live_mode:false,data:{id:'ABC'}};
   const good=normalizeNotification(body,new URL('https://example.test/hook?data.id=ABC'));
   assert.deepEqual(good,{eventId:'123',type:'subscription_authorized_payment',action:'updated',dataId:'ABC',liveMode:false});
+  assert.deepEqual(
+    normalizeNotification({...body,type:'payment',action:'payment.updated'},new URL('https://example.test/hook?data.id=ABC')),
+    {eventId:'123',type:'payment',action:'payment.updated',dataId:'ABC',liveMode:false}
+  );
   assert.equal(normalizeNotification(body,new URL('https://example.test/hook?data.id=OUTRO')),null);
-  assert.equal(normalizeNotification({...body,type:'payment'},new URL('https://example.test/hook?data.id=ABC')),null);
+  assert.equal(normalizeNotification({...body,type:'merchant_order'},new URL('https://example.test/hook?data.id=ABC')),null);
 });
 
 test('external_reference mapeia somente referência PepDay válida',()=>{
@@ -101,7 +105,9 @@ test('Edge Function valida assinatura antes do corpo e consulta Mercado Pago ant
   assert.ok(index.indexOf('verifyMercadoPagoSignature')<index.indexOf('req.json()'));
   assert.match(index,/\/authorized_payments\//);
   assert.match(index,/\/preapproval\//);
-  assert.ok(index.indexOf('mercadoPagoGet')<index.indexOf('applyBillingEvent'));
+  assert.match(index,/ACKNOWLEDGED_PAYMENT_MIRROR/);
+  assert.ok(index.indexOf('ACKNOWLEDGED_PAYMENT_MIRROR')<index.indexOf('const result=await applyBillingEvent'));
+  assert.ok(index.indexOf('mercadoPagoGet')<index.indexOf('const result=await applyBillingEvent'));
   assert.match(index,/\/rest\/v1\/rpc\/apply_billing_event/);
   assert.match(index,/SUPABASE_SECRET_KEYS/);
   assert.doesNotMatch(index,/MERCADO_PAGO_ACCESS_TOKEN[^\n]*console|MERCADO_PAGO_WEBHOOK_SECRET[^\n]*console/);

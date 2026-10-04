@@ -113,6 +113,14 @@ export default {
       if(!notification)return sanitizedResponse(400,"INVALID_NOTIFICATION");
       if(notification.liveMode!==expectedLiveMode())return sanitizedResponse(400,"LIVE_MODE_MISMATCH");
 
+      // Mercado Pago recomenda habilitar também o tópico `payment` para Assinaturas.
+      // O estado financeiro do PepDay continua canônico por `subscription_authorized_payment`
+      // para evitar aplicar a mesma cobrança duas vezes. O evento `payment`, já autenticado
+      // pela assinatura HMAC acima, é reconhecido e confirmado sem mutação de billing.
+      if(notification.type==="payment"){
+        return sanitizedResponse(200,"ACKNOWLEDGED_PAYMENT_MIRROR");
+      }
+
       const key=supabaseSecretKey();
       let preapproval,invoice=null;
       if(notification.type==="subscription_preapproval"){
