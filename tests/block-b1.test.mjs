@@ -113,6 +113,15 @@ test('gate reutilizável protege entradas de Rotinas/Frascos e mantém abas vis�
   assert.match(appSource,/proScreens\.has\(id\).*requirePro/);
 });
 
+test('gate FREE oferece assinatura e não repete oferta de trial após Agora não na mesma sessão',()=>{
+  assert.match(html,/id="proGatePlans"[^>]*>Assinar PRO</);
+  assert.match(html,/src="src\/pro-gate\.mjs\?v=30"/);
+  assert.match(gateSource,/trialDeclinedThisSession=true/);
+  assert.match(gateSource,/trialOffer=decision\.reason==='free'&&decision\.canStartTrial&&!trialDeclinedThisSession/);
+  assert.match(gateSource,/Você pode continuar no FREE ou ver os planos quando quiser/);
+  assert.match(gateSource,/plans\.textContent = trialDeclinedThisSession \? 'Ver planos PRO' : 'Assinar PRO'/);
+});
+
 test('interface mantém trial explícito sem cartão e separa a oferta comercial',()=>{
   for(const label of ['PEPDAY FREE','PEPDAY PRO — TESTE GRÁTIS','PEPDAY PRO ATIVO','PEPDAY PRO EXPIRADO']){
     assert.match(readFileSync(new URL('../src/entitlement.mjs',import.meta.url),'utf8'),new RegExp(label));

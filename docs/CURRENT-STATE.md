@@ -82,6 +82,8 @@ Atualização: 04/10/2026.
 
 - **Correção do login do painel admin em 04/10/2026:** o OTP do admin era aceito na primeira tentativa, mas `loadMetrics()` era chamado enquanto `busy=true`, deixando o formulário de código visível e induzindo uma segunda validação do OTP já consumido. O fluxo agora libera `busy` antes de carregar o dashboard. `site/admin/admin.mjs` ganhou teste de regressão e o script do painel usa cache-bust `admin.mjs?v=29`. Regressão completa 392/392 PASS. No PROD, a conta proprietária foi promovida explicitamente para `role=admin`; antes não havia nenhum admin configurado.
 
+- **UX do gate PRO ajustada em 04/10/2026:** contas FREE agora veem no gate os caminhos explícitos Começar 7 dias grátis, Assinar PRO e Agora não. Ao recusar o trial, o gate deixa de repetir a oferta de 7 dias durante a mesma sessão e passa a mostrar somente o caminho para planos PRO; o trial continua disponível no Perfil. src/pro-gate.mjs usa cache-bust v=30. Regressão completa 393/393 PASS.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:
