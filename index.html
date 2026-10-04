@@ -328,24 +328,6 @@
               </div>
             </div>
           </div>
-          <dialog id="accountOnboardingDialog" class="account-onboarding-dialog" aria-labelledby="accountProfileTitle" aria-describedby="accountOnboardingIntro">
-            <form id="accountProfileForm" class="hidden">
-              <small>CONTA CONECTADA</small>
-              <h3 id="accountProfileTitle">Complete seu cadastro</h3>
-              <p class="muted" id="accountOnboardingIntro">Só falta confirmar estes dados para continuar sua sessão já conectada no PepDay.</p>
-              <label for="accountName">Nome</label><input id="accountName" autocomplete="name" maxlength="200" required>
-              <label for="accountCountry">País</label><input id="accountCountry" value="BR" pattern="[A-Za-z]{2}" minlength="2" maxlength="2" required aria-describedby="countryHint">
-              <p class="muted" id="countryHint">Código de duas letras. Brasil: BR.</p>
-              <p class="muted" id="accountTimezone"></p>
-              <label class="account-check"><input id="accountAdult" type="checkbox" required>Confirmo que tenho 18 anos ou mais.</label>
-              <label class="account-check"><input id="accountTerms" type="checkbox" required disabled><span>Li e aceito os <a id="accountTermsLink" target="_blank" rel="noopener noreferrer">Termos de Uso</a>.</span></label>
-              <label class="account-check"><input id="accountPrivacy" type="checkbox" required disabled><span>Li e estou ciente da <a id="accountPrivacyLink" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span></label>
-              <label class="account-check"><input id="accountSensitiveData" type="checkbox" required disabled><span><strong>Consentimento específico:</strong> autorizo, de forma específica e destacada, o tratamento e a sincronização dos dados de rotinas, frascos, quantidades, frequências e aplicações que eu optar por enviar à conta, os quais podem revelar dados pessoais sensíveis relacionados à saúde, exclusivamente para fornecer os recursos do PepDay descritos na Política de Privacidade.</span></label>
-              <p class="muted" id="legalStatus">O cadastro completo será liberado quando os Termos e a Política de Privacidade estiverem disponíveis.</p>
-              <label class="account-check"><input id="accountMarketing" type="checkbox">Quero receber novidades e ofertas (opcional).</label>
-              <button class="secondary" id="accountSaveProfile" type="submit" disabled>Concluir cadastro e entrar no PepDay</button>
-            </form>
-          </dialog>
           <div id="accountImport" class="hidden">
             <h3>Encontramos dados do PepDay neste aparelho</h3>
             <p class="muted" id="accountImportSummary"></p>
@@ -371,6 +353,25 @@
       <button class="danger" id="eraseData">Apagar meus dados locais</button>
     </section>
   </main>
+
+  <dialog id="accountOnboardingDialog" class="account-onboarding-dialog" aria-labelledby="accountProfileTitle" aria-describedby="accountOnboardingIntro">
+            <form id="accountProfileForm" class="hidden">
+              <small>CONTA CONECTADA</small>
+              <h3 id="accountProfileTitle">Complete seu cadastro</h3>
+              <p class="muted" id="accountOnboardingIntro">Só falta confirmar estes dados para continuar sua sessão já conectada no PepDay.</p>
+              <label for="accountName">Nome</label><input id="accountName" autocomplete="name" maxlength="200" required>
+              <label for="accountCountry">País</label><input id="accountCountry" value="BR" pattern="[A-Za-z]{2}" minlength="2" maxlength="2" required aria-describedby="countryHint">
+              <p class="muted" id="countryHint">Código de duas letras. Brasil: BR.</p>
+              <p class="muted" id="accountTimezone"></p>
+              <label class="account-check"><input id="accountAdult" type="checkbox" required>Confirmo que tenho 18 anos ou mais.</label>
+              <label class="account-check"><input id="accountTerms" type="checkbox" required disabled><span>Li e aceito os <a id="accountTermsLink" target="_blank" rel="noopener noreferrer">Termos de Uso</a>.</span></label>
+              <label class="account-check"><input id="accountPrivacy" type="checkbox" required disabled><span>Li e estou ciente da <a id="accountPrivacyLink" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.</span></label>
+              <label class="account-check"><input id="accountSensitiveData" type="checkbox" required disabled><span><strong>Consentimento específico:</strong> autorizo, de forma específica e destacada, o tratamento e a sincronização dos dados de rotinas, frascos, quantidades, frequências e aplicações que eu optar por enviar à conta, os quais podem revelar dados pessoais sensíveis relacionados à saúde, exclusivamente para fornecer os recursos do PepDay descritos na Política de Privacidade.</span></label>
+              <p class="muted" id="legalStatus">O cadastro completo será liberado quando os Termos e a Política de Privacidade estiverem disponíveis.</p>
+              <label class="account-check"><input id="accountMarketing" type="checkbox">Quero receber novidades e ofertas (opcional).</label>
+              <button class="secondary" id="accountSaveProfile" type="submit" disabled>Concluir cadastro e entrar no PepDay</button>
+            </form>
+  </dialog>
 
   <nav>
     <button data-go="home" class="active"><b>⌂</b><span>Início</span></button>

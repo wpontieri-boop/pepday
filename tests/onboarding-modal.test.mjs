@@ -7,6 +7,8 @@ const read=name=>readFile(new URL(`../${name}`,import.meta.url),'utf8');
 test('onboarding obrigatório usa dialog dedicado após autenticação',async()=>{
   const [html,ui]=await Promise.all([read('index.html'),read('src/account-ui.mjs')]);
   assert.match(html,/<dialog id="accountOnboardingDialog" class="account-onboarding-dialog"[^>]*aria-labelledby="accountProfileTitle"/);
+  assert.match(html,/<\/main>\s*<dialog id="accountOnboardingDialog"/);
+  assert.ok(html.indexOf('</main>') < html.indexOf('<dialog id="accountOnboardingDialog"'));
   assert.match(html,/id="accountOnboardingIntro"[^>]*>Só falta confirmar estes dados para continuar sua sessão já conectada no PepDay\./);
   assert.match(html,/id="accountSaveProfile"[^>]*>Concluir cadastro e entrar no PepDay<\/button>/);
   assert.match(ui,/if \(complete\) \{[^]*closeOnboardingDialog\(\);[^]*\} else \{[^]*openOnboardingDialog\(\);/);
