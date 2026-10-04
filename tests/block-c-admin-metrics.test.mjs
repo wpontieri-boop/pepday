@@ -31,15 +31,19 @@ test('painel admin explica corretamente que cartão não significa scan anônimo
   assert.match(html,/nenhuma rotina, frasco ou dado de saúde é exibido/i);
 });
 
-test('painel libera busy antes de carregar métricas após OTP válido',async()=>{
+test('painel administrativo exige senha e MFA antes de carregar métricas',async()=>{
   const source=await read('site/admin/admin.mjs');
-  assert.match(source,/verifyOtp\(\{email,token,type:'email'\}\);[^]*authStatus\(''\);[^]*setBusy\(false\);[^]*await loadMetrics\(\);/);
+  assert.match(source,/signInWithPassword/);
+  assert.match(source,/challengeAndVerify/);
+  assert.match(source,/adminContext\?\.aal!=='aal2'/);
+  assert.match(source,/await loadMetrics\(\)/);
 });
 
-test('painel usa sessão Supabase compartilhada e não cria conta nova',async()=>{
+test('painel usa sessão administrativa separada e OTP só no primeiro acesso',async()=>{
   const source=await read('site/admin/admin.mjs');
-  assert.match(source,/storageKey:\s*`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-auth`/);
+  assert.match(source,/storageKey:\s*`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-admin-auth`/);
   assert.match(source,/shouldCreateUser:false/);
+  assert.match(source,/bootstrap&&context\.password_configured/);
   assert.match(source,/get_admin_acquisition_metrics/);
   assert.match(source,/p_days:days/);
   assert.doesNotMatch(source,/service_role|SUPABASE_SERVICE_ROLE_KEY|sb_secret_/i);

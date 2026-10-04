@@ -121,6 +121,18 @@ Atualização: 04/10/2026.
 - A função diagnóstica temporária `mp-reconcile-diagnostic` foi aposentada imediatamente após uso e responde 410 `RETIRED`; não acessa mais secrets/provedor.
 - **PASS HUMANO / NÃO REPETIR:** em 04/10/2026, após reconciliação da cobrança sandbox aprovada, a homologação na conta `waeletronicos.cia@gmail.com` exibiu visualmente **PEPDAY PRO ATIVO**, plano mensal com renovação automática e acesso até **04/11/2026 às 19:27**. Fluxo Mercado Pago TEST → reconciliação → entitlement PRO confirmado ponta a ponta. Não repetir este pagamento/teste salvo mudança direta no billing/webhook.
 
+### Checkpoint 04/10/2026 — painel administrativo OWNER / ADMIN / VIEWER em homologação
+
+- Novo modelo administrativo aprovado e implementado somente no TEST/homologação: painel único com níveis `owner`, `admin` e `viewer`. A conta administrativa preexistente `wpontieri@gmail.com` foi promovida automaticamente a **OWNER inicial**; nenhum acesso de produção foi alterado.
+- Autenticação do painel foi separada da sessão normal do app. Login administrativo normal passa a usar **e-mail + senha forte + TOTP/2FA obrigatório (AAL2)**. OTP por e-mail fica restrito ao fluxo de **primeiro acesso**, exclusivamente para validar o e-mail, definir a senha e cadastrar o TOTP; depois de `password_configured=true`, OTP não é aceito como login administrativo normal.
+- Permissões: OWNER tem acesso total e é o único que gerencia equipe; ADMIN pode executar ações operacionais de escrita existentes, mas não gerencia equipe/OWNER; VIEWER é somente leitura. O último/único OWNER não pode ser removido ou rebaixado pela interface/RPC.
+- Tabelas TEST novas: `admin_memberships` e `admin_audit_logs`, ambas com RLS e sem grants diretos para `anon/authenticated`; acesso somente por RPCs controladas. Funções administrativas existentes ficaram atrás de wrappers que exigem membership ativa + `role=admin` + **AAL2**; ações de escrita bloqueiam VIEWER.
+- Edge Function TEST `admin-team-invite` v1 ACTIVE: OWNER em AAL2 pode adicionar ADMIN/VIEWER por e-mail. Se a conta não existir, a função cria somente o usuário Auth confirmado sem senha; a própria pessoa configura senha + TOTP no primeiro acesso. Service key nunca vai ao navegador.
+- Auditoria administrativa dedicada registra ator, alvo, ação, metadados mínimos e horário para gestão de equipe e ações de cupom.
+- Migration TEST `20261004230000_admin_team_roles_mfa.sql` aplicada. Migration de índices `20261004233000_admin_team_fk_indexes.sql` aplicada; advisors confirmaram que os três novos avisos de FK sem índice desapareceram. Avisos RLS sem policy nas novas tabelas são intencionais porque elas são backend/RPC-only. Avisos SECURITY DEFINER refletem RPCs autenticadas que fazem validação interna de membership/AAL2. `Leaked Password Protection Disabled` continua limitação conhecida do plano Supabase Free.
+- Testes focados do novo painel: **20/20 PASS**. Regressão completa: **400/400 PASS**. Nenhuma alteração feita em PROD.
+- Próxima validação humana focada: abrir `https://homologacao.pepday.com.br/site/admin/` com `wpontieri@gmail.com`, usar **Configurar primeiro acesso**, validar OTP uma única vez, criar senha administrativa (mínimo 12 caracteres), cadastrar TOTP e confirmar que o dashboard abre mostrando **OWNER** e a seção **Equipe administrativa**. Não repetir QA de métricas/billing já aprovado.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:

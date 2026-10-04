@@ -20,13 +20,16 @@ const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabase
     persistSession:true,
     autoRefreshToken:true,
     detectSessionInUrl:true,
-    storageKey:`pepday-${config.environment}-${config.projectRef}-auth`
+    storageKey:`pepday-${config.environment}-${config.projectRef}-admin-auth`
   }
 });
 
 let days=30;
 let busy=false;
 let promoRows=[];
+let adminContext=null;
+let bootstrapEmail='';
+let activeMfaFactorId='';
 
 function authStatus(message){setText('authStatus',message)}
 function promoStatus(message){setText('promoAdminStatus',message)}
@@ -49,6 +52,196 @@ async function currentUser(){
   const {data,error}=await client.auth.getUser();
   if(error&&error.name!=='AuthSessionMissingError')throw error;
   return data?.user||null;
+}
+
+function authStage(stage='login'){
+  hide('loginForm',stage!=='login');
+  hide('firstAccess',stage!=='login');
+  hide('bootstrapCodeForm',stage!=='bootstrap');
+  hide('setPasswordForm',stage!=='password');
+  hide('mfaEnroll',stage!=='mfa-enroll');
+  hide('mfaChallengeForm',stage!=='mfa-challenge');
+}
+
+async function adminContextForSession(){
+  const {data,error}=await client.rpc('get_admin_context');
+  if(error)throw error;
+  return data;
+}
+
+function applyAdminPermissions(){
+  const level=adminContext?.access_level||'viewer';
+  setText('adminRole',level.toUpperCase());
+  setText('adminEmail',adminContext?.email||'—');
+  hide('promoCreateForm',!adminContext?.can_write);
+  hide('teamAdmin',!adminContext?.can_manage_team);
+  if(!adminContext?.can_write){
+    promoStatus('Modo VIEWER: consulta liberada; alterações administrativas estão bloqueadas.');
+  }
+}
+
+async function beginMfa(context){
+  adminContext=context;
+  const listed=await client.auth.mfa.listFactors();
+  if(listed.error)throw listed.error;
+  const verified=(listed.data?.totp||[]).find(factor=>factor.status==='verified')||null;
+  const assurance=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(assurance.error)throw assurance.error;
+
+  if(verified&&assurance.data?.currentLevel==='aal2'){
+    adminContext=await adminContextForSession();
+    await openDashboard();
+    return;
+  }
+
+  if(verified){
+    activeMfaFactorId=verified.id;
+    authStage('mfa-challenge');
+    authStatus('Informe o código do seu autenticador.');
+    return;
+  }
+
+  const enrolled=await client.auth.mfa.enroll({factorType:'totp',friendlyName:'PepDay Admin'});
+  if(enrolled.error)throw enrolled.error;
+  activeMfaFactorId=enrolled.data?.id||'';
+  const qr=enrolled.data?.totp?.qr_code||'';
+  const secret=enrolled.data?.totp?.secret||'';
+  if(!activeMfaFactorId||!qr)throw new Error('MFA_ENROLL_INVALID');
+
+  $('mfaQr').src=qr;
+  if(secret){
+    setText('mfaSecret',secret);
+    hide('mfaSecretWrap',false);
+  }
+  authStage('mfa-enroll');
+  authStatus('Configure o autenticador e confirme o primeiro código.');
+}
+
+async function afterPrimaryAuth({bootstrap=false}={}){
+  const context=await adminContextForSession();
+
+  if(bootstrap&&context.password_configured){
+    await client.auth.signOut({scope:'local'});
+    adminContext=null;
+    authStage('login');
+    authStatus('Este acesso já foi configurado. Entre com sua senha e 2FA.');
+    return;
+  }
+
+  if(!context.password_configured){
+    adminContext=context;
+    authStage('password');
+    authStatus('Defina sua senha administrativa para continuar.');
+    return;
+  }
+
+  await beginMfa(context);
+}
+
+async function openDashboard(){
+  adminContext=await adminContextForSession();
+  if(adminContext?.aal!=='aal2')throw new Error('MFA_REQUIRED');
+  hide('authCard');
+  hide('dashboard',false);
+  authStatus('');
+  applyAdminPermissions();
+  await loadMetrics();
+}
+
+async function resetAdminUi(message='Entre com sua senha para acessar o painel.'){
+  adminContext=null;
+  activeMfaFactorId='';
+  bootstrapEmail='';
+  hide('dashboard');
+  hide('authCard',false);
+  authStage('login');
+  $('loginForm')?.reset();
+  $('bootstrapCodeForm')?.reset();
+  $('setPasswordForm')?.reset();
+  $('mfaEnrollForm')?.reset();
+  $('mfaChallengeForm')?.reset();
+  authStatus(message);
+}
+
+function renderTeam(rows){
+  const list=$('teamList');
+  if(!list)return;
+  list.replaceChildren();
+
+  for(const row of Array.isArray(rows)?rows:[]){
+    const card=document.createElement('div');
+    card.className='team-row';
+
+    const identity=document.createElement('div');
+    const name=document.createElement('strong');
+    name.textContent=row.name||row.email;
+    const email=document.createElement('span');
+    email.textContent=row.email;
+    identity.append(name,email);
+
+    const badge=document.createElement('span');
+    badge.className=`team-badge ${row.access_level}`;
+    badge.textContent=row.access_level.toUpperCase();
+    card.append(identity,badge);
+
+    if(row.access_level!=='owner'){
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='ghost';
+      button.dataset.teamDisable=row.user_id;
+      button.textContent=row.active?'Desativar':'Inativo';
+      button.disabled=!row.active;
+      card.append(button);
+    }else{
+      const fixed=document.createElement('span');
+      fixed.textContent='OWNER protegido';
+      card.append(fixed);
+    }
+
+    list.append(card);
+  }
+}
+
+function renderAudit(rows){
+  const list=$('auditList');
+  if(!list)return;
+  list.replaceChildren();
+  const data=Array.isArray(rows)?rows:[];
+
+  if(!data.length){
+    const empty=document.createElement('p');
+    empty.className='muted';
+    empty.textContent='Nenhuma ação administrativa registrada.';
+    list.append(empty);
+    return;
+  }
+
+  for(const row of data){
+    const item=document.createElement('div');
+    item.className='audit-row';
+    const text=document.createElement('div');
+    const action=document.createElement('strong');
+    action.textContent=String(row.action||'').replaceAll('_',' ');
+    const detail=document.createElement('span');
+    detail.textContent=`${row.actor_email||'—'}${row.target_email?' → '+row.target_email:''}`;
+    text.append(action,detail);
+    const when=document.createElement('span');
+    when.textContent=fmtDate(row.created_at);
+    item.append(text,when);
+    list.append(item);
+  }
+}
+
+async function loadTeam(){
+  if(!adminContext?.can_manage_team)return;
+  const [team,audit]=await Promise.all([
+    client.rpc('get_admin_team'),
+    client.rpc('get_admin_audit_logs',{p_limit:50})
+  ]);
+  if(team.error)throw team.error;
+  if(audit.error)throw audit.error;
+  renderTeam(team.data);
+  renderAudit(audit.data);
 }
 
 function renderPwaMetrics(data){
@@ -126,7 +319,9 @@ function renderPromoCodes(rows){
     const toggle=document.createElement('button');toggle.type='button';toggle.dataset.promoToggle=row.code;toggle.dataset.promoActive=String(!row.active);
     toggle.textContent=row.active?'Desativar':'Ativar';
     if(row.status==='used'||row.status==='expired')toggle.disabled=true;
-    actions.append(copy,uses,toggle);card.append(head,meta,actions);list.append(card);
+    actions.append(copy,uses);
+    if(adminContext?.can_write)actions.append(toggle);
+    card.append(head,meta,actions);list.append(card);
   }
 }
 
@@ -157,11 +352,9 @@ async function showPromoRedemptions(code){
 }
 
 async function loadMetrics(){
-  if(busy)return;
+  if(busy||!adminContext)return;
   setBusy(true);
   try{
-    const user=await currentUser();
-    if(!user){hide('dashboard');hide('authCard',false);authStatus('Entre para acessar o painel.');return}
     const [acquisition,pwa,card]=await Promise.all([
       client.rpc('get_admin_acquisition_metrics',{p_days:days}),
       client.rpc('get_admin_pwa_metrics',{p_days:days}),
@@ -170,53 +363,146 @@ async function loadMetrics(){
     if(acquisition.error)throw acquisition.error;
     if(pwa.error)throw pwa.error;
     if(card.error)throw card.error;
-    hide('authCard');
-    hide('dashboard',false);
     renderMetrics(acquisition.data);
     renderPwaMetrics(pwa.data);
     renderCardCampaign(card.data);
     await loadPromoCodes();
+    await loadTeam();
   }catch(error){
+    console.error('PepDay admin:',error?.code||error?.name||'erro');
     if(error?.code==='42501'){
-      hide('dashboard');
-      hide('authCard',false);
-      authStatus('Esta conta não possui acesso administrativo ao painel.');
+      await client.auth.signOut({scope:'local'});
+      await resetAdminUi('Sua sessão administrativa expirou ou precisa de 2FA novamente.');
     }else{
-      console.error('PepDay admin:',error?.code||error?.name||'erro');
       authStatus('Não foi possível carregar o painel agora.');
     }
   }finally{setBusy(false)}
 }
 
-$('emailForm')?.addEventListener('submit',async event=>{
+$('loginForm')?.addEventListener('submit',async event=>{
   event.preventDefault();if(busy)return;
+  const email=$('email').value.trim(),password=$('password').value;
+  setBusy(true);authStatus('Entrando…');
+  try{
+    const {error}=await client.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    await afterPrimaryAuth();
+  }catch(error){
+    console.error('PepDay admin password:',error?.code||error?.name||'erro');
+    authStatus('E-mail, senha ou acesso administrativo inválido.');
+  }finally{setBusy(false)}
+});
+
+$('firstAccess')?.addEventListener('click',async()=>{
+  if(busy)return;
   const email=$('email').value.trim();
+  if(!email){authStatus('Informe seu e-mail administrativo primeiro.');return}
   setBusy(true);
   try{
     const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
     if(error)throw error;
-    hide('emailForm');hide('codeForm',false);
-    authStatus('Código enviado. Confira seu e-mail.');
+    bootstrapEmail=email;
+    authStage('bootstrap');
+    authStatus('Código de primeiro acesso enviado. Confira seu e-mail.');
   }catch(error){
-    console.error('PepDay admin auth:',error?.code||error?.name||'erro');
-    authStatus('Não foi possível enviar o código. Use uma conta PepDay já existente.');
+    console.error('PepDay admin bootstrap:',error?.code||error?.name||'erro');
+    authStatus('Não foi possível iniciar o primeiro acesso para este e-mail.');
   }finally{setBusy(false)}
 });
 
-$('codeForm')?.addEventListener('submit',async event=>{
+$('bootstrapCodeForm')?.addEventListener('submit',async event=>{
   event.preventDefault();if(busy)return;
-  const email=$('email').value.trim(),token=$('code').value.trim();
+  const token=$('bootstrapCode').value.trim();
   if(!/^\d{6}$/.test(token)){authStatus('Informe o código de 6 dígitos.');return}
   setBusy(true);
   try{
-    const {error}=await client.auth.verifyOtp({email,token,type:'email'});
+    const {error}=await client.auth.verifyOtp({email:bootstrapEmail,token,type:'email'});
     if(error)throw error;
-    authStatus('');
-    setBusy(false);
-    await loadMetrics();
+    await afterPrimaryAuth({bootstrap:true});
   }catch(error){
-    console.error('PepDay admin verify:',error?.code||error?.name||'erro');
-    authStatus('Código inválido ou expirado.');
+    console.error('PepDay admin bootstrap verify:',error?.code||error?.name||'erro');
+    authStatus('Código inválido, expirado ou conta sem acesso administrativo.');
+  }finally{setBusy(false)}
+});
+
+$('setPasswordForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy)return;
+  const password=$('newPassword').value,confirm=$('newPasswordConfirm').value;
+  if(password.length<12){authStatus('Use uma senha com pelo menos 12 caracteres.');return}
+  if(password!==confirm){authStatus('As senhas não coincidem.');return}
+  setBusy(true);
+  try{
+    const updated=await client.auth.updateUser({password});
+    if(updated.error)throw updated.error;
+    const marked=await client.rpc('admin_mark_password_configured');
+    if(marked.error)throw marked.error;
+    const context=await adminContextForSession();
+    await beginMfa(context);
+  }catch(error){
+    console.error('PepDay admin set password:',error?.code||error?.name||'erro');
+    authStatus('Não foi possível salvar a senha administrativa.');
+  }finally{setBusy(false)}
+});
+
+$('mfaEnrollForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy)return;
+  const code=$('mfaEnrollCode').value.trim();
+  if(!/^\d{6}$/.test(code)){authStatus('Informe o código de 6 dígitos do autenticador.');return}
+  setBusy(true);
+  try{
+    const {error}=await client.auth.mfa.challengeAndVerify({factorId:activeMfaFactorId,code});
+    if(error)throw error;
+    await openDashboard();
+  }catch(error){
+    console.error('PepDay admin mfa enroll:',error?.code||error?.name||'erro');
+    authStatus('Código 2FA inválido. Confira o autenticador e tente novamente.');
+  }finally{setBusy(false)}
+});
+
+$('mfaChallengeForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy)return;
+  const code=$('mfaChallengeCode').value.trim();
+  if(!/^\d{6}$/.test(code)){authStatus('Informe o código de 6 dígitos do autenticador.');return}
+  setBusy(true);
+  try{
+    const {error}=await client.auth.mfa.challengeAndVerify({factorId:activeMfaFactorId,code});
+    if(error)throw error;
+    await openDashboard();
+  }catch(error){
+    console.error('PepDay admin mfa challenge:',error?.code||error?.name||'erro');
+    authStatus('Código 2FA inválido.');
+  }finally{setBusy(false)}
+});
+
+$('teamForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();if(busy||!adminContext?.can_manage_team)return;
+  const email=$('teamEmail').value.trim(),accessLevel=$('teamLevel').value;
+  setBusy(true);setText('teamStatus','Preparando acesso administrativo…');
+  try{
+    const {data,error}=await client.functions.invoke('admin-team-invite',{body:{email,access_level:accessLevel}});
+    if(error)throw error;
+    if(!data?.ok)throw new Error(data?.code||'ADMIN_INVITE_FAILED');
+    setText('teamStatus',`${email} configurado como ${accessLevel.toUpperCase()}. No primeiro acesso, a pessoa define senha e 2FA.`);
+    $('teamForm').reset();
+    await loadTeam();
+  }catch(error){
+    console.error('PepDay admin team:',error?.code||error?.name||'erro');
+    setText('teamStatus','Não foi possível adicionar este membro agora.');
+  }finally{setBusy(false)}
+});
+
+$('teamList')?.addEventListener('click',async event=>{
+  const button=event.target.closest?.('button[data-team-disable]');
+  if(!button||busy||!adminContext?.can_manage_team)return;
+  setBusy(true);
+  try{
+    const {error}=await client.rpc('admin_disable_team_member',{p_user_id:button.dataset.teamDisable});
+    if(error)throw error;
+    setText('teamStatus','Acesso administrativo desativado.');
+    await loadTeam();
+  }catch(error){
+    console.error('PepDay admin disable:',error?.code||error?.name||'erro');
+    setText('teamStatus','Não foi possível desativar este membro.');
   }finally{setBusy(false)}
 });
 
@@ -237,7 +523,7 @@ $('promoCodeSearch')?.addEventListener('input',()=>renderPromoCodes(promoRows));
 syncPromoExpiry();
 
 $('promoCreateForm')?.addEventListener('submit',async event=>{
-  event.preventDefault();if(busy)return;
+  event.preventDefault();if(busy||!adminContext?.can_write)return;
   const duration=Number($('promoAdminDuration').value);
   const expiry=$('promoAdminExpiry').value;
   const email=$('promoAdminEmail').value.trim();
@@ -264,6 +550,7 @@ $('promoCodeList')?.addEventListener('click',async event=>{
   const uses=event.target.closest?.('button[data-promo-uses]');
   const toggle=event.target.closest?.('button[data-promo-toggle]');
   if(busy||(!copy&&!uses&&!toggle))return;
+  if(toggle&&!adminContext?.can_write)return;
   setBusy(true);
   try{
     if(copy){
@@ -290,9 +577,24 @@ $('refresh')?.addEventListener('click',loadMetrics);
 $('logout')?.addEventListener('click',async()=>{
   if(busy)return;setBusy(true);
   try{await client.auth.signOut({scope:'local'})}finally{
-    setBusy(false);hide('dashboard');hide('authCard',false);hide('emailForm',false);hide('codeForm');authStatus('Sessão encerrada.');
+    setBusy(false);
+    await resetAdminUi('Sessão encerrada.');
   }
 });
 
-client.auth.onAuthStateChange(()=>queueMicrotask(loadMetrics));
-loadMetrics();
+client.auth.onAuthStateChange(event=>{
+  if(event==='SIGNED_OUT')queueMicrotask(()=>resetAdminUi('Sessão encerrada.'));
+});
+
+(async()=>{
+  try{
+    const user=await currentUser();
+    if(!user){await resetAdminUi();return}
+    const context=await adminContextForSession();
+    await beginMfa(context);
+  }catch(error){
+    console.error('PepDay admin init:',error?.code||error?.name||'erro');
+    await client.auth.signOut({scope:'local'}).catch(()=>{});
+    await resetAdminUi('Entre com sua senha para acessar o painel.');
+  }
+})();

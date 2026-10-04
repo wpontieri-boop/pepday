@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07131f">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./admin.css">
+  <link rel="stylesheet" href="./admin.css?v=31">
   <title>PepDay Admin — Aquisição</title>
 </head>
 <body>
@@ -17,16 +17,48 @@
 <main>
   <section class="card auth-card" id="authCard">
     <div class="eyebrow">ACESSO ADMINISTRATIVO</div>
-    <h1>Entre com sua conta PepDay</h1>
+    <h1>Painel PepDay</h1>
+    <p>OWNER, ADMIN e VIEWER usam conta individual. O acesso normal exige senha e autenticação em dois fatores (TOTP).</p>
     <p>As métricas são agregadas. A gestão de códigos promocionais mostra somente os dados mínimos da conta necessários para criar códigos exclusivos e conferir resgates; nenhuma rotina, frasco ou dado de saúde é exibido.</p>
-    <form id="emailForm">
-      <label>E-mail<input id="email" type="email" autocomplete="email" required></label>
-      <button type="submit">Enviar código</button>
+
+    <form id="loginForm">
+      <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
+      <label>Senha<input id="password" type="password" autocomplete="current-password" minlength="12" required></label>
+      <button type="submit">Entrar no painel</button>
     </form>
-    <form id="codeForm" class="hidden">
-      <label>Código de 6 dígitos<input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
-      <button type="submit">Confirmar código</button>
+    <button class="ghost auth-secondary" id="firstAccess" type="button">Configurar primeiro acesso</button>
+
+    <form id="bootstrapCodeForm" class="hidden">
+      <p class="auth-step">Primeiro acesso: enviamos um código somente para validar o e-mail e permitir a criação da senha administrativa.</p>
+      <label>Código de 6 dígitos<input id="bootstrapCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <button type="submit">Validar e continuar</button>
     </form>
+
+    <form id="setPasswordForm" class="hidden">
+      <p class="auth-step">Crie uma senha forte exclusiva para o painel.</p>
+      <label>Nova senha<input id="newPassword" type="password" autocomplete="new-password" minlength="12" required></label>
+      <label>Confirmar senha<input id="newPasswordConfirm" type="password" autocomplete="new-password" minlength="12" required></label>
+      <button type="submit">Salvar senha e configurar 2FA</button>
+    </form>
+
+    <section id="mfaEnroll" class="mfa-box hidden">
+      <div class="eyebrow">2FA OBRIGATÓRIO</div>
+      <h2>Proteja seu acesso administrativo</h2>
+      <p>Escaneie o QR no seu autenticador e informe o código de 6 dígitos.</p>
+      <img id="mfaQr" alt="QR para configurar autenticação em dois fatores">
+      <p class="mfa-secret hidden" id="mfaSecretWrap">Chave manual: <code id="mfaSecret"></code></p>
+      <form id="mfaEnrollForm">
+        <label>Código do autenticador<input id="mfaEnrollCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+        <button type="submit">Ativar 2FA</button>
+      </form>
+    </section>
+
+    <form id="mfaChallengeForm" class="hidden">
+      <p class="auth-step">Confirme o código do seu autenticador para abrir o painel.</p>
+      <label>Código do autenticador<input id="mfaChallengeCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      <button type="submit">Confirmar 2FA</button>
+    </form>
+
     <p class="status" id="authStatus" role="status"></p>
   </section>
 
@@ -38,6 +70,7 @@
         <p>Contas, cartão/QR, trial e conversão paga. Dados agregados do ambiente de homologação.</p>
       </div>
       <div class="head-actions">
+        <div class="admin-session"><strong id="adminRole">—</strong><small id="adminEmail">—</small></div>
         <button class="ghost" id="refresh" type="button">Atualizar</button>
         <button class="ghost" id="logout" type="button">Sair</button>
       </div>
@@ -134,7 +167,7 @@
       <p class="muted">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
     </section>
 
-    <section class="card promo-admin">
+    <section class="card promo-admin" id="promoAdminCard">
       <div class="section-title">
         <div><div class="eyebrow">ACESSO PROMOCIONAL</div><h2>Códigos PRO</h2></div>
         <p>Gere códigos únicos de 30, 60 ou 90 dias. Cada código pode ser utilizado uma única vez.</p>
@@ -159,6 +192,23 @@
       </div>
     </section>
 
+    <section class="card team-admin hidden" id="teamAdmin">
+      <div class="section-title">
+        <div><div class="eyebrow">EQUIPE ADMINISTRATIVA</div><h2>OWNER, ADMIN e VIEWER</h2></div>
+        <p>Somente o OWNER gerencia acessos. Cada pessoa usa o próprio e-mail, senha e 2FA.</p>
+      </div>
+      <form id="teamForm" class="team-form">
+        <label>E-mail do membro<input id="teamEmail" type="email" autocomplete="off" placeholder="pessoa@exemplo.com" required></label>
+        <label>Nível<select id="teamLevel"><option value="admin">ADMIN</option><option value="viewer">VIEWER</option></select></label>
+        <button type="submit">Adicionar / atualizar</button>
+      </form>
+      <p class="status" id="teamStatus" role="status"></p>
+      <div id="teamList" class="team-list"></div>
+
+      <div class="audit-head"><div><div class="eyebrow">AUDITORIA</div><h3>Ações administrativas</h3></div></div>
+      <div id="auditList" class="audit-list"></div>
+    </section>
+
     <section class="card note">
       <h2>O que estamos medindo</h2>
       <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
@@ -168,6 +218,6 @@
   </section>
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
-<script type="module" src="./admin.mjs?v=29"></script>
+<script type="module" src="./admin.mjs?v=31"></script>
 </body>
 </html>

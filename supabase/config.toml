@@ -51,3 +51,8 @@ enabled = true
 verify_jwt = false
 # A função valida o JWT do usuário diretamente no Supabase Auth antes de cancelar a assinatura no Mercado Pago.
 entrypoint = "./functions/mercado-pago-cancel-subscription/index.mjs"
+[functions.admin-team-invite]
+enabled = true
+verify_jwt = false
+# OWNER autenticado em AAL2; a função valida a sessão e cria apenas membros administrativos TEST.
+entrypoint = "./functions/admin-team-invite/index.mjs"
