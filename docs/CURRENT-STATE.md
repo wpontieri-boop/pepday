@@ -22,8 +22,9 @@ Atualização: 04/10/2026.
 - Sandbox TEST: PASS / NÃO REPETIR sem mudança no billing. O docs/RELEASE-CANDIDATE.md registra pagamento mensal sandbox aprovado.
 - Cancelamento sandbox/webhook: PASS / NÃO REPETIR; também foram validados tratamento de webhook e eventos fora de ordem.
 - Em 29/09/2026, o commit 3e8ef89 (fix: use configured sandbox payer) substituiu o payer genérico por MERCADO_PAGO_TEST_PAYER_EMAIL no backend TEST. Em modo sandbox, o checkout usa esse payer configurado em vez do e-mail da conta PepDay.
-- O valor de MERCADO_PAGO_TEST_PAYER_EMAIL e os dados do cartão fictício não estão versionados no repositório atual. Não inventar e não mandar o usuário pagar com cartão real por falta desse dado.
-- Quando os dados fictícios usados no teste forem recuperados/fornecidos novamente, registrar aqui apenas os campos não secretos necessários à reprodução, como e-mail/identificador de comprador sandbox e cartão fictício público do provedor. Nunca registrar senha do usuário de teste, token ou chave.
+- Comprador sandbox recuperado em 04/10/2026: `buyer Test User`, usuário `TESTUSER5204056972286070843`, User ID `3722905913`. Usar esta conta como comprador nos testes; não usar a conta `seller Test User` (User ID `3722905909`) como pagador.
+- Cartão fictício oficial Mercado Pago (Brasil) recuperado em 04/10/2026 para simular aprovação: Mastercard `5480 8328 0103 3311`, validade `11/30`, código `123`, titular `APRO`, CPF de teste `12345678909`. Estes dados são públicos/fictícios de sandbox do provedor.
+- Senha e código de verificação das contas de teste continuam fora do Git; quando necessários, consultar diretamente `Mercado Pago Developers > PepDay Assinaturas > Contas de teste`.
 - Produção é separada: Mercado Pago LIVE já abre checkout corretamente. O erro Payer and collector cannot be the same user com a conta proprietária é esperado; não invalida o PASS do sandbox.
 - Próxima validação de produção ligada a billing deve ser focada somente no comportamento LIVE que ainda não estiver comprovado, sem repetir trial, sandbox, cancelamento ou outros fluxos já fechados.
 
