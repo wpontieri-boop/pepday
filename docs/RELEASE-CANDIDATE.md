@@ -136,9 +136,9 @@ A promoção para produção exige:
 11. conferência visual humana da landing final no celular — PASS;
 12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
-14. URL/domínio público definitivo + configurações de produção — **EM ANDAMENTO AUTORIZADO**; `pepday.com.br` REGISTRADO/PAGO e serviço público preservado com auto-deploy OFF; projeto Supabase separado `pepday-prod` criado e populado somente com schema/Edge Functions, sem dados TEST; Auth PROD configurado para `/app/`; build público isolado de homologação. Antes da virada de tráfego faltam somente credenciais/configurações externas de produção (Mercado Pago LIVE, Brevo API key, Firebase service account/referrer e OAuth Google);
-15. release candidate final — infraestrutura PROD preparada; aguarda conclusão segura das credenciais externas e smoke do item 14 antes da virada pública;
-16. aprovação expressa do proprietário — **PASS**; autorização de produção recebida em 03/10/2026, mantendo a regra de não apontar tráfego real antes do smoke final.
+14. URL/domínio público definitivo + configurações de produção — **PASS TÉCNICO / CUTOVER LIVE**; `pepday.com.br` publicado manualmente no `pepday-public`, Supabase/Firebase/OAuth/Brevo/Mercado Pago separados para PROD e smoke HTTP/configuração pública aprovado. Rollback conhecido: deploy anterior `dep-db03fmc9v7es739patu0` / commit `779cbaa`;
+15. release candidate final — produção técnica LIVE; resta apenas smoke humano de ponta a ponta com conta real para confirmar retorno Google, e-mail/push e abertura do checkout sem concluir cobrança;
+16. aprovação expressa do proprietário — **PASS**; autorização de produção recebida em 03/10/2026 e utilizada no cutover de 04/10/2026, mantendo `main`/V2.9 intocados.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
 
@@ -146,10 +146,10 @@ Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, s
 
 O backend de produção foi criado de forma separada do ambiente TEST no Supabase, sob o projeto `pepday-prod` (`oslefjmwfnddxlotalxu`). Schema/RLS/RPCs, Vault de URL interna e as sete Edge Functions aprovadas estão preparados, sem copiar usuários ou fixtures de homologação. O build público agora injeta configuração exclusiva de produção, enquanto homologação continua presa ao projeto TEST. Regressão após essa separação: **386/386 PASS**.
 
-A publicação final está deliberadamente retida porque provedores externos de produção usam credenciais próprias que não devem ser extraídas do TEST nem armazenadas em Git/chat. Pendentes antes de clientes reais: Mercado Pago LIVE (access token, webhook secret e IDs mensal/anual), Brevo API key, Firebase service account + autorização de `pepday.com.br` na chave Web, e OAuth Google de produção. O serviço público permanece com auto-deploy desligado até esses itens receberem smoke não destrutivo.
+As credenciais externas de produção foram configuradas com entrada segura fora do Git/chat: Mercado Pago LIVE (access token + webhook secret), Brevo API key, Firebase PROD (VAPID, service account e Web API key restrita ao domínio) e OAuth Google PROD. O serviço público continua com auto-deploy desligado e foi implantado manualmente após smoke técnico não destrutivo. O único passo restante da RC é o smoke humano final de ponta a ponta com conta real.
 
 ## Produção
 
-**NÃO EXECUTAR automaticamente.**
+Cutover público autorizado e executado manualmente em 04/10/2026 no serviço `pepday-public`; auto-deploy permanece OFF e existe rollback conhecido para a versão pública anterior.
 
-Não alterar V2.9, main ou GitHub Pages até autorização expressa.
+Não alterar `main`/V2.9 nem remover o rollback sem nova autorização expressa.
