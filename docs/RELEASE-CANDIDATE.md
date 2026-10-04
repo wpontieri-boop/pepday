@@ -118,7 +118,7 @@ A revisão do repositório não encontrou `.env`, PEM, arquivos de credenciais/s
 
 O hardening jurídico funcional foi concluído em TEST: consentimento específico e destacado para dados sensíveis separado da ciência da Política, registro de versão/data, bases legais sensíveis refinadas, transparência sobre assinaturas recorrentes e direito de arrependimento, transferência internacional, finalidade não médica e procedimento interno de incidentes. A implementação foi revisada tecnicamente e coberta pela regressão.
 
-A identificação jurídica do fornecedor/controlador foi preenchida com os dados empresariais aprovados de Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90, endereço empresarial e e-mail de contato. O bloqueio jurídico de identificação está encerrado. A adequação de CNAE/atividade econômica para software/serviço digital será confirmada com a contadora antes da cobrança em produção e permanece como pendência fiscal/contábil. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa.
+A identificação jurídica do fornecedor/controlador foi preenchida com os dados empresariais aprovados de Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90, endereço empresarial e e-mail de contato. O bloqueio jurídico de identificação está encerrado. Em 03/10/2026, o proprietário confirmou que a contadora aprovou manter o enquadramento/código de consultoria previamente definido para a cobrança do PepDay. A pendência fiscal/contábil da RC está encerrada. Parecer externo de advogado continua recomendável, mas não foi obtido nesta etapa.
 
 ## Critério para RC final
 
@@ -131,13 +131,13 @@ A promoção para produção exige:
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
 7. regressão completa verde — PASS 385/385;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
-9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
+9. adequação fiscal/contábil para cobrança do PepDay — **PASS**; a contadora aprovou manter o enquadramento/código de consultoria previamente definido;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
 12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` reservados e fora do TEST; `homologacao.pepday.com.br` **PASS** com CNAME, Render Verified, certificado emitido e HTTPS 200; Supabase Auth custom hostname **PASS técnico**; Firebase Web API key com o novo referrer autorizado e ativação de notificações no Android confirmada com novo registro FCM ativo no backend; cutover de produção PENDENTE;
-15. release candidate final — aguarda itens 9 e 14;
+15. release candidate final — aguarda somente o item 14 (cutover/configuração de produção);
 16. aprovação expressa do proprietário — somente após RC final.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
