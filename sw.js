@@ -1,6 +1,6 @@
-// Cache exclusivo da homologação V3.0. Não remove o cache da V2.9.
+// Cache V3.0 isolado por escopo. Não remove o cache da V2.9.
 const SCOPE_PATH=new URL(self.registration.scope).pathname;
-const CACHE='pepday-v3-profile-sync-23-'+SCOPE_PATH;
+const CACHE='pepday-v3-profile-sync-24-'+SCOPE_PATH;
 const ASSETS=['./','./index.html','./cartao/','./termos.html','./privacidade.html','./style.css','./account.css','./app.js',
   './manifest.json','./icon.svg','./config.js','./src/pwa-install.mjs','./src/account-ui.mjs','./src/acquisition.mjs','./src/entitlement.mjs','./src/access-control.mjs','./src/pro-gate.mjs',
   './src/import-completion.mjs','./src/account.mjs','./src/cloud.mjs','./src/legacy-import.mjs','./src/push.mjs','./src/firebase-public-config.mjs','./src/firebase-messaging-sw.js',

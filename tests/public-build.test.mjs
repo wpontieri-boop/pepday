@@ -14,13 +14,20 @@ test('build público separa landing, app, admin e cartão',async()=>{
     });
     assert.equal(result.status,0,result.stderr||result.stdout);
 
-    const [landing,app,admin,card,rootConfig,appConfig]=await Promise.all([
+    const [
+      landing,app,admin,card,rootConfig,appConfig,
+      rootFirebaseConfig,appFirebaseConfig,rootFirebaseWorker,appFirebaseWorker
+    ]=await Promise.all([
       readFile(path.join(dir,'index.html'),'utf8'),
       readFile(path.join(dir,'app','index.html'),'utf8'),
       readFile(path.join(dir,'admin','index.html'),'utf8'),
       readFile(path.join(dir,'cartao','index.html'),'utf8'),
       readFile(path.join(dir,'config.js'),'utf8'),
-      readFile(path.join(dir,'app','config.js'),'utf8')
+      readFile(path.join(dir,'app','config.js'),'utf8'),
+      readFile(path.join(dir,'src','firebase-public-config.mjs'),'utf8'),
+      readFile(path.join(dir,'app','src','firebase-public-config.mjs'),'utf8'),
+      readFile(path.join(dir,'src','firebase-messaging-sw.js'),'utf8'),
+      readFile(path.join(dir,'app','src','firebase-messaging-sw.js'),'utf8')
     ]);
 
     assert.match(landing,/Seus cálculos e sua rotina de peptídeos/);
@@ -34,6 +41,17 @@ test('build público separa landing, app, admin e cartão',async()=>{
       assert.match(builtConfig,/https:\/\/pepday\.com\.br\/app\//);
       assert.doesNotMatch(builtConfig,/fsbqpyyprtymwrmzsacp/);
       assert.doesNotMatch(builtConfig,/homologacao\.pepday\.com\.br/);
+    }
+    for(const builtFirebaseConfig of [rootFirebaseConfig,appFirebaseConfig]){
+      assert.match(builtFirebaseConfig,/pepday-v3-prod/);
+      assert.match(builtFirebaseConfig,/283848852406/);
+      assert.match(builtFirebaseConfig,/BEVAKiJcE3XcTwSmyxbCwE6d3-x_2WUcuTqsZiq02YVAuK-hzQ9u3hXkBFQVkZvkMz9yGIgz4MtRfgeYL3DxTwA/);
+      assert.doesNotMatch(builtFirebaseConfig,/pepday-v3-test/);
+    }
+    for(const builtFirebaseWorker of [rootFirebaseWorker,appFirebaseWorker]){
+      assert.match(builtFirebaseWorker,/pepday-v3-prod/);
+      assert.match(builtFirebaseWorker,/283848852406/);
+      assert.doesNotMatch(builtFirebaseWorker,/pepday-v3-test/);
     }
     assert.match(admin,/PAINEL PRIVADO/);
     assert.match(admin,/noindex,nofollow/);

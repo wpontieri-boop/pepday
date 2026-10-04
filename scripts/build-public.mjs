@@ -19,6 +19,8 @@ for(const file of ['icon.svg','termos.html','privacidade.html']){
 await copy('config.production.js','config.js');
 await copy('vendor','vendor');
 await copy('src','src');
+await copy('src/firebase-public-config.production.mjs','src/firebase-public-config.mjs');
+await copy('src/firebase-messaging-sw.production.js','src/firebase-messaging-sw.js');
 
 let landing=await readFile(path.join(root,'site','index.html'),'utf8');
 landing=landing
@@ -54,6 +56,8 @@ for(const file of [
 }
 await copy('config.production.js','app/config.js');
 await copy('src','app/src');
+await copy('src/firebase-public-config.production.mjs','app/src/firebase-public-config.mjs');
+await copy('src/firebase-messaging-sw.production.js','app/src/firebase-messaging-sw.js');
 await copy('vendor','app/vendor');
 await copy('cartao','app/cartao');
 
