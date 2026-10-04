@@ -31,6 +31,11 @@ test('painel admin explica corretamente que cartão não significa scan anônimo
   assert.match(html,/nenhuma rotina, frasco ou dado de saúde é exibido/i);
 });
 
+test('painel libera busy antes de carregar métricas após OTP válido',async()=>{
+  const source=await read('site/admin/admin.mjs');
+  assert.match(source,/verifyOtp\(\{email,token,type:'email'\}\);[^]*authStatus\(''\);[^]*setBusy\(false\);[^]*await loadMetrics\(\);/);
+});
+
 test('painel usa sessão Supabase compartilhada e não cria conta nova',async()=>{
   const source=await read('site/admin/admin.mjs');
   assert.match(source,/storageKey:\s*`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-auth`/);

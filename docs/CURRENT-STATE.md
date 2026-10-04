@@ -80,6 +80,8 @@ Atualização: 04/10/2026.
 
 - **Cache-bust do onboarding em 04/10/2026:** o Chrome ainda servia `account.css` antigo pelo Service Worker apesar do deploy novo. O HTML passou a carregar `account.css?v=28`, que pelo fetch handler atual bypassa o cache do SW quando há query string. Cache do SW avançado para `profile-sync-28`. Testes focados 4/4 PASS e regressão 391/391 PASS. Homologação somente, aguardando PASS humano.
 
+- **Correção do login do painel admin em 04/10/2026:** o OTP do admin era aceito na primeira tentativa, mas `loadMetrics()` era chamado enquanto `busy=true`, deixando o formulário de código visível e induzindo uma segunda validação do OTP já consumido. O fluxo agora libera `busy` antes de carregar o dashboard. `site/admin/admin.mjs` ganhou teste de regressão e o script do painel usa cache-bust `admin.mjs?v=29`. Regressão completa 392/392 PASS. No PROD, a conta proprietária foi promovida explicitamente para `role=admin`; antes não havia nenhum admin configurado.
+
 ## UX de notificações aprovada
 
 Fluxo oficial:

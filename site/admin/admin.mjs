@@ -212,6 +212,7 @@ $('codeForm')?.addEventListener('submit',async event=>{
     const {error}=await client.auth.verifyOtp({email,token,type:'email'});
     if(error)throw error;
     authStatus('');
+    setBusy(false);
     await loadMetrics();
   }catch(error){
     console.error('PepDay admin verify:',error?.code||error?.name||'erro');
