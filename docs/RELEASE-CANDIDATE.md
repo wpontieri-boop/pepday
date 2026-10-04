@@ -1,6 +1,6 @@
 # PepDay V3.0 — Matriz de Release Candidate
 
-Atualização: 01/10/2026.
+Atualização: 03/10/2026.
 
 Estados:
 - **PASS** — validado por teste automatizado, SQL real, smoke ou teste humano já aprovado.
@@ -17,7 +17,7 @@ A V2.9 permanece em produção.
 |---|---|---|
 | HTML/CSS/JS | PASS | syntax checks, smoke HTTP e suíte completa |
 | PWA | PASS | manifest/SW/assets + QA físico Android já aprovados |
-| novo fluxo de instalação PWA | PASS TÉCNICO / iOS PENDENTE | Android **PASS humano**: botão apareceu após desinstalação, prompt nativo instalou e reabertura pelo ícone ficou standalone sem barra do Chrome e sem CTA de instalação. iOS/iPadOS ainda pendente para guia visual/estado instalado |
+| novo fluxo de instalação PWA | PASS | Android **PASS humano**. iPhone **PASS humano**: Chrome validado em aparelho real com `Compartilhar → Ver Mais → Adicionar à Tela de Início → Adicionar`, `Abrir como app web` ativo, ícone criado e reabertura standalone sem barra do navegador. Guia visual refinado e retestado com texto específico de Chrome/Safari. |
 | manifest | PASS | suíte release candidate static |
 | service worker | PASS | cache isolado V3 e Auth fora do cache |
 | mobile | PASS | viewport/media queries + QA físico Android aprovados |
@@ -56,15 +56,15 @@ A V2.9 permanece em produção.
 | reativação | PASS | fluxo de reativação e ordenação de eventos validados |
 | e-mails transacionais | PASS | Brevo configurado; 11 templates; worker real enviou evento e persistiu message id |
 | push | PASS | Firebase TEST configurado; cron seguro + dispatcher interno ativos; 4 smokes reais em `sent` com `provider_message_id`; quarto smoke exibido fisicamente no Mac com o PepDay fechado após habilitar notificações do Chrome no macOS |
-| cache/update | PASS | cache profile-sync-22; domínio customizado de homologação e URLs públicas atualizados sem reabrir os fluxos já aprovados |
+| cache/update | PASS | cache `profile-sync-23`; módulo de instalação iOS versionado com `?v=23` para evitar JS antigo em cache; domínio customizado de homologação e URLs públicas atualizados sem reabrir fluxos já aprovados |
 | exportação de dados | PASS | RPC real com rollback + UI |
 | exclusão de conta | PASS | `account-delete` v20 corrige OPTIONS/CORS; reteste Android destrutivo com conta descartável retornou OPTIONS 200 + POST 200, encerrou a sessão e deixou zero registros da conta no Auth e nas tabelas vinculadas conferidas |
 | Termos/Privacidade | PASS TÉCNICO | versões `terms-2026-09-30-2` / `privacy-2026-09-30-2`; consentimento sensível separado/versionado; bases legais, CDC/assinatura, transferências e incidentes cobertos; fornecedor/controlador identificado como Wagner Pontieri Junior / WP Imports, CNPJ 21.756.593/0001-90 |
 
 ## Testes atuais
 
-- Regressão completa: **381/381 PASS**
-- PWA Install: **6/6 PASS**
+- Regressão completa: **385/385 PASS**
+- PWA Install: **7/7 PASS**
 - Cartão/QR 30 dias PRO: **10/10 PASS** + smokes SQL reais com rollback
 - Códigos promocionais: **6/6 PASS**
 - Release candidate static: **11/11 PASS**
@@ -108,7 +108,7 @@ Validado em aparelho real:
 15. push físico recebido com o PepDay fechado;
 16. exclusão destrutiva de conta descartável com confirmação no backend.
 
-O novo fluxo de instalação adicionado em 01/10/2026 recebeu **PASS humano no Android**: após desinstalar o PWA existente, o Chrome exibiu `Instalar PepDay`, o prompt nativo concluiu a reinstalação e a reabertura pelo novo ícone ficou em modo standalone, sem barra do Chrome e sem CTA de instalação. iPhone/iPad continua pendente apenas para validar a orientação `Compartilhar → Adicionar à Tela de Início` e o estado já instalado. A migration TEST `20261001175011_pwa_install_telemetry.sql` registra somente identificador aleatório, evento e plataforma ampla. O painel mostra métricas agregadas. A RPC teve smoke HTTP 200 e a fixture foi removida. As métricas são direcionais e não são fonte de autorização ou faturamento.
+O novo fluxo de instalação adicionado em 01/10/2026 recebeu **PASS humano no Android e no iPhone**. No Android, o Chrome exibiu `Instalar PepDay`, o prompt nativo concluiu a reinstalação e a reabertura pelo novo ícone ficou standalone. No iPhone, o Chrome foi validado fisicamente no caminho `Compartilhar → Ver Mais → Adicionar à Tela de Início → Adicionar`; `Abrir como app web` permaneceu ativo, o ícone PepDay apareceu na Tela de Início e a reabertura ocorreu em modo aplicativo, sem barra do navegador. A tela de orientação foi refinada após o teste real para diferenciar Chrome e Safari e foi retestada visualmente com PASS. A migration TEST `20261001175011_pwa_install_telemetry.sql` registra somente identificador aleatório, evento e plataforma ampla. O painel mostra métricas agregadas. A RPC teve smoke HTTP 200 e a fixture foi removida. As métricas são direcionais e não são fonte de autorização ou faturamento.
 
 ## Segurança final
 
@@ -129,15 +129,15 @@ A promoção para produção exige:
 4. teste físico mobile/PWA — PASS;
 5. teste destrutivo de exclusão com conta descartável — PASS;
 6. hardening jurídico funcional + identificação do fornecedor/controlador — PASS TÉCNICO;
-7. regressão completa verde — PASS 381/381;
+7. regressão completa verde — PASS 385/385;
 8. revisão de segredos/arquivos — PASS; Firebase Web API key restrita e alerta #1 do GitHub resolvido;
 9. adequação fiscal/contábil de CNAE/atividade para cobrança do PepDay — PENDENTE confirmação com a contadora;
 10. conferência humana do novo reaceite jurídico/gestão de assinatura — PASS;
 11. conferência visual humana da landing final no celular — PASS;
-12. UX/telemetria de instalação PWA — PASS TÉCNICO; Android **PASS humano**; iPhone/iPad **PENDENTE** somente para o novo guia/estado instalado;
+12. UX/telemetria de instalação PWA — **PASS TÉCNICO + PASS HUMANO Android/iPhone**; guia visual retestado no Chrome do iPhone após refinamento;
 13. cancelamento de assinatura — PASS com a evidência já validada; sem repetição destrutiva;
 14. URL/domínio público definitivo + configurações de produção — `pepday.com.br` REGISTRADO/PAGO; raiz e `www` reservados e fora do TEST; `homologacao.pepday.com.br` **PASS** com CNAME, Render Verified, certificado emitido e HTTPS 200; Supabase Auth custom hostname **PASS técnico**; Firebase Web API key com o novo referrer autorizado e ativação de notificações no Android confirmada com novo registro FCM ativo no backend; cutover de produção PENDENTE;
-15. release candidate final — aguarda itens 9, 12 e 14;
+15. release candidate final — aguarda itens 9 e 14;
 16. aprovação expressa do proprietário — somente após RC final.
 
 Regra operacional desta RC: não repetir QA manual de itens já marcados PASS, salvo se uma nova alteração tocar diretamente naquela área ou se uma regressão indicar falha relacionada.
