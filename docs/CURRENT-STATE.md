@@ -10,6 +10,23 @@ Atualização: 04/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Regra de continuidade operacional
+
+- Este arquivo é o checkpoint obrigatório entre chats, Mac e PC. Antes de sugerir refazer um teste, consultar primeiro este arquivo.
+- Itens marcados PASS / NÃO REPETIR só voltam a teste manual se uma alteração posterior tocar diretamente naquele fluxo ou se houver dependência específica de ambiente ainda não validada.
+- Identificadores e dados fictícios/publicamente fornecidos por provedores para sandbox podem ser registrados aqui; senhas, tokens, access tokens, webhook secrets e chaves privadas nunca entram no Git.
+- Se um dado operacional importante existir apenas em um chat, a sessão não está encerrada corretamente: consolidar aqui antes do commit/push.
+
+### Mercado Pago — memória de teste consolidada
+
+- Sandbox TEST: PASS / NÃO REPETIR sem mudança no billing. O docs/RELEASE-CANDIDATE.md registra pagamento mensal sandbox aprovado.
+- Cancelamento sandbox/webhook: PASS / NÃO REPETIR; também foram validados tratamento de webhook e eventos fora de ordem.
+- Em 29/09/2026, o commit 3e8ef89 (fix: use configured sandbox payer) substituiu o payer genérico por MERCADO_PAGO_TEST_PAYER_EMAIL no backend TEST. Em modo sandbox, o checkout usa esse payer configurado em vez do e-mail da conta PepDay.
+- O valor de MERCADO_PAGO_TEST_PAYER_EMAIL e os dados do cartão fictício não estão versionados no repositório atual. Não inventar e não mandar o usuário pagar com cartão real por falta desse dado.
+- Quando os dados fictícios usados no teste forem recuperados/fornecidos novamente, registrar aqui apenas os campos não secretos necessários à reprodução, como e-mail/identificador de comprador sandbox e cartão fictício público do provedor. Nunca registrar senha do usuário de teste, token ou chave.
+- Produção é separada: Mercado Pago LIVE já abre checkout corretamente. O erro Payer and collector cannot be the same user com a conta proprietária é esperado; não invalida o PASS do sandbox.
+- Próxima validação de produção ligada a billing deve ser focada somente no comportamento LIVE que ainda não estiver comprovado, sem repetir trial, sandbox, cancelamento ou outros fluxos já fechados.
+
 ## Estado atual aprovado
 
 - Firebase TEST configurado para Web Push.

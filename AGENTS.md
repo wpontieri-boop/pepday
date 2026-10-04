@@ -21,6 +21,14 @@ Cada computador mantém uma cópia local do projeto, e o GitHub é a fonte centr
 - Confirmar ao usuário que o projeto ficou sincronizado.
 - Quando o usuário disser “terminei por hoje”, “vamos parar”, “encerrar por hoje” ou equivalente, executar este procedimento.
 
+## Continuidade entre chats e computadores
+- O repositório é a memória operacional oficial do projeto; não depender da memória de um chat para decisões já aprovadas.
+- Antes de repetir qualquer validação manual, consultar docs/CURRENT-STATE.md e respeitar itens marcados como PASS / NÃO REPETIR.
+- Toda validação humana relevante que fechar como PASS deve ser registrada no CURRENT-STATE.md antes de encerrar a sessão, com data, ambiente e evidência suficiente para que outro chat/computador continue sem refazer o teste.
+- Toda pendência deve terminar com uma próxima ação explícita e curta.
+- Para integrações externas, registrar nomes de variáveis, IDs não secretos, ambiente usado e resultado do teste. Nunca depender de um chat antigo para reconstruir esse contexto.
+- Dados públicos/fictícios de sandbox podem ser documentados quando necessários para reproduzir um teste. Senhas de usuários de teste, tokens, access tokens, webhook secrets, chaves privadas e credenciais reais continuam proibidos no Git.
+
 ## Segurança
 - Nunca enviar ao GitHub `.env`, tokens, senhas, credenciais, chaves privadas, chaves do Supabase, Mercado Pago ou qualquer outro segredo.
 - Se houver divergência entre PC, Mac e GitHub, não sobrescrever arquivos automaticamente.
