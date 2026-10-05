@@ -67,7 +67,7 @@ for(const outcome of ['ineligible','reserved'])test('offer checkout: '+outcome,a
     if(path.endsWith('reserve_recovery_offer')){assert.equal(body.p_user_id,id);return json({outcome,campaign_id:id,request_id:id,expires_at:expiry});}
     if(path.endsWith('claim_recovery_checkout'))return json(true);
     if(path==='/preapproval'){
-      providerCalls++;assert.ok(body.reason.length<=60,'Mercado Pago reason maximum');assert.match(body.reason,/9,90.*14,90/);assert.equal(init.headers['X-Idempotency-Key'],id);assert.equal(body.auto_recurring.transaction_amount,9.90);assert.equal(body.auto_recurring.end_date,expiry);
+      providerCalls++;assert.ok(body.reason.length<=60,'Mercado Pago reason maximum');assert.match(body.reason,/9,90.*14,90/);assert.equal(init.headers['X-Idempotency-Key'],id);assert.equal(body.auto_recurring.transaction_amount,9.90);assert.equal(body.auto_recurring.end_date,undefined);
       assert.equal(body.payer_email,'sandbox@example.invalid');assert.match(body.external_reference,/:monthly:recovery:/);
       return json({id:'fixture-provider',init_point:'https://www.mercadopago.com.br/subscriptions/checkout?fixture=1',auto_recurring:body.auto_recurring});
     }
@@ -82,12 +82,12 @@ test('offer endpoint does not discount annual plan',async()=>{
 test('ordinary subscription webhook skips recovery entirely',async()=>{
   await mocked(()=>applyRecoveryBilling({id:'normal',external_reference:`pepday:${id}:monthly`},{payment:{status:'approved'}}),()=>{throw new Error('Unexpected network');});
 });
-test('first approved invoice resets amount and extends rolling renewal boundary before billing continues',async()=>{
+test('first approved invoice resets recurring amount to 14.90 before billing continues',async()=>{
   const calls=[];
   const updated=await mocked(()=>applyRecoveryBilling({id:'fixture',external_reference:`pepday:${id}:monthly:recovery:${id}`},{id:'invoice',payment:{status:'approved'},transaction_amount:9.90,debit_date:'2026-10-05T18:00:00Z'}),async(url,init)=>{
     const path=new URL(url).pathname,body=JSON.parse(init.body);calls.push(path);
     if(path.endsWith('record_recovery_payment'))return json({outcome:'converted',reset_needed:true});
-    if(path==='/preapproval/fixture'){assert.deepEqual(body,{auto_recurring:{transaction_amount:14.90,currency_id:'BRL',end_date:'2026-12-06T18:00:00.000Z'}});return json(body);}
+    if(path==='/preapproval/fixture'){assert.deepEqual(body,{auto_recurring:{transaction_amount:14.90,currency_id:'BRL'}});return json(body);}
     if(path.endsWith('update_recovery_provider_state'))return json(null);
     throw new Error('Unexpected endpoint '+path);
   });

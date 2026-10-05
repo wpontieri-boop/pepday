@@ -40,8 +40,7 @@ export default {async fetch(req){
       external_reference:checkoutExternalReference(subscription.id,'monthly')+':recovery:'+offer.campaign_id,auto_recurring:recurring,
       back_url:'https://homologacao.pepday.com.br/?recovery=1',status:'pending'
     },offer.request_id);
-    if(!checkout.id||!validCheckoutUrl(checkout.init_point)||Number(checkout.auto_recurring?.transaction_amount)!==9.90
-      ||new Date(checkout.auto_recurring?.end_date).getTime()!==new Date(recurring.end_date).getTime()){
+    if(!checkout.id||!validCheckoutUrl(checkout.init_point)||Number(checkout.auto_recurring?.transaction_amount)!==9.90){
       if(checkout.id)await provider('/preapproval/'+encodeURIComponent(checkout.id),'PUT',{status:'cancelled'});
       return response(503,'INTRODUCTORY_CONTRACT_NOT_CONFIRMED');
     }

@@ -44,11 +44,11 @@ async function setup(){
       payer_email:env('MERCADO_PAGO_TEST_PAYER_EMAIL'),external_reference:'pepday-recovery-capability-probe',
       auto_recurring:introductoryRecurring(new Date(Date.now()+71*3600000).toISOString()),
       back_url:'https://homologacao.pepday.com.br/',status:'pending'},crypto.randomUUID());
-    if(!created.id||Number(created.auto_recurring?.transaction_amount)!==9.90||!created.auto_recurring?.end_date)throw new Error('RECOVERY_CUTOFF_NOT_CONFIRMED');
+    if(!created.id||Number(created.auto_recurring?.transaction_amount)!==9.90)throw new Error('RECOVERY_INTRO_PRICE_NOT_CONFIRMED');
     const update=normalRecurringUpdate();
     const updated=await provider('/preapproval/'+encodeURIComponent(created.id),'PUT',update);
-    probeUpdate={amount:updated.auto_recurring?.transaction_amount,currency:updated.auto_recurring?.currency_id,end_date:updated.auto_recurring?.end_date};
-    ready=resetConfirmed(updated,update.auto_recurring.end_date);
+    probeUpdate={amount:updated.auto_recurring?.transaction_amount,currency:updated.auto_recurring?.currency_id};
+    ready=resetConfirmed(updated);
   }finally{
     if(created?.id)await provider('/preapproval/'+encodeURIComponent(created.id),'PUT',{status:'cancelled'});
   }

@@ -3,20 +3,16 @@ export function isRecoveryTest(url,liveMode){return url.replace(/\/$/,'')===TEST
 export function introductoryRecurring(expiresAt,now=Date.now()){
   const expiry=new Date(expiresAt).getTime();
   if(!Number.isFinite(expiry)||expiry<=now||expiry>now+72*3600000)return null;
-  // Provider cutoff bounds the discounted contract before a second monthly debit.
-  return {frequency:1,frequency_type:'months',transaction_amount:9.90,currency_id:'BRL',end_date:new Date(Math.floor(expiry/1000)*1000).toISOString()};
+  // The 72h window is PepDay offer eligibility, not the lifetime of the Mercado Pago subscription.
+  // The contract stays monthly/open-ended; after the first approved R$9.90 payment we reset it to R$14.90.
+  return {frequency:1,frequency_type:'months',transaction_amount:9.90,currency_id:'BRL'};
 }
 export function normalRecurringUpdate(paidAt=new Date().toISOString()){
   const base=new Date(paidAt);if(!Number.isFinite(base.getTime()))throw new Error('INVALID_PAYMENT_DATE');
-  // Rolling renewal boundary, derived from verified payment dates, never an arbitrary lifetime.
-  const day=base.getUTCDate();base.setUTCDate(1);base.setUTCMonth(base.getUTCMonth()+2);
-  const last=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+1,0)).getUTCDate();
-  base.setUTCDate(Math.min(day,last)+1);
-  return {auto_recurring:{transaction_amount:14.90,currency_id:'BRL',end_date:base.toISOString()}};
+  return {auto_recurring:{transaction_amount:14.90,currency_id:'BRL'}};
 }
-export function resetConfirmed(provider,expectedEnd=normalRecurringUpdate().auto_recurring.end_date){
-  return Number(provider?.auto_recurring?.transaction_amount)===14.90&&provider?.auto_recurring?.currency_id==='BRL'
-    &&new Date(provider.auto_recurring.end_date).getTime()>=new Date(expectedEnd).getTime()-1000;
+export function resetConfirmed(provider){
+  return Number(provider?.auto_recurring?.transaction_amount)===14.90&&provider?.auto_recurring?.currency_id==='BRL';
 }
 export function recoveryMessage(stage,source){
   const benefit=source==='card'?'cartão de 30 dias':'teste de 7 dias';
