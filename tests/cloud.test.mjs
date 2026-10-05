@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { validatePublicConfig,initializeCloud,readPublicAuthSettings,accountError,loadAccountState } from '../src/cloud.mjs';
+
+test('account state includes current marketing consent for recovery opt-out',async()=>{
+  const user={id:'fixture-user'};
+  const client={auth:{getUser:async()=>({data:{user}})},from:table=>({select:columns=>({eq:(field,id)=>{
+    assert.equal(id,user.id);
+    const result={data:table==='settings'?Object.fromEntries(columns.split(',').map(c=>[c,c==='marketing_opt_in'])):{id:user.id}};
+    return {single:async()=>result,maybeSingle:async()=>result};
+  }})})};
+  const state=await loadAccountState(client,{entitlement:async()=>({pro:false})});
+  assert.equal(state.settings.marketing_opt_in,true);
+});
 import { createAccountService } from '../src/account.mjs';
 const config={environment:'test',projectRef:'fixture',supabaseUrl:'https://fixture.supabase.co',
   supabasePublishableKey:'sb_publishable_fixture',runtimeUrl:'https://stage.test/',

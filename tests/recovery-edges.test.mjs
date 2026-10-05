@@ -67,7 +67,7 @@ for(const outcome of ['ineligible','reserved'])test('offer checkout: '+outcome,a
     if(path.endsWith('reserve_recovery_offer')){assert.equal(body.p_user_id,id);return json({outcome,campaign_id:id,request_id:id,expires_at:expiry});}
     if(path.endsWith('claim_recovery_checkout'))return json(true);
     if(path==='/preapproval'){
-      providerCalls++;assert.equal(init.headers['X-Idempotency-Key'],id);assert.equal(body.auto_recurring.transaction_amount,9.90);assert.equal(body.auto_recurring.end_date,expiry);
+      providerCalls++;assert.ok(body.reason.length<=60,'Mercado Pago reason maximum');assert.match(body.reason,/9,90.*14,90/);assert.equal(init.headers['X-Idempotency-Key'],id);assert.equal(body.auto_recurring.transaction_amount,9.90);assert.equal(body.auto_recurring.end_date,expiry);
       assert.equal(body.payer_email,'sandbox@example.invalid');assert.match(body.external_reference,/:monthly:recovery:/);
       return json({id:'fixture-provider',init_point:'https://www.mercadopago.com.br/subscriptions/checkout?fixture=1',auto_recurring:body.auto_recurring});
     }

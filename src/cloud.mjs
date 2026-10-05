@@ -94,7 +94,7 @@ export async function loadAccountState(client, account) {
     .eq('id',user.id).single();
   if (profile.error) throw profile.error;
   const settings = await client.from('settings')
-    .select('routine_reminders,refill_alerts,operational_notices,account_security_notices')
+    .select('routine_reminders,refill_alerts,operational_notices,account_security_notices,marketing_opt_in')
     .eq('user_id',user.id).maybeSingle();
   if (settings.error) throw settings.error;
   const subscription = await client.from('subscriptions')

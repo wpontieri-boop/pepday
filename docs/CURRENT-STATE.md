@@ -10,6 +10,14 @@ Atualização: 05/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Validação em andamento 05/10/2026 — recuperação TEST
+
+- Base `aca7704`, PC e GitHub limpos em `v3.0-bloco-b`, fetch e divergência 0/0 antes de agir. Nenhum PASS anterior foi repetido.
+- Fixtures descartáveis `wpontieri+pepday-recovery-e2e-{warning,ended,resume,offer,last,trial,no-consent}-20261005@gmail.com`, somente TEST. Datas/aceites são sintéticos para QA; não representam cadastro/resgate humano do cartão ou trial. Caixa do proprietário recebe os aliases. Cinco etapas do cartão e aviso de trial aceitos pelo Brevo e entregues no Gmail; cada etapa teve uma tentativa. Worker pg_net 44/45 HTTP200 (5+1 envios); replay 47 enviou zero. Conta sem marketing permanece sem campanha/fila.
+- Testes reais com ROLLBACK conferiram exclusão por consentimento, janela 72h, expiração, intenção/criador únicos e retirada da fila ao revogar. Não substituem pagamento real.
+- Checkout novo revelou limite do `reason` Mercado Pago: HTTP400 `REASON_HAS_MORE_THAN_60_CHARACTERS`. Descrição abreviada mantendo os dois preços; `recovery-checkout` TEST v3. Consulta canônica pg_net48 confirmou zero contratos para a referência da fixture; somente então liberada a trava da tentativa rejeitada, sem nova intenção. Não liberar travas após resultado desconhecido.
+- Corrigida carga de `marketing_opt_in` para exibir opt-out no Perfil da campanha; cache TEST 30. Regressão 424/424 PASS, sintaxe/build PASS. PROD intocado.
+- Próxima ação: concluir pagamento da nova oferta sandbox e confirmar entitlement, saída da sequência, preço normal e atribuição. Auditoria temporária `recovery-test-audit` deve ser aposentada após conferência; token efêmero, gate TEST e referência fixa da fixture. PROD permanece bloqueado.
 ## Checkpoint atual 05/10/2026 — recuperação v1 somente TEST
 
 - Continuidade oficial recuperada: `AGENTS.md` + este arquivo integralmente; PC/origin limpos e sincronizados em **6b717f2**, branch `v3.0-bloco-b`, divergência **0/0** antes de alterações. A cópia isolada foi atualizada por fast-forward, sem sobrescrever trabalho do PC.

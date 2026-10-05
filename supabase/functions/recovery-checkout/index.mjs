@@ -36,7 +36,7 @@ export default {async fetch(req){
     const payer=env('MERCADO_PAGO_TEST_PAYER_EMAIL');
     if(!payer)return response(503,'TEST_PAYER_NOT_CONFIGURED');
     const checkout=await provider('/preapproval','POST',{
-      reason:'PepDay PRO retomada: R$ 9,90 primeiro mês; depois R$ 14,90/mês',payer_email:payer,
+      reason:'PepDay PRO: R$9,90 primeiro mês; depois R$14,90/mês',payer_email:payer,
       external_reference:checkoutExternalReference(subscription.id,'monthly')+':recovery:'+offer.campaign_id,auto_recurring:recurring,
       back_url:'https://homologacao.pepday.com.br/?recovery=1',status:'pending'
     },offer.request_id);
