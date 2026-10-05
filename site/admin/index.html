@@ -172,11 +172,12 @@
         <article><small>SEM CONSENTIMENTO</small><strong id="recoveryWithoutConsent">—</strong><span>fora das campanhas promocionais</span></article>
       </div>
       <div class="recovery-stats">
-        <div><small>RECUPERADOS POR CAMPANHA</small><strong id="campaignRecovered">—</strong><span>atribuição de campanha ainda não disponível</span></div>
+        <div><small>RECUPERADOS POR CAMPANHA</small><strong id="campaignRecovered">—</strong><span id="campaignRecoveredDetail">atribuição de campanha ainda não disponível</span></div>
         <div><small>COBRANÇAS APROVADAS</small><strong id="approvedCharges">—</strong><span>eventos aplicados no período, inclui renovações</span></div>
         <div><small>RECEITA RECEBIDA</small><strong id="revenueReceived">—</strong><span id="revenueDetail">valor financeiro ainda não disponível</span></div>
       </div>
-      <p class="muted">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
+      <p class="muted" id="recoverySendingPolicy">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
+      <details id="recoveryTestSelection" class="hidden"><summary>Selecionar contas para testes da recuperação</summary><p>Somente contas de teste selecionadas podem receber a sequência em homologação. O consentimento atual continua obrigatório.</p><div id="recoveryTestAccounts"></div></details>
       <p class="muted">Cartão tem precedência sobre trial na recuperação. Os vencimentos são subconjuntos da base ativa; EX-PRO pode também estar entre os expirados. Não some esses indicadores.</p>
     </section>
 
@@ -232,6 +233,6 @@
   </section>
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
-<script type="module" src="./admin.mjs?v=32"></script>
+<script type="module" src="./admin.mjs?v=33"></script>
 </body>
 </html>

@@ -1,0 +1,97 @@
+import {readFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import assert from 'node:assert/strict';
+const {PGlite}=await import(pathToFileURL(process.env.PGLITE_MODULE).href);
+const read=name=>readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8');
+const db=new PGlite();let passed=0;
+const check=(value,expected,label)=>{assert.deepEqual(value,expected,label);passed++;};
+const uid=i=>`10000000-0000-4000-8000-${String(i).padStart(12,'0')}`;
+try{
+  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema extensions;
+    create table auth.users(id uuid primary key);
+    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+    create function extensions.digest(text,text) returns bytea language sql immutable as $$select convert_to($1,'UTF8')$$;
+    create function public.admin_assert_access(boolean,boolean) returns text language sql as $$select 'owner'::text$$;`);
+  // Actual production table definitions and constraints, isolated in disposable PostgreSQL.
+  const table=async(file,name)=>{const sql=await read(file),start=sql.indexOf('create table public.'+name+' (');
+    assert.ok(start>=0,name);await db.exec(sql.slice(start,sql.indexOf('\n);',start)+4));};
+  for(const name of ['profiles','subscriptions','trials','settings'])await table('202609090001_block_a.sql',name);
+  const billing=await read('20260928202253_block_c_billing_foundation.sql');
+  await db.exec(billing.slice(billing.indexOf('alter table public.subscriptions'),billing.indexOf('create table public.billing_events')));
+  await db.exec('create table public.acquisition_attributions(id uuid primary key);');
+  await table('20261001184711_card_qr_30d_benefit.sql','card_pro_grants');
+  for(const name of ['promo_codes','promo_redemptions'])await table('20260929172504_promo_codes_access.sql',name);
+  await db.exec(await read('20261005174543_recovery_test_campaign.sql'));
+  await db.exec(await read('20261005183709_recovery_config_safe_update.sql'));
+  await db.exec(await read('20261005184537_recovery_conversion_attribution.sql'));
+  await db.exec(await read('20261005184923_recovery_checkout_creation_guard.sql'));
+  await db.exec(await read('20261005190348_recovery_marketing_optout.sql'));
+  for(let i=1;i<=9;i++)await db.exec(`insert into auth.users values('${uid(i)}');insert into profiles(id,email) values('${uid(i)}','recovery${i}@example.invalid');insert into subscriptions(user_id) values('${uid(i)}');insert into settings(user_id,marketing_opt_in,marketing_accepted_at) values('${uid(i)}',true,now());insert into recovery_test_accounts(user_id) values('${uid(i)}');`);
+  await db.exec(`insert into trials(user_id,trial_used,started_at,ends_at) values('${uid(1)}',true,now()-interval '12 days',now()-interval '5 days'),('${uid(2)}',true,now()-interval '5 days',now()+interval '2 days'),('${uid(3)}',true,now()-interval '12 days',now()-interval '5 days'),('${uid(4)}',true,now()-interval '12 days',now()-interval '5 days'),('${uid(5)}',true,now()-interval '12 days',now()-interval '5 days');
+    insert into acquisition_attributions values('${uid(6)}');
+    insert into card_pro_grants(user_id,acquisition_id,starts_at,ends_at) values('${uid(6)}','${uid(6)}',now()-interval '35 days',now()-interval '5 days');
+    insert into trials(user_id,trial_used,started_at,ends_at) values('${uid(6)}',true,now()-interval '40 days',now()-interval '33 days');
+    update settings set marketing_opt_in=false,marketing_accepted_at=null where user_id='${uid(3)}';
+    update profiles set role='admin' where id='${uid(4)}';
+    update subscriptions set status='pro_active',plan='monthly',current_period_end=now()+interval '30 days' where user_id='${uid(5)}';`);
+  const scalar=async sql=>(await db.query(sql)).rows[0];
+  check((await scalar('select prepare_recovery_campaigns() result')).result.outcome,'disabled','off by default');
+  await db.exec(`select configure_recovery_test('{"warning":1,"ended":2,"resume":3,"offer":4,"last":5}',true);select prepare_recovery_campaigns();select prepare_recovery_campaigns();`);
+  check((await scalar('select count(*)::int n from recovery_campaigns')).n,3,'consent/admin/paid exclusions and idempotent enrollment');
+  check((await scalar('select count(*)::int n from recovery_email_outbox')).n,15,'unique stages');
+  check((await scalar(`select source from recovery_campaigns where user_id='${uid(6)}'`)).source,'card','card priority');
+  check((await scalar(`select extract(day from offer_starts_at-benefit_start)::int benefit_day from recovery_campaigns where user_id='${uid(1)}'`)).benefit_day,12,'trial offer day12');
+  check((await scalar(`select extract(day from offer_starts_at-benefit_start)::int benefit_day from recovery_campaigns where user_id='${uid(6)}'`)).benefit_day,35,'card offer day35');
+  await db.exec('select prepare_recovery_campaigns();');
+  check((await scalar(`select count(*)::int n from recovery_email_outbox where status='suppressed'`)).n,6,'past stages skipped, never burst replay');
+  const request=uid(8);
+  const reserve=async i=>(await scalar(`select reserve_recovery_offer('${uid(i)}','${request}') r`)).r;
+  const one=await reserve(1);check(one.outcome,'reserved','eligible monthly offer');
+  check((await scalar(`select claim_recovery_checkout('${one.campaign_id}') ok`)).ok,true,'one creator acquired');
+  check((await scalar(`select claim_recovery_checkout('${one.campaign_id}') ok`)).ok,false,'concurrent creator denied');
+  check((await scalar(`select reserve_recovery_offer('${uid(1)}','${uid(9)}') r`)).r.request_id,one.request_id,'repeated requests share one checkout');
+  check((await reserve(2)).outcome,'ineligible','active trial no offer');
+  check((await reserve(3)).outcome,'ineligible','no consent');
+  await db.exec(`select bind_recovery_checkout('${one.campaign_id}','provider-fixture','https://www.mercadopago.com.br/subscriptions/checkout?fixture=1');`);
+  await db.exec(`insert into promo_codes(code,duration_days,max_redemptions) values('FIXTURE',30,1);`);
+  await assert.rejects(()=>db.exec(`insert into promo_redemptions(promo_code_id,user_id,code_snapshot,duration_days,starts_at,ends_at) select id,'${uid(1)}','FIXTURE',30,now(),now()+interval '30 days' from promo_codes;`));passed++;
+  await db.exec(`insert into promo_redemptions(promo_code_id,user_id,code_snapshot,duration_days,starts_at,ends_at) select id,'${uid(6)}','FIXTURE',30,now()+interval '1 day',now()+interval '31 days' from promo_codes;`);
+  check((await reserve(6)).outcome,'ineligible','future courtesy prevents offer stacking');
+  // One claim at a time, no automatic re-delivery after ambiguous transport failure.
+  const worker=uid(9);
+  const claimed=(await scalar(`select claim_recovery_email('${worker}') r`)).r;
+  check(claimed.outcome,'claimed','queue claim');
+  check((await scalar(`select validate_recovery_email('${claimed.id}','${worker}') ok`)).ok,true,'last check allowed');
+  await db.exec(`update settings set marketing_opt_in=false,marketing_accepted_at=null where user_id=(select user_id from recovery_campaigns where id='${claimed.campaign_id}');`);
+  check((await scalar(`select validate_recovery_email('${claimed.id}','${worker}') ok`)).ok,false,'consent revocation between claim and send');
+  check((await scalar(`select status from recovery_email_outbox where id='${claimed.id}'`)).status,'suppressed','revocation clears pending and processing');
+  // Expiration cannot be extended by another request.
+  await db.exec(`update recovery_campaigns set offer_starts_at=now()-interval '73 hours',offer_expires_at=now()-interval '1 hour' where user_id='${uid(1)}';`);
+  check((await reserve(1)).outcome,'ineligible','offer expiry');
+  await db.exec(`update recovery_campaigns set offer_starts_at=now()-interval '1 hour',offer_expires_at=now()+interval '71 hours' where user_id='${uid(1)}';`);
+  for(const args of ["null,now()","14.90,now()","9.90,null","9.90,now()+interval '72 hours'"]){
+    check((await scalar(`select record_recovery_payment('provider-fixture','invalid-invoice',${args}) r`)).r.outcome,'invalid','invalid canonical payment rejected');}
+  const result=(await scalar(`select record_recovery_payment('provider-fixture','invoice-one',9.90,now()) r`)).r;
+  check(result.outcome,'converted','canonical payment attribution');
+  check((await scalar(`select record_recovery_payment('provider-fixture','invoice-one',9.90,now()) r`)).r.outcome,'duplicate','webhook duplicate');
+  check((await reserve(1)).outcome,'ineligible','once per account');
+  await db.exec(`select update_recovery_provider_state('provider-fixture','reset');`);
+  check((await scalar(`select price_reset_at is not null ok from recovery_campaigns where user_id='${uid(1)}'`)).ok,true,'reset recorded');
+  await db.exec(`update subscriptions set status='pro_active',current_period_end=now()+interval '30 days' where user_id='${uid(2)}';`);
+  check((await scalar(`select status from recovery_campaigns where user_id='${uid(2)}'`)).status,'stopped','subscribe during journey');
+  check((await scalar(`select count(*)::int n from recovery_email_outbox where campaign_id=(select id from recovery_campaigns where user_id='${uid(2)}') and status in ('pending','retry','processing')`)).n,0,'no messages after signing');
+  check((await scalar(`select has_function_privilege('authenticated','reserve_recovery_offer(uuid,uuid)','execute') ok`)).ok,false,'client cannot forge offer account');
+  check((await scalar(`select has_table_privilege('service_role','recovery_campaigns','SELECT') ok`)).ok,false,'state only through narrow RPC');
+  await db.exec(`insert into trials(user_id,trial_used,started_at,ends_at) values('${uid(7)}',true,now()-interval '10 days',now()-interval '3 days'),('${uid(8)}',true,now()-interval '10 days',now()-interval '3 days');select prepare_recovery_campaigns();
+    update recovery_email_outbox set status='sent',sent_at=now() where stage='resume' and campaign_id=(select id from recovery_campaigns where user_id='${uid(7)}');
+    update subscriptions set status='pro_active',provider='mercado_pago',last_payment_status='approved',plan='monthly',current_period_end=now()+interval '30 days' where user_id in ('${uid(7)}','${uid(8)}');`);
+  check((await scalar(`select status from recovery_campaigns where user_id='${uid(7)}'`)).status,'converted','normal-price subscription attributed only after confirmed campaign send');
+  check((await scalar(`select status from recovery_campaigns where user_id='${uid(8)}'`)).status,'stopped','queued-only campaign not attributed');
+  check((await scalar(`select first_amount is null ok from recovery_campaigns where user_id='${uid(7)}'`)).ok,true,'normal-price revenue never estimated');
+  // Callback lease abandoned after an uncertain POST remains one creator, even after time passes.
+  check((await scalar(`select claim_recovery_checkout('${one.campaign_id}') ok`)).ok,false,'unknown provider result never creates second contract');
+  await db.exec(`select set_config('request.jwt.claim.sub','${uid(7)}',false);select revoke_recovery_marketing_consent();`);
+  check((await scalar(`select marketing_opt_in from settings where user_id='${uid(7)}'`)).marketing_opt_in,false,'self-service marketing optout');
+  check((await scalar(`select marketing_opt_in from settings where user_id='${uid(8)}'`)).marketing_opt_in,true,'optout cannot affect another account');
+  console.log(`PASS recovery SQL: ${passed} assertions; no network or real recipients.`);
+}catch(error){console.error(error.message,error.internalQuery||'');process.exitCode=1;}finally{await db.close()}

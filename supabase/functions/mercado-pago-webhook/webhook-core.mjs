@@ -44,7 +44,9 @@ export async function verifyMercadoPagoSignature({secret,xSignature,xRequestId,d
 }
 
 export function parsePepDayReference(value){
-  const match=clean(String(value??'')).match(/^pepday:([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?::(monthly|annual))?$/i);
+  const reference=clean(String(value??''));
+  const recovery=reference.match(/^(pepday:[0-9a-f-]{36}:monthly):recovery:([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i);
+  const match=(recovery?recovery[1]:reference).match(/^pepday:([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?::(monthly|annual))?$/i);
   return match?{subscriptionId:match[1].toLowerCase(),plan:match[2]?.toLowerCase()||null}:null;
 }
 

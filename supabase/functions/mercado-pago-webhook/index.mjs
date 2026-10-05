@@ -1,3 +1,4 @@
+import {applyRecoveryBilling} from './recovery-billing.mjs';
 import {
   canonicalEventDate,
   effectFromAuthorizedPayment,
@@ -139,6 +140,8 @@ export default {
 
       const providerSubscriptionId=String(preapproval?.id||invoice?.preapproval_id||"");
       if(!providerSubscriptionId)throw new WebhookError("CANONICAL_SUBSCRIPTION_ID_MISSING",503);
+
+      preapproval=(await applyRecoveryBilling(preapproval,invoice))||preapproval;
 
       const externalReference=preapproval?.external_reference??invoice?.external_reference;
       const internal=await findInternalSubscription(

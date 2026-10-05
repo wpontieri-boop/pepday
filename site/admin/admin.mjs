@@ -393,6 +393,7 @@ async function loadMetrics(){
     if(pwa.error)throw pwa.error;
     if(card.error)throw card.error;
     renderMetrics(acquisition.data);
+    if(config.environment==='test')await loadRecoveryTest();
     renderPwaMetrics(pwa.data);
     renderCardCampaign(card.data);
     await loadPromoCodes();
@@ -406,6 +407,31 @@ async function loadMetrics(){
       setText('metricsStatus','Não foi possível atualizar. Os números exibidos podem estar desatualizados; tente novamente.');
     }
   }finally{setBusy(false)}
+}
+
+async function loadRecoveryTest(){
+  const [metrics,accounts]=await Promise.all([client.rpc('get_admin_recovery_metrics',{p_days:days}),client.rpc('list_recovery_test_candidates')]);
+  if(metrics.error||accounts.error)return; // Older environments keep the approved dashboard.
+  const m=metrics.data;
+  setText('campaignRecovered',fmt(m.recovered_campaign_count));
+  setText('campaignRecoveredDetail',`${fmt(m.recovered_trial_count)} pós-trial • ${fmt(m.recovered_card_count)} pós-cartão • ${fmtMoney(m.recovery_revenue_first_cycle)} de receita confirmada da oferta${m.recovery_price_reset_pending?' • '+fmt(m.recovery_price_reset_pending)+' aguardando confirmação da renovação':''}`);
+  setText('integrationsSummary',m.recovery_provider_ready?'Recuperação disponível somente para testes em homologação. Mensal: R$ 9,90 no primeiro mês; depois R$ 14,90/mês.':'Recuperação em homologação: oferta aguarda validação do contrato financeiro.');
+  setText('recoverySendingPolicy','Envio limitado às contas de teste selecionadas, com consentimento atual. Produção permanece sem automação de recuperação.');
+  hide('recoveryTestSelection',false);
+  const list=$('recoveryTestAccounts');list.replaceChildren();
+  for(const account of accounts.data){
+    const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=account.selected;
+    check.disabled=adminContext?.access_level==='viewer';
+    const stages={active:'sequência ativa',stopped:'sequência encerrada',completed:'sequência concluída',converted:'converteu para PRO'};
+    const text=document.createElement('span');text.textContent=` ${account.email} • ${account.candidate.source==='card'?'cartão 30d':'trial 7d'}${account.status?' • '+(stages[account.status]||'em acompanhamento'):''}`;
+    check.addEventListener('change',async()=>{
+      check.disabled=true;const result=await client.rpc('select_recovery_test_account',{p_user_id:account.user_id,p_selected:check.checked});
+      if(result.error){check.checked=!check.checked;setText('metricsStatus','Não foi possível alterar a seleção. Verifique seu acesso administrativo.');}
+      check.disabled=false;
+    });
+    label.append(check,text);list.append(label,document.createElement('br'));
+  }
+  if(!accounts.data.length)list.textContent='Nenhuma conta com benefício de trial/cartão e consentimento válido disponível para seleção.';
 }
 
 $('loginForm')?.addEventListener('submit',async event=>{

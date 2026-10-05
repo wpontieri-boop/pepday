@@ -20,6 +20,29 @@ Object.defineProperty(globalThis,'PepDayAccess',{value:accessView,writable:false
 const repositoryScope=globalThis.PepDayRepositoryScope;
 const later = new Set(); // por conta, somente nesta sessão; nenhum token/dado clínico aqui.
 const cardUsageMarked = new Set();
+let recoveryOffer=null;
+async function loadRecoveryOffer(current){
+  recoveryOffer=null;el('recoveryOffer')?.remove();
+  if(config.environment!=='test'||new URL(location.href).searchParams.get('recovery')!=='1')return;
+  if(state?.settings?.marketing_opt_in===true){
+    const preferences=document.createElement('div');preferences.id='recoveryPreferences';preferences.className='card';
+    const text=document.createElement('p');text.textContent='Você autorizou mensagens promocionais do PepDay. Pode parar de recebê-las quando quiser.';
+    const stop=document.createElement('button');stop.type='button';stop.className='secondary';stop.textContent='Parar mensagens promocionais';
+    stop.addEventListener('click',()=>{if(busy)return;run(async()=>{
+      const {error}=await cloud.client.rpc('revoke_recovery_marketing_consent');
+      if(error)throw error;await refresh();status('Consentimento de marketing removido. Você saiu da sequência promocional.');
+    });});
+    preferences.append(text,stop);el('accountSignedIn').append(preferences);
+  }
+  const {data,error}=await cloud.client.rpc('get_my_recovery_offer');
+  if(error||!data||current!==generation)return;
+  recoveryOffer=data;
+  const box=document.createElement('div');box.id='recoveryOffer';box.className='card';
+  const title=document.createElement('h3');title.textContent='Oferta de retomada: primeiro mês por R$ 9,90';
+  const detail=document.createElement('p');detail.textContent=`Depois, R$ 14,90/mês. Válida até ${new Date(data.expires_at).toLocaleString('pt-BR')}. Uso único, sem acumular com códigos PRO de cortesia. Anual permanece R$ 99,90/ano.`;
+  const button=document.createElement('button');button.type='button';button.className='primary';button.dataset.recoveryOffer='true';button.textContent='Assinar com oferta de retomada';
+  box.append(title,detail,button);el('proOffer').prepend(box);
+}
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 if(new URL(location.href).searchParams.get('from')==='cartao')captureCardAcquisition();
 function hide(id, hidden = true) { el(id).classList.toggle('hidden',hidden); }
@@ -84,6 +107,8 @@ function enableMethods() {
     busy || el('accountDeleteText').value.trim()!=='EXCLUIR';
 }
 function clearPrivateUi({preserveAccess=false}={}) {
+  recoveryOffer=null;el('recoveryOffer')?.remove();
+  el('recoveryPreferences')?.remove();
   state = null; importErrors=[]; importMode='import'; pushInstallationActive=null; savedPushPreferences=null; pushPreferencesEditing=false; currentRepository=null;
   el('accountIdentity').textContent = '';
   if(!preserveAccess)publishAccess(null);
@@ -286,6 +311,7 @@ function downloadJson(data){
 }
 async function refresh() {
   const current = ++generation;
+  recoveryOffer=null;el('recoveryOffer')?.remove();
   stopSync();clearPrivateUi({preserveAccess:true});
   repositoryScope?.suspend();
   if (!cloud) { await repositoryScope?.signedOut(); return; }
@@ -307,6 +333,7 @@ async function refresh() {
     if (current !== generation) return;
     if (next.status !== 'signed_in') { publishAccess(null); hide('accountSignedIn'); hide('accountSignedOut',false); return; }
     state=next;
+    void loadRecoveryOffer(current);
     let hydrationDelayed=false;
     if(repository?.accountScope===`user:${next.user.id}`){
       try{
@@ -635,6 +662,17 @@ el('promoRedeemForm').addEventListener('submit',event=>{
 });
 
 el('proOffer').addEventListener('click',event=>{
+  if(event.target.closest?.('button[data-recovery-offer]')){
+    if(busy||!recoveryOffer)return;
+    run(async()=>{
+      el('billingStatus').textContent='Preparando sua oferta de retomada…';
+      const {data,error}=await cloud.client.functions.invoke('recovery-checkout',{body:{plan:'monthly',request_id:crypto.randomUUID()}});
+      if(error||!safeCheckoutUrl(data?.checkout_url)){
+        el('billingStatus').textContent='A oferta não está disponível agora. Consulte os planos normais ou atualize sua conta.';return;
+      }
+      location.assign(safeCheckoutUrl(data.checkout_url));
+    });return;
+  }
   const button=event.target.closest?.('button[data-pro-plan]');
   if(!button||busy)return;
   const plan=button.dataset.proPlan;
