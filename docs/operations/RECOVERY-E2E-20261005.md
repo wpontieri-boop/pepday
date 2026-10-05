@@ -33,7 +33,7 @@ Regressão **424/424**, SQL local **38**, sintaxe/build PASS. Frontend TEST LIVE
 
 Antes de repetir o POST rejeitado, auditoria canônica pg_net48 confirmou `contracts=[]`. Só então `checkout_started_at` da única fixture foi liberado; intenção permaneceu a mesma. Não liberar esse lock em erros desconhecidos/timeouts. A segunda tentativa criou **um** contrato, preço e comprador verificados pela API.
 
-## Pagamento preparado — pendente de confirmação humana
+## Pagamento preparado — tentativa humana recusada
 
 - Conta PepDay `5d14e810-c5ae-465e-9594-5440e774566e`, alias offer acima.
 - Campanha `5f12c791-fd53-4ffc-b4b8-7f0ce1d2c707`; assinatura interna `35fffa54-7a85-4615-83b0-48ebad6c951d`.
@@ -49,4 +49,12 @@ Antes de repetir o POST rejeitado, auditoria canônica pg_net48 confirmou `contr
 
 Outras fixtures retiradas da seleção, campanhas encerradas `DISPOSABLE_QA_FINISHED`, mensagens futuras suprimidas; evidências conservadas. Somente offer continua selecionada enquanto aguarda confirmação. Zero clientes PROD envolvidos. Auditoria temporária `recovery-test-audit` v4 aposentada, responde somente 410 RETIRED, sem imports/segredos/provedor. Chamadas anteriores exigiram URL TEST, sandbox, token efêmero de uso único e referência fixa; não expuseram credenciais.
 
-Próxima ação: concluir **a revisão existente**, sem criar outro contrato/envio. Conferir primeira fatura oficial aprovada, worker/webhook/entitlement, campanha converted, zero fila ativa, valor recorrente14,90, métricas e reserva negada; replay do mesmo evento não deve duplicar. Não realizar segunda cobrança nem usar cartão real. Retirar última seleção ao terminar. Se o checkout exigir login/verificação, usar somente comprador sandbox documentado; credenciais permanecem fora do Git. Se expirar, revisar/cancelar o contrato antes de planejar outra fixture. PROD exige autorização expressa nova.
+### Investigação após confirmação do proprietário
+
+O proprietário clicou Confirmar e informou a recusa. Navegador confirmou “Não foi possível processar seu pagamento”, sem motivo específico. Auditoria TEST pg_net53 HTTP200 consultou o contrato, authorized_payments e payments/search pela referência exata: contrato agora `cancelled`, nenhuma fatura e nenhum pagamento encontrado. Valor R$9,90, comprador3722905913 e recebedor3722905909 permanecem corretos. Worker pg_net52/54 registrou zero cancelamentos/envios. Campanha segue active sem stop_reason, oferta vigente, conta sem conversão. Não há evidência de pagamento aprovado; não marcar consequências financeiras PASS.
+
+O link existente mostra “Este plano não está disponível”; não há revisão válida para confirmar novamente. Não foi criado outro contrato, liberada trava, reativada assinatura nem usado outro cartão. Causa exata da recusa permanece desconhecida. [Teste oficial de assinaturas Mercado Pago](https://www.mercadopago.com.br/developers/en/docs/subscriptions/integration-test/payment-approval) orienta usar os dados do usuário de teste. Login sandbox é hipótese a verificar, não diagnóstico concluído.
+
+Navegador interno já identificou `TESTUSER5204056972286070843` e abriu o campo de senha. Para obter a credencial fora do Git/chat, Chrome abriu Developers → Integrações → PepDay Assinaturas, aplicação `7268916270122162`. Provedor interrompeu com “Valide que esta é a sua conta” (SMS/WhatsApp/ligação); verificação humana pendente. Nenhuma mensagem de verificação foi solicitada automaticamente. Auditoria temporária v5 reaberta somente para consulta foi aposentada em v6, HTTP410 RETIRED, sem acesso ao provedor.
+
+Próxima ação: proprietário concluir somente essa verificação no Chrome. Recuperar a credencial sandbox sem expor, autenticar comprador e investigar uma tentativa controlada TEST após considerar o contrato cancelado, preservando uso único/idempotência. Não reutilizar o link cancelado nem liberar travas por suposição. Não repetir os seis envios. Pagamento e consequências continuam pendentes; não realizar segunda cobrança nem usar cartão real. PROD exige autorização expressa nova.
