@@ -131,7 +131,8 @@ Atualização: 04/10/2026.
 - Auditoria administrativa dedicada registra ator, alvo, ação, metadados mínimos e horário para gestão de equipe e ações de cupom.
 - Migration TEST `20261004230000_admin_team_roles_mfa.sql` aplicada. Migration de índices `20261004233000_admin_team_fk_indexes.sql` aplicada; advisors confirmaram que os três novos avisos de FK sem índice desapareceram. Avisos RLS sem policy nas novas tabelas são intencionais porque elas são backend/RPC-only. Avisos SECURITY DEFINER refletem RPCs autenticadas que fazem validação interna de membership/AAL2. `Leaked Password Protection Disabled` continua limitação conhecida do plano Supabase Free.
 - Testes focados do novo painel: **20/20 PASS**. Regressão completa: **400/400 PASS**. Nenhuma alteração feita em PROD.
-- Próxima validação humana focada: abrir `https://homologacao.pepday.com.br/site/admin/` com `wpontieri@gmail.com`, usar **Configurar primeiro acesso**, validar OTP uma única vez, criar senha administrativa (mínimo 12 caracteres), cadastrar TOTP e confirmar que o dashboard abre mostrando **OWNER** e a seção **Equipe administrativa**. Não repetir QA de métricas/billing já aprovado.
+- **PASS HUMANO / NÃO REPETIR:** em 04/10/2026, o primeiro acesso administrativo do OWNER foi concluído em homologação para `wpontieri@gmail.com`. Backend TEST confirmou membership `owner` ativa, `password_configured=true`, **1 fator TOTP verificado** e **0 fatores TOTP pendentes**. O QR/TOTP inicialmente exposto em print foi invalidado antes de uso e substituído por novo fator não compartilhado. Não repetir este bootstrap do OWNER salvo reset explícito de senha/MFA ou alteração direta na autenticação administrativa.
+- Próxima ação pendente: validar um segundo membro administrativo em homologação — primeiro **VIEWER** (leitura apenas) e depois **ADMIN** (operações sem gestão de equipe), usando e-mails próprios e sem compartilhar credenciais.
 
 ## UX de notificações aprovada
 
