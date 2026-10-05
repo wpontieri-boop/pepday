@@ -13,5 +13,13 @@ export const config = Object.freeze({
   privacyUrl: 'https://pepday.com.br/privacidade.html',
   privacyVersion: 'privacy-2026-09-30-2',
   sensitiveDataConsentVersion: 'health-data-2026-09-30',
-  runtimeUrl: 'https://pepday.com.br/app/'
+  runtimeUrl: 'https://pepday.com.br/app/',
+  ads: Object.freeze({
+    enabled: false,
+    provider: 'adsense',
+    nonPersonalized: true,
+    placement: 'calculator-result',
+    publisherId: '',
+    slotId: ''
+  })
 });

@@ -14,5 +14,11 @@ export const config = Object.freeze({
   privacyVersion: 'privacy-2026-09-30-2',
   sensitiveDataConsentVersion: 'health-data-2026-09-30',
   runtimeUrl: 'https://homologacao.pepday.com.br/',
-  blockedProductionUrl: 'https://pepday.com.br/app/'
+  blockedProductionUrl: 'https://pepday.com.br/app/',
+  ads: Object.freeze({
+    enabled: true,
+    provider: 'preview',
+    nonPersonalized: true,
+    placement: 'calculator-result'
+  })
 });

@@ -145,7 +145,9 @@ class TestCustomEvent extends Event {constructor(type,options={}){super(type);th
 test('evento DOM forjado não concede PRO ao estado controlado',()=>{
   const target=new EventTarget();target.defaultView={CustomEvent:TestCustomEvent};
   const {view,authority}=createAccessController(target);
+  assert.equal(view.ready(),false);
   authority.authenticated({status:'free',pro:false,trial_available:true});
+  assert.equal(view.ready(),true);
   target.dispatchEvent(new TestCustomEvent('pepday:entitlement',{detail:{status:'pro_active',pro:true,signedIn:true}}));
   assert.equal(view.snapshot().status,'free');assert.equal(view.canUsePro(),false);
   authority.authenticated({status:'trial',pro:true,trial_used:true});assert.equal(view.canUsePro(),true);

@@ -7,6 +7,7 @@ function emit(target,type,detail) {
 
 export function createAccessController(eventTarget=globalThis.document) {
   let access=normalizeEntitlement(null);
+  let initialized=false;
   const listeners=new Set();
 
   function notify() {
@@ -18,6 +19,7 @@ export function createAccessController(eventTarget=globalThis.document) {
 
   const view=Object.freeze({
     snapshot:()=>access,
+    ready:()=>initialized,
     canUsePro:()=>access.pro===true,
     requirePro(context='pro') {
       if(access.pro===true)return true;
@@ -33,8 +35,8 @@ export function createAccessController(eventTarget=globalThis.document) {
 
   // Esta capacidade fica somente no módulo de conta e recebe apenas respostas autenticadas da RPC.
   const authority=Object.freeze({
-    signedOut(){access=normalizeEntitlement(null);notify()},
-    authenticated(raw){access=normalizeEntitlement(raw,{signedIn:true});notify()}
+    signedOut(){access=normalizeEntitlement(null);initialized=true;notify()},
+    authenticated(raw){access=normalizeEntitlement(raw,{signedIn:true});initialized=true;notify()}
   });
 
   return Object.freeze({view,authority});

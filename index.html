@@ -113,6 +113,11 @@
         </div>
         <button class="secondary" id="saveRoutineFromCalc" data-pro-action>SALVAR COMO ROTINA</button>
       </div>
+
+      <aside id="freeAdSlot" class="free-ad-slot hidden" aria-label="Publicidade" data-ad-state="hidden">
+        <div class="free-ad-label">PUBLICIDADE · PEPDAY FREE</div>
+        <div id="freeAdMount" class="free-ad-mount" aria-live="off"></div>
+      </aside>
     </section>
 
     <section id="routines" class="screen" data-pro-screen>
@@ -442,6 +447,7 @@
 <script defer src="vendor/supabase-2.116.0.js"></script>
 <script type="module" src="src/pwa-install.mjs?v=23"></script>
 <script type="module" src="src/account-ui.mjs"></script>
+<script type="module" src="src/ads.mjs"></script>
 <script type="module" src="src/pro-gate.mjs?v=30"></script>
 </body>
 </html>

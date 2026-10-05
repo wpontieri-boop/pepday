@@ -230,7 +230,7 @@ test('perfil reidrata vínculo do aparelho e não mostra ativar/desativar ao mes
   assert.match(accountUi,/hide\('pushDisable',checking\|\|pushInstallationActive!==true/);
   assert.match(accountUi,/Notificações ativadas neste aparelho/);
   assert.match(accountUi,/routine:true,refill:true,operational:true,security:true/);
-  assert.match(sw,/pepday-v3-profile-sync-30/);
+  assert.match(sw,/pepday-v3-profile-sync-31/);
 });
 
 
