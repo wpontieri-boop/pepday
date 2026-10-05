@@ -38,6 +38,7 @@ O painel distingue recuperados pós-trial/pós-cartão e receita comprovada da p
 ## Implantação TEST e IDs não secretos
 
 - Supabase TEST: `fsbqpyyprtymwrmzsacp`; URL pública `https://fsbqpyyprtymwrmzsacp.supabase.co`.
+- Publicação frontend TEST LIVE: commit `976148b384107b3fd00026e734b992da1c120d9d`, deploy `dep-db207trncjis73c2kumg`; smoke HTTP PASS do painel/seleção, oferta/opt-out e Service Worker 29. Registro posterior somente documental.
 - Render homologação: `srv-date0i6k1f9s73ft9vo0`, workspace `tea-da7iss0u01pc73d6vflg`, branch `v3.0-bloco-b`, auto-deploy por commit. PROD `srv-davto4tg1s2s73brihf0` segue com auto-deploy desligado.
 - Migrations locais/remotas aplicadas apenas em TEST:
 
