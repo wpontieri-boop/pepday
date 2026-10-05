@@ -53,7 +53,7 @@ O painel distingue recuperados pós-trial/pós-cartão e receita comprovada da p
 
 Os timestamps remotos foram gerados pelo MCP; não reaplicar migrations antigas porque os nomes locais diferem. A correção `safe_update` acrescenta filtro do singleton exigido pelo PostgREST real.
 
-- Edges TEST: `recovery-worker` v9, `recovery-checkout` v2, `mercado-pago-webhook` v23; `verify_jwt=false` com autenticação explícita própria descrita acima.
+- Edges TEST: `recovery-worker` v9, `recovery-checkout` v3, `mercado-pago-webhook` v23; `verify_jwt=false` com autenticação explícita própria descrita acima.
 - Variáveis existentes utilizadas: `SUPABASE_URL`, `SUPABASE_SECRET_KEYS`/`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_ANON_KEY`, `BREVO_API_KEY`, `BREVO_TEMPLATE_ACCOUNT_CREATED`, `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_LIVE_MODE`, `MERCADO_PAGO_TEST_PAYER_EMAIL`. Segredos não foram copiados para o Git nem exibidos.
 - Vault existente: `pepday_supabase_project_url`. Configuração comercial não secreta em `recovery_config`: `enabled`, `provider_ready`, `template_ids`.
 - Templates Brevo exclusivos `PepDay TEST recovery-v1`: warning **12**, ended **13**, resume **14**, offer **15**, last **16**. Nenhum template de produção foi alterado.
@@ -71,3 +71,5 @@ Os timestamps remotos foram gerados pelo MCP; não reaplicar migrations antigas 
 Para pausar novas campanhas, definir `recovery_config.enabled=false where singleton is true`. Manter a manutenção financeira do cron enquanto existir contrato de recuperação, pois ela protege o preço normal e a janela de renovação.
 
 Fontes primárias consultadas: [gerenciamento de assinaturas Mercado Pago](https://www.mercadopago.com.br/developers/en/docs/subscriptions/subscription-management), [criação de assinaturas](https://www.mercadopago.com.br/developers/en/reference/online-payments/subscriptions/create-preapproval/post), [templates Brevo](https://developers.brevo.com/reference/create-smtp-template), [idempotência Brevo](https://developers.brevo.com/changelog/2021/11/10) e [agendamento Supabase](https://supabase.com/docs/guides/functions/schedule-functions). O comportamento de `end_date:null` foi observado no sandbox, não presumido da documentação.
+
+Validação subsequente: [RECOVERY-E2E-20261005.md](RECOVERY-E2E-20261005.md). Entrega/jornadas foram comprovadas; pagamento e consequências permanecem pendentes no checkpoint atual. Cache TEST 30; correção do `reason` limitado a 60 caracteres e carga do consentimento de marketing publicadas somente em homologação.
