@@ -10,6 +10,21 @@ Atualização: 05/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Checkpoint 05/10/2026 — recuperação promovida e ATIVA em PROD
+
+- **Autorização expressa do proprietário:** promoção do bloco de recuperação para produção autorizada em 05/10/2026 após fechamento do E2E TEST. `main`/V2.9 permaneceram intocados; rollout feito pelo serviço PROD da branch `v3.0-bloco-b`.
+- **Commit de rollout:** `1551de6` (`feat: prepare recovery automation for production`), sincronizado com `origin/v3.0-bloco-b` antes do deploy. Regressão completa **425/425 PASS**, recuperação focada **20/20 PASS**, sintaxe/build/`git diff --check` PASS. Runner SQL PROD descartável foi adicionado, mas não foi executado nesta máquina; não usar como evidência.
+- **Barreiras de ambiente:** recuperação só executa em TEST com Supabase TEST + Mercado Pago sandbox, ou em PROD com Supabase PROD + Mercado Pago LIVE. Checkout PROD usa o e-mail autenticado do cliente e retorna para `https://pepday.com.br/app/?recovery=1`; TEST continua isolado.
+- **Smoke pós-alteração em TEST / NÃO REPETIR:** Edge TEST `recovery-checkout` v5, `recovery-worker` v11 e `mercado-pago-webhook` v24. pg_net 93 = HTTP200 `TEST_SETUP_READY`, probe `eaac2d7825d847979d3b9e69137d9b4c` cancelado e atualização R$14,90/BRL confirmada; pg_net 94 = HTTP200 `TEST_RECOVERY_COMPLETE`, enviados/falhas/reset/cancelados=0.
+- **Supabase PROD:** migration remota `recovery_production_campaign` aplicada em `oslefjmwfnddxlotalxu`. Estrutura nasceu `enabled=false`; antes da ativação havia zero campanhas e zero fila. Cron `pepday-recovery-prod-worker` job 2 ativo a cada 5 minutos, com dispatcher validando a URL exata do projeto PROD.
+- **Edges PROD:** `recovery-checkout` v1, `recovery-worker` v1, `mercado-pago-webhook` v8 ACTIVE. Setup PROD pg_net 2 = HTTP200 `PROD_SETUP_READY`; Mercado Pago LIVE verificado somente por leitura, sem assinatura/cobrança. Templates Brevo PROD não secretos: warning 17, ended 18, resume 19, offer 20, last 21.
+- **Frontend PROD:** Render `pepday-public` deploy `dep-db22iq6i0phs73d2514g`, commit exato `1551de674f5354ac0b717b12b0241fe5afe2e534`, build/deploy SUCCEEDED. Smokes HTTP200: `/app/`, `/app/?recovery=1`, `/admin/`, módulo de conta e admin; build publicado contém recovery PROD e `loadRecoveryProduction`.
+- **Ativação PROD:** `recovery_config.enabled=true` e `provider_ready=true`. Primeiro ciclo controlado pg_net 3 = HTTP200 `PROD_RECOVERY_COMPLETE`, `sent=0`, `failed=0`, `skipped=0`, `reset=0`, `canceled=0`. Nenhuma mensagem foi enviada na ativação.
+- **Fila PROD atual:** 1 campanha pós-cartão foi programada automaticamente com 5 etapas futuras, nenhuma `due_now`. Benefício termina 04/11/2026 14:42Z; warning inicia 01/11; offer inicia 09/11; oferta expira 12/11. Na checagem final: sent=0, due_now=0. Não disparar mensagens manualmente.
+- **Advisors:** nenhum erro novo específico do recovery. Avisos gerais/históricos permanecem, inclusive RLS sem policy nas tabelas privadas acessadas por RPCs e avisos SECURITY DEFINER; revisar separadamente, sem misturar com este rollout.
+- **PASS PROD do rollout / NÃO REPETIR:** migration, Edges, setup sem cobrança, frontend e primeiro ciclo controlado estão fechados. Não repetir pagamento TEST nem criar cobrança LIVE para “testar”. A primeira validação financeira PROD deve vir de uma conversão real de cliente elegível, observada canonicamente.
+- **Próxima ação explícita:** acompanhar a primeira etapa real programada em PROD e, quando houver conversão real, validar uma única vez R$9,90 → PRO → recorrência R$14,90/replay, sem intervenção manual. Até lá, manter cron/automação ativos e não refazer os PASS acima.
+
 ## Checkpoint 05/10/2026 — PASS HUMANO recuperação TEST R$ 9,90 → R$ 14,90 / NÃO REPETIR
 
 - **PASS HUMANO / NÃO REPETIR — pagamento de recuperação TEST:** conta dedicada `wpontieri+pepday-recovery-openended-20261005@gmail.com`, user `aa26ead6-71b5-47a6-a871-e4136f5a3fd4`, campanha `a9631920-22c9-4843-8328-aa0d62ceaead`, subscription `f81ea89a-7b13-4155-9670-ea299116b5bf`. Trial sintético expirado apenas para QA; etapas antigas warning/ended/resume foram suprimidas e não reenviadas.
