@@ -51,5 +51,5 @@ test('recuperados por campanha continuam indisponíveis até tracking real',asyn
   const sql=await read('supabase/migrations/20260929022500_fix_admin_lifecycle_marketing_column.sql');
   const admin=await read('site/admin/admin.mjs');
   assert.match(sql,/'recovered_campaign_available',false/);
-  assert.match(admin,/data\.recovered_campaign_available\?'0':'—'/);
+  assert.match(admin,/data\.recovered_campaign_available&&data\.recovered_campaign_count!=null/);
 });

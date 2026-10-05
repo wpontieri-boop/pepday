@@ -54,6 +54,6 @@ test('frontend renderiza todas as métricas lifecycle e mantém placeholders ext
     'annual_active_now','grace_active_now','cancel_scheduled_now',
     'pro_expired_now','cancellations_in_window'
   ]) assert.match(source,new RegExp(`data\\.${key}`));
-  assert.match(source,/data\.recovered_campaign_available\?'0':'—'/);
-  assert.match(source,/data\.revenue_available\?'R\$ 0,00':'—'/);
+  assert.match(source,/data\.recovered_campaign_available&&data\.recovered_campaign_count!=null/);
+  assert.match(source,/data\.revenue_available&&data\.revenue_received!=null/);
 });

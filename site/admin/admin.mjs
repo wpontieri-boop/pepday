@@ -4,7 +4,8 @@ const $=id=>document.getElementById(id);
 const hide=(id,value=true)=>$(id)?.classList.toggle('hidden',value);
 const setText=(id,value)=>{if($(id))$(id).textContent=String(value??'—')};
 const fmt=n=>new Intl.NumberFormat('pt-BR').format(Number(n||0));
-const fmtPercent=n=>new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(Number(n||0))+'%';
+const fmtPercent=n=>n==null?'—':new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(Number(n))+'%';
+const fmtMoney=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n));
 const fmtDate=value=>{
   if(!value)return 'sem validade';
   const date=new Date(value);
@@ -259,6 +260,11 @@ function renderCardCampaign(data){
   setText('cardBenefitPlans',`${fmt(data?.paid_monthly_after_grant)} / ${fmt(data?.paid_annual_after_grant)}`);
   setText('cardTrialRate',fmtPercent(data?.qr_to_grant_percent));
   setText('cardPaidRate',fmtPercent(data?.grant_to_paid_percent));
+  const ready=data?.metrics_version===2;
+  setText('cardActivationBasis',ready?`${fmt(data.cohort_activated)} de ${fmt(data.cohort_attributed)} contas atribuídas no período`:'Base da taxa aguardando atualização');
+  setText('cardConversionBasis',ready?`${fmt(data.cohort_paid)} de ${fmt(data.cohort_granted)} benefícios iniciados no período`:'Base da taxa aguardando atualização');
+  setText('cardUsageBasis',ready?`primeiro uso no período • ${fmtPercent(data.grant_to_used_percent)} da coorte usaram`:'primeiro uso no período');
+  if(!ready){setText('cardTrialRate','—');setText('cardPaidRate','—')}
 }
 
 function renderMetrics(data){
@@ -266,15 +272,23 @@ function renderMetrics(data){
   setText('cardAccounts',fmt(data.card_accounts));
   setText('otherAccounts',fmt(data.other_accounts));
   setText('trialsStarted',fmt(data.trials_started));
-  setText('cardTrials',`${fmt(data.card_trials)} via cartão`);
+  setText('cardTrials',`${fmt(data.card_trials)} de origem cartão/QR • não inclui 30d`);
   setText('paidConversions',fmt(data.paid_conversions));
   setText('cardPaid',`${fmt(data.card_paid_conversions)} via cartão`);
   setText('paidActive',fmt(data.paid_active_now));
   setText('totalUsers',fmt(data.total_users_now));
   setText('freeNow',fmt(data.free_now));
+  setText('basePaidActive',fmt(data.paid_active_now));
+  setText('cardActiveNow',fmt(data.card_active_now));
+  setText('promoActiveNow',fmt(data.promo_active_now));
   setText('trialActive',fmt(data.trial_active_now));
   setText('trialEnding',fmt(data.trial_ending_3d_now));
   setText('trialExpired',fmt(data.trial_expired_no_pro_now));
+  setText('cardEnding',fmt(data.card_ending_3d_now));
+  setText('cardExpired',fmt(data.card_expired_no_pro_now));
+  setText('recoveryTrialDetail',`${fmt(data.recovery_trial_eligible_now)} com consentimento`);
+  setText('recoveryCardDetail',`${fmt(data.recovery_card_eligible_now)} com consentimento`);
+  setText('recoveryWithoutConsent',fmt(data.recovery_without_consent_now));
   setText('recoveryEligible',fmt(data.recovery_eligible_now));
   setText('monthlyActive',fmt(data.monthly_active_now));
   setText('annualActive',fmt(data.annual_active_now));
@@ -284,8 +298,22 @@ function renderMetrics(data){
   setText('cancellationsWindow',fmt(data.cancellations_in_window));
   setText('cancellationsWindowLabel',`nos últimos ${data.window_days} dias`);
   setText('recoverySummary',fmt(data.recovery_eligible_now));
-  setText('campaignRecovered',data.recovered_campaign_available?'0':'—');
-  setText('revenueReceived',data.revenue_available?'R$ 0,00':'—');
+  setText('campaignRecovered',data.recovered_campaign_available&&data.recovered_campaign_count!=null?fmt(data.recovered_campaign_count):'—');
+  setText('approvedCharges',data.approved_charges_in_window==null?'—':fmt(data.approved_charges_in_window));
+  setText('revenueReceived',data.revenue_available&&data.revenue_received!=null?fmtMoney(data.revenue_received):'—');
+  setText('revenueDetail',data.revenue_available&&data.revenue_received!=null?'total informado pelos eventos financeiros':data.revenue_unavailable_reason||'valor financeiro ainda não disponível');
+  const ready=data.metrics_version===2;
+  setText('metricsStatus',ready?'':'Métricas de acesso e recuperação aguardam atualização do banco deste ambiente.');
+  if(!ready){
+    for(const id of ['freeNow','basePaidActive','cardActiveNow','promoActiveNow','trialActive','trialEnding','trialExpired','cardEnding','cardExpired','recoveryWithoutConsent','recoveryEligible','recoverySummary'])setText(id,'—');
+    setText('recoveryTrialDetail','aguardando atualização');
+    setText('recoveryCardDetail','aguardando atualização');
+  }
+  setText('environmentSummary',`Contas, cartão/QR, trial e conversão paga. Dados agregados do ambiente de ${config.environment==='production'?'produção':'homologação'}.`);
+  setText('integrationsSummary',config.environment==='production'
+    ?'Brevo e Mercado Pago configurados em produção. Oferta e automação de recuperação ainda pendentes.'
+    :'Ambiente de homologação. Oferta e automação de recuperação ainda pendentes.');
+  setText('windowSummary',`Eventos nos últimos ${data.window_days} dias. Base atual e elegibilidade independem do período selecionado.`);
   const stamp=data.generated_at?new Date(data.generated_at):null;
   setText('generatedAt',stamp&&Number.isFinite(stamp.getTime())
     ?`Atualizado em ${new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'medium'}).format(stamp)} • janela de ${data.window_days} dias.`
@@ -354,6 +382,7 @@ async function showPromoRedemptions(code){
 async function loadMetrics(){
   if(busy||!adminContext)return;
   setBusy(true);
+  setText('metricsStatus','Atualizando indicadores…');
   try{
     const [acquisition,pwa,card]=await Promise.all([
       client.rpc('get_admin_acquisition_metrics',{p_days:days}),
@@ -374,7 +403,7 @@ async function loadMetrics(){
       await client.auth.signOut({scope:'local'});
       await resetAdminUi('Sua sessão administrativa expirou ou precisa de 2FA novamente.');
     }else{
-      authStatus('Não foi possível carregar o painel agora.');
+      setText('metricsStatus','Não foi possível atualizar. Os números exibidos podem estar desatualizados; tente novamente.');
     }
   }finally{setBusy(false)}
 }

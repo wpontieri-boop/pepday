@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07131f">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./admin.css?v=31">
+  <link rel="stylesheet" href="./admin.css?v=32">
   <title>PepDay Admin — Aquisição</title>
 </head>
 <body>
@@ -67,7 +67,7 @@
       <div>
         <div class="eyebrow">FUNIL DE AQUISIÇÃO</div>
         <h1>PepDay em números</h1>
-        <p>Contas, cartão/QR, trial e conversão paga. Dados agregados do ambiente de homologação.</p>
+        <p id="environmentSummary">Contas, cartão/QR, trial e conversão paga. Identificando ambiente…</p>
       </div>
       <div class="head-actions">
         <div class="admin-session"><strong id="adminRole">—</strong><small id="adminEmail">—</small></div>
@@ -76,25 +76,27 @@
       </div>
     </div>
 
+    <p id="metricsStatus" class="status" role="status"></p>
     <div class="window-picker" aria-label="Período">
       <button type="button" data-days="7">7 dias</button>
       <button type="button" data-days="30" class="active">30 dias</button>
       <button type="button" data-days="90">90 dias</button>
     </div>
+    <p class="muted" id="windowSummary">O período filtra aquisição e eventos. A base atual mostra o acesso vigente agora.</p>
 
     <div class="metrics">
       <article><small>NOVAS CONTAS</small><strong id="newAccounts">—</strong><span>no período</span></article>
       <article class="accent"><small>CARTÃO / QR</small><strong id="cardAccounts">—</strong><span>contas atribuídas</span></article>
       <article><small>OUTRAS ORIGENS</small><strong id="otherAccounts">—</strong><span>novas contas</span></article>
-      <article><small>TRIALS INICIADOS</small><strong id="trialsStarted">—</strong><span id="cardTrials">— via cartão</span></article>
+      <article><small>TRIALS DE 7D INICIADOS</small><strong id="trialsStarted">—</strong><span id="cardTrials">— de origem cartão/QR</span></article>
       <article class="pro"><small>CONVERSÕES PRO</small><strong id="paidConversions">—</strong><span id="cardPaid">— via cartão</span></article>
       <article><small>PRO PAGOS ATIVOS</small><strong id="paidActive">—</strong><span>agora</span></article>
     </div>
 
     <section class="card funnel">
-      <div><small>QR → 30 DIAS PRO</small><strong id="cardTrialRate">—%</strong></div>
+      <div><small>QR → 30 DIAS PRO</small><strong id="cardTrialRate">—</strong><span id="cardActivationBasis">—</span></div>
       <div class="arrow">→</div>
-      <div><small>30 DIAS PRO → PAGO</small><strong id="cardPaidRate">—%</strong></div>
+      <div><small>30 DIAS PRO → PAGO</small><strong id="cardPaidRate">—</strong><span id="cardConversionBasis">—</span></div>
     </section>
 
     <section class="panel-section">
@@ -104,10 +106,10 @@
       </div>
       <div class="metrics card-campaign">
         <article class="accent"><small>30D ATIVADOS</small><strong id="cardBenefitGranted">—</strong><span>na janela selecionada</span></article>
-        <article><small>USARAM O BENEFÍCIO</small><strong id="cardBenefitUsed">—</strong><span>primeiro uso do PRO</span></article>
-        <article class="pro"><small>30D ATIVOS AGORA</small><strong id="cardBenefitActive">—</strong><span>acesso vigente</span></article>
+        <article><small>USARAM O BENEFÍCIO</small><strong id="cardBenefitUsed">—</strong><span id="cardUsageBasis">primeiro uso no período</span></article>
+        <article class="pro"><small>30D ATIVOS AGORA</small><strong id="cardBenefitActive">—</strong><span>benefícios vigentes, inclui quem assinou</span></article>
         <article><small>30D ENCERRADOS</small><strong id="cardBenefitEnded">—</strong><span>terminaram na janela</span></article>
-        <article class="pro"><small>ASSINARAM DEPOIS</small><strong id="cardBenefitPaid">—</strong><span>mensal ou anual</span></article>
+        <article class="pro"><small>ASSINARAM DEPOIS</small><strong id="cardBenefitPaid">—</strong><span>após concessão, no período</span></article>
         <article><small>MENSAL / ANUAL</small><strong id="cardBenefitPlans">—</strong><span>conversões após o benefício</span></article>
       </div>
     </section>
@@ -115,56 +117,67 @@
     <section class="panel-section">
       <div class="section-title">
         <div><div class="eyebrow">INSTALAÇÃO PWA</div><h2>Adoção do aplicativo instalado</h2></div>
-        <p>Telemetria mínima, sem dados de rotina, frascos ou conteúdo de saúde.</p>
+        <p>Indicadores direcionais de dispositivos, não de pessoas. Sem dados de saúde.</p>
       </div>
       <div class="metrics pwa-metrics">
         <article class="accent"><small>INSTALAÇÕES DETECTADAS</small><strong id="pwaDetectedInstalls">—</strong><span>primeira evidência no período</span></article>
-        <article><small>DISPOSITIVOS ATIVOS</small><strong id="pwaActiveDevices">—</strong><span>abriram em modo instalado</span></article>
+        <article><small>DISPOSITIVOS ATIVOS</small><strong id="pwaActiveDevices">—</strong><span>abriram instalados no período</span></article>
         <article><small>ABERTURAS INSTALADAS</small><strong id="pwaStandaloneLaunches">—</strong><span>uma por sessão</span></article>
       </div>
     </section>
 
     <section class="panel-section">
       <div class="section-title">
-        <div><div class="eyebrow">BASE ATUAL</div><h2>Usuários e ciclo do trial</h2></div>
-        <p>Contas administrativas não entram nestes números.</p>
+        <div><div class="eyebrow">BASE ATUAL</div><h2>Usuários por acesso vigente</h2></div>
+        <p>Estados exclusivos: cada conta entra em um grupo. Contas administrativas não entram nestes números.</p>
       </div>
       <div class="metrics lifecycle">
         <article><small>USUÁRIOS</small><strong id="totalUsers">—</strong><span>contas comerciais</span></article>
-        <article><small>FREE AGORA</small><strong id="freeNow">—</strong><span>ainda não usaram trial</span></article>
+        <article><small>FREE AGORA</small><strong id="freeNow">—</strong><span>sem acesso PRO vigente</span></article>
         <article class="trial"><small>TRIAL ATIVO</small><strong id="trialActive">—</strong><span>com acesso PRO temporário</span></article>
-        <article class="warning"><small>TRIAL VENCENDO</small><strong id="trialEnding">—</strong><span>próximas 72 horas</span></article>
-        <article class="danger"><small>TRIAL EXPIRADO SEM PRO</small><strong id="trialExpired">—</strong><span>oportunidade de recuperação</span></article>
-        <article class="accent"><small>ELEGÍVEIS PARA RECUPERAÇÃO</small><strong id="recoveryEligible">—</strong><span>com consentimento de marketing</span></article>
+        <article class="accent"><small>CARTÃO 30D ATIVO</small><strong id="cardActiveNow">—</strong><span>benefício vigente, sem PRO pago</span></article>
+        <article class="trial"><small>PROMO ATIVO</small><strong id="promoActiveNow">—</strong><span>cortesia por código</span></article>
+        <article class="pro"><small>PRO PAGO</small><strong id="basePaidActive">—</strong><span>inclui tolerância e cancelamento agendado</span></article>
       </div>
     </section>
 
     <section class="panel-section">
       <div class="section-title">
         <div><div class="eyebrow">ASSINATURAS</div><h2>PRO e retenção</h2></div>
-        <p>Os valores passam a refletir pagamentos reais quando o Mercado Pago for conectado.</p>
+        <p id="billingSummary">Assinaturas e eventos confirmados pelo Mercado Pago. Cortesias não geram receita.</p>
       </div>
       <div class="metrics subscriptions">
         <article class="pro"><small>PRO MENSAL ATIVO</small><strong id="monthlyActive">—</strong><span>assinaturas mensais</span></article>
         <article class="pro"><small>PRO ANUAL ATIVO</small><strong id="annualActive">—</strong><span>assinaturas anuais</span></article>
         <article class="warning"><small>EM TOLERÂNCIA</small><strong id="graceActive">—</strong><span>falha de renovação / 3 dias</span></article>
         <article><small>CANCELAMENTO AGENDADO</small><strong id="cancelScheduled">—</strong><span>acesso permanece até o fim</span></article>
-        <article><small>EX-PRO</small><strong id="proExpired">—</strong><span>assinatura já encerrada</span></article>
+        <article><small>EX-PRO</small><strong id="proExpired">—</strong><span>já assinou, está FREE agora</span></article>
         <article><small>CANCELAMENTOS</small><strong id="cancellationsWindow">—</strong><span id="cancellationsWindowLabel">no período</span></article>
       </div>
     </section>
 
     <section class="card recovery">
       <div>
-        <div class="eyebrow">RECUPERAÇÃO PÓS-TRIAL</div>
-        <h2>Funil preparado para campanhas</h2>
-        <p><b id="recoverySummary">—</b> usuários podem entrar numa campanha de recuperação quando Brevo e Mercado Pago estiverem ativos.</p>
+        <div class="eyebrow">RECUPERAÇÃO PÓS-TRIAL E PÓS-CARTÃO</div>
+        <h2>Expiração e oportunidades de retomada</h2>
+        <p><b id="recoverySummary">—</b> contas estão FREE após trial ou cartão e têm consentimento atual de marketing.</p>
+        <p id="integrationsSummary">A oferta e a automação de recuperação aguardam definição.</p>
+      </div>
+      <div class="metrics recovery-segments">
+        <article class="warning"><small>TRIAL VENCENDO</small><strong id="trialEnding">—</strong><span>próximas 72 horas</span></article>
+        <article class="warning"><small>CARTÃO VENCENDO</small><strong id="cardEnding">—</strong><span>próximas 72 horas</span></article>
+        <article class="accent"><small>ELEGÍVEIS PARA RECUPERAÇÃO</small><strong id="recoveryEligible">—</strong><span>pós-trial + pós-cartão, sem duplicação</span></article>
+        <article class="danger"><small>TRIAL EXPIRADO SEM PRO</small><strong id="trialExpired">—</strong><span id="recoveryTrialDetail">— com consentimento</span></article>
+        <article class="danger"><small>CARTÃO EXPIRADO SEM PRO</small><strong id="cardExpired">—</strong><span id="recoveryCardDetail">— com consentimento</span></article>
+        <article><small>SEM CONSENTIMENTO</small><strong id="recoveryWithoutConsent">—</strong><span>fora das campanhas promocionais</span></article>
       </div>
       <div class="recovery-stats">
-        <div><small>RECUPERADOS POR CAMPANHA</small><strong id="campaignRecovered">—</strong><span>entra após tracking Brevo + oferta</span></div>
-        <div><small>RECEITA RECEBIDA</small><strong id="revenueReceived">—</strong><span>entra após eventos financeiros do Mercado Pago</span></div>
+        <div><small>RECUPERADOS POR CAMPANHA</small><strong id="campaignRecovered">—</strong><span>atribuição de campanha ainda não disponível</span></div>
+        <div><small>COBRANÇAS APROVADAS</small><strong id="approvedCharges">—</strong><span>eventos aplicados no período, inclui renovações</span></div>
+        <div><small>RECEITA RECEBIDA</small><strong id="revenueReceived">—</strong><span id="revenueDetail">valor financeiro ainda não disponível</span></div>
       </div>
       <p class="muted">Nenhuma campanha promocional é disparada agora. A elegibilidade respeita o consentimento atual de marketing.</p>
+      <p class="muted">Cartão tem precedência sobre trial na recuperação. Os vencimentos são subconjuntos da base ativa; EX-PRO pode também estar entre os expirados. Não some esses indicadores.</p>
     </section>
 
     <section class="card promo-admin" id="promoAdminCard">
@@ -213,11 +226,12 @@
       <h2>O que estamos medindo</h2>
       <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
       <p>Ainda não contamos scans anônimos do QR antes da criação da conta. Por isso este painel não chama esse número de “scans”.</p>
+      <p>As taxas acompanham as mesmas contas ou benefícios iniciados no período até agora. Sem base, aparece “—”. As conversões podem ocorrer antes do fim dos 30 dias; uma base recente ainda está amadurecendo.</p>
       <p id="generatedAt" class="muted"></p>
     </section>
   </section>
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
-<script type="module" src="./admin.mjs?v=31"></script>
+<script type="module" src="./admin.mjs?v=32"></script>
 </body>
 </html>
