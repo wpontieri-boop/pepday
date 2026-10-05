@@ -1,11 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isRecoveryTest,introductoryRecurring,normalRecurringUpdate,resetConfirmed,recoveryMessage} from '../supabase/functions/recovery-worker/recovery-core.mjs';
+import {isRecoveryTest,recoveryEnvironment,recoveryAppUrl,introductoryRecurring,normalRecurringUpdate,resetConfirmed,recoveryMessage} from '../supabase/functions/recovery-worker/recovery-core.mjs';
 import {checkoutRecurring} from '../supabase/functions/mercado-pago-checkout/checkout-core.mjs';
 import {parsePepDayReference} from '../supabase/functions/mercado-pago-webhook/webhook-core.mjs';
 test('recovery only runs on the exact TEST project and sandbox mode',()=>{
   assert.equal(isRecoveryTest('https://fsbqpyyprtymwrmzsacp.supabase.co','false'),true);
   for(const [url,mode] of [['https://oslefjmwfnddxlotalxu.supabase.co','false'],['https://fsbqpyyprtymwrmzsacp.supabase.co','true'],['https://fsbqpyyprtymwrmzsacp.supabase.co.evil.test','false']])assert.equal(isRecoveryTest(url,mode),false);
+});
+test('recovery environments require exact Supabase project and matching Mercado Pago mode',()=>{
+  assert.equal(recoveryEnvironment('https://fsbqpyyprtymwrmzsacp.supabase.co','false'),'test');
+  assert.equal(recoveryEnvironment('https://oslefjmwfnddxlotalxu.supabase.co','true'),'production');
+  assert.equal(recoveryEnvironment('https://oslefjmwfnddxlotalxu.supabase.co','false'),null);
+  assert.equal(recoveryEnvironment('https://fsbqpyyprtymwrmzsacp.supabase.co','true'),null);
+  assert.equal(recoveryEnvironment('https://oslefjmwfnddxlotalxu.supabase.co.evil.test','true'),null);
+  assert.equal(recoveryAppUrl('test'),'https://homologacao.pepday.com.br/');
+  assert.equal(recoveryAppUrl('production'),'https://pepday.com.br/app/');
 });
 test('72h bounds offer eligibility while discounted monthly contract stays open-ended',()=>{
   const now=Date.parse('2026-10-05T18:00:00Z');

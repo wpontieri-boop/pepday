@@ -23,7 +23,7 @@ const cardUsageMarked = new Set();
 let recoveryOffer=null;
 async function loadRecoveryOffer(current){
   recoveryOffer=null;el('recoveryOffer')?.remove();
-  if(config.environment!=='test'||new URL(location.href).searchParams.get('recovery')!=='1')return;
+  if(!['test','production'].includes(config.environment)||new URL(location.href).searchParams.get('recovery')!=='1')return;
   if(state?.settings?.marketing_opt_in===true){
     const preferences=document.createElement('div');preferences.id='recoveryPreferences';preferences.className='card';
     const text=document.createElement('p');text.textContent='Você autorizou mensagens promocionais do PepDay. Pode parar de recebê-las quando quiser.';

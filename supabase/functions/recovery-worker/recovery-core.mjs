@@ -1,5 +1,15 @@
 export const TEST_URL='https://fsbqpyyprtymwrmzsacp.supabase.co';
-export function isRecoveryTest(url,liveMode){return url.replace(/\/$/,'')===TEST_URL&&liveMode==='false'}
+export const PROD_URL='https://oslefjmwfnddxlotalxu.supabase.co';
+export function recoveryEnvironment(url,liveMode){
+  const normalized=String(url||'').replace(/\/$/,'');
+  if(normalized===TEST_URL&&liveMode==='false')return 'test';
+  if(normalized===PROD_URL&&liveMode==='true')return 'production';
+  return null;
+}
+export function isRecoveryTest(url,liveMode){return recoveryEnvironment(url,liveMode)==='test'}
+export function recoveryAppUrl(environment){
+  return environment==='production'?'https://pepday.com.br/app/':environment==='test'?'https://homologacao.pepday.com.br/':null;
+}
 export function introductoryRecurring(expiresAt,now=Date.now()){
   const expiry=new Date(expiresAt).getTime();
   if(!Number.isFinite(expiry)||expiry<=now||expiry>now+72*3600000)return null;

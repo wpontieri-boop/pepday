@@ -1,4 +1,4 @@
-import {isRecoveryTest,normalRecurringUpdate,resetConfirmed} from '../recovery-worker/recovery-core.mjs';
+import {recoveryEnvironment,normalRecurringUpdate,resetConfirmed} from '../recovery-worker/recovery-core.mjs';
 import {env,rpc,provider} from '../recovery-worker/backend.mjs';
 import {paidPeriod,parsePepDayReference,canonicalEventDate} from './webhook-core.mjs';
 export async function reconcileRecoveryInvoice(subscriptionId,preapproval,invoice){
@@ -14,7 +14,7 @@ export async function reconcileRecoveryInvoice(subscriptionId,preapproval,invoic
   });
 }
 export async function applyRecoveryBilling(preapproval,invoice){
-  if(!isRecoveryTest(env('SUPABASE_URL'),env('MERCADO_PAGO_LIVE_MODE')))return;
+  if(!recoveryEnvironment(env('SUPABASE_URL'),env('MERCADO_PAGO_LIVE_MODE')))return;
   if(!/:monthly:recovery:[0-9a-f-]{36}$/i.test(preapproval.external_reference||''))return;
   const id=String(preapproval.id);
   if(!invoice){if(preapproval.status==='authorized')await rpc('update_recovery_provider_state',{p_provider_id:id,p_outcome:'authorized'});return;}
@@ -26,8 +26,8 @@ export async function applyRecoveryBilling(preapproval,invoice){
   if(['cancelled','canceled','paused'].includes(preapproval.status))return;
   if(result.reset_needed||result.outcome==='duplicate'){
     const update=normalRecurringUpdate(invoice.debit_date||invoice.date_created);
-    const updated=resetConfirmed(preapproval,update.auto_recurring.end_date)?preapproval:await provider('/preapproval/'+encodeURIComponent(id),'PUT',update);
-    if(!resetConfirmed(updated,update.auto_recurring.end_date))throw new Error('RECOVERY_PRICE_RESET_UNCONFIRMED');
+    const updated=resetConfirmed(preapproval)?preapproval:await provider('/preapproval/'+encodeURIComponent(id),'PUT',update);
+    if(!resetConfirmed(updated))throw new Error('RECOVERY_PRICE_RESET_UNCONFIRMED');
     await rpc('update_recovery_provider_state',{p_provider_id:id,p_outcome:'reset'});
     return updated;
   }

@@ -13,8 +13,13 @@ async function mocked(fn,fetcher,values={}){
   try{return await fn();}finally{globalThis.Deno=oldDeno;globalThis.fetch=oldFetch;}
 }
 const invocation=()=>new Request(testUrl+'/functions/v1/recovery-worker',{method:'POST',headers:{'x-pepday-invocation-token':id},body:'{}'});
-test('recovery worker refuses PROD before any network request',async()=>{
+test('recovery worker refuses mismatched PROD project with sandbox mode before any network request',async()=>{
   await mocked(async()=>assert.equal((await worker.fetch(invocation())).status,403),()=>{throw new Error('Unexpected network');},{SUPABASE_URL:'https://oslefjmwfnddxlotalxu.supabase.co'});
+});
+test('recovery worker accepts exact PROD project with LIVE mode and reaches token gate',async()=>{
+  let calls=0;
+  await mocked(async()=>assert.equal((await worker.fetch(invocation())).status,401),async url=>{calls++;assert.match(String(url),/consume_recovery_invocation/);return json(false);},{SUPABASE_URL:'https://oslefjmwfnddxlotalxu.supabase.co',MERCADO_PAGO_LIVE_MODE:'true'});
+  assert.equal(calls,1);
 });
 test('lost recovery webhook uses the existing idempotent canonical billing RPC',async()=>{
   let called=0;
@@ -75,6 +80,28 @@ for(const outcome of ['ineligible','reserved'])test('offer checkout: '+outcome,a
     throw new Error('Unexpected endpoint '+path);
   });
   assert.equal(providerCalls,outcome==='reserved'?1:0);assert.equal(bound,outcome==='reserved');
+});
+test('production recovery checkout uses authenticated payer and production return URL',async()=>{
+  const prodUrl='https://oslefjmwfnddxlotalxu.supabase.co';
+  const expiry=new Date(Math.floor((Date.now()+3600000)/1000)*1000).toISOString();
+  const request=new Request(prodUrl+'/functions/v1/recovery-checkout',{method:'POST',headers:{Authorization:'Bearer fixture-jwt'},body:JSON.stringify({plan:'monthly',request_id:id})});
+  let providerCalls=0;
+  await mocked(async()=>assert.equal((await checkout.fetch(request)).status,200),async(url,init)=>{
+    const path=new URL(url).pathname,body=JSON.parse(init?.body||'{}');
+    if(path==='/auth/v1/user')return json({id,email:'customer@example.com'});
+    if(path==='/rest/v1/profiles')return json([{id,role:'user',is_adult_confirmed:true,terms_accepted_at:expiry,privacy_accepted_at:expiry,sensitive_data_consent_at:expiry}]);
+    if(path==='/rest/v1/subscriptions')return json([{id}]);
+    if(path.endsWith('reserve_recovery_offer'))return json({outcome:'reserved',campaign_id:id,request_id:id,expires_at:expiry});
+    if(path.endsWith('claim_recovery_checkout'))return json(true);
+    if(path==='/preapproval'){
+      providerCalls++;assert.equal(body.payer_email,'customer@example.com');assert.equal(body.auto_recurring.transaction_amount,9.90);
+      assert.equal(body.back_url,'https://pepday.com.br/app/?recovery=1');
+      return json({id:'fixture-provider-prod',init_point:'https://www.mercadopago.com.br/subscriptions/checkout?fixture=prod',auto_recurring:body.auto_recurring});
+    }
+    if(path.endsWith('bind_recovery_checkout'))return json(null);
+    throw new Error('Unexpected endpoint '+path);
+  },{SUPABASE_URL:prodUrl,MERCADO_PAGO_LIVE_MODE:'true'});
+  assert.equal(providerCalls,1);
 });
 test('offer endpoint does not discount annual plan',async()=>{
   let calls=0;await mocked(async()=>assert.equal((await checkout.fetch(checkoutRequest('annual'))).status,400),async()=>{calls++;return json({id});});assert.equal(calls,1);

@@ -394,6 +394,7 @@ async function loadMetrics(){
     if(card.error)throw card.error;
     renderMetrics(acquisition.data);
     if(config.environment==='test')await loadRecoveryTest();
+    if(config.environment==='production')await loadRecoveryProduction();
     renderPwaMetrics(pwa.data);
     renderCardCampaign(card.data);
     await loadPromoCodes();
@@ -407,6 +408,22 @@ async function loadMetrics(){
       setText('metricsStatus','Não foi possível atualizar. Os números exibidos podem estar desatualizados; tente novamente.');
     }
   }finally{setBusy(false)}
+}
+
+async function loadRecoveryProduction(){
+  const {data:m,error}=await client.rpc('get_admin_recovery_metrics',{p_days:days});
+  if(error||!m)return;
+  setText('campaignRecovered',fmt(m.recovered_campaign_count));
+  setText('campaignRecoveredDetail',`${fmt(m.recovered_trial_count)} pós-trial • ${fmt(m.recovered_card_count)} pós-cartão • ${fmtMoney(m.recovery_revenue_first_cycle)} de receita confirmada da oferta${m.recovery_price_reset_pending?' • '+fmt(m.recovery_price_reset_pending)+' aguardando confirmação da renovação':''}`);
+  setText('integrationsSummary',m.recovery_enabled&&m.recovery_provider_ready
+    ?'Recuperação automática ativa em produção. Mensal: R$ 9,90 no primeiro mês; depois R$ 14,90/mês.'
+    :m.recovery_provider_ready
+      ?'Recuperação preparada em produção, mas os envios estão pausados.'
+      :'Recuperação em produção aguardando configuração do provedor.');
+  setText('recoverySendingPolicy',m.recovery_enabled
+    ?'Automação ativa somente para contas elegíveis, com consentimento atual de marketing. Assinatura ou revogação interrompem a sequência.'
+    :'Automação de recuperação pausada. Nenhuma nova mensagem promocional será reclamada enquanto estiver desativada.');
+  hide('recoveryTestSelection',true);
 }
 
 async function loadRecoveryTest(){

@@ -1,5 +1,5 @@
 import {env,rpc,provider,secretKey,backendHeaders} from '../recovery-worker/backend.mjs';
-import {isRecoveryTest,introductoryRecurring} from '../recovery-worker/recovery-core.mjs';
+import {recoveryEnvironment,recoveryAppUrl,introductoryRecurring} from '../recovery-worker/recovery-core.mjs';
 import {normalizeCheckoutRequest,checkoutExternalReference,validCheckoutUrl} from '../mercado-pago-checkout/checkout-core.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Cache-Control':'no-store'};
 const response=(status,code,extra={})=>Response.json({code,...extra},{status,headers:cors});
@@ -14,7 +14,8 @@ export default {async fetch(req){
   try{
     if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
     if(req.method!=='POST')return response(405,'METHOD_NOT_ALLOWED');
-    if(!isRecoveryTest(env('SUPABASE_URL'),env('MERCADO_PAGO_LIVE_MODE')))return response(403,'TEST_ONLY');
+    const environment=recoveryEnvironment(env('SUPABASE_URL'),env('MERCADO_PAGO_LIVE_MODE'));
+    if(!environment)return response(403,'ENVIRONMENT_MISMATCH');
     const authorization=req.headers.get('authorization')||'';
     if(!/^Bearer [^\s]+$/.test(authorization))return response(401,'AUTH_REQUIRED');
     const publishable=env('SUPABASE_PUBLISHABLE_KEYS')?JSON.parse(env('SUPABASE_PUBLISHABLE_KEYS')).default:env('SUPABASE_ANON_KEY');
@@ -33,12 +34,12 @@ export default {async fetch(req){
     if(!await rpc('claim_recovery_checkout',{p_campaign_id:offer.campaign_id}))return response(409,'CHECKOUT_IN_PROGRESS');
     const recurring=introductoryRecurring(offer.expires_at);
     if(!recurring)return response(409,'OFFER_EXPIRED');
-    const payer=env('MERCADO_PAGO_TEST_PAYER_EMAIL');
-    if(!payer)return response(503,'TEST_PAYER_NOT_CONFIGURED');
+    const payer=environment==='test'?env('MERCADO_PAGO_TEST_PAYER_EMAIL'):String(user.email||'').trim();
+    if(!payer)return response(503,environment==='test'?'TEST_PAYER_NOT_CONFIGURED':'PAYER_EMAIL_NOT_AVAILABLE');
     const checkout=await provider('/preapproval','POST',{
       reason:'PepDay PRO: R$9,90 primeiro mês; depois R$14,90/mês',payer_email:payer,
       external_reference:checkoutExternalReference(subscription.id,'monthly')+':recovery:'+offer.campaign_id,auto_recurring:recurring,
-      back_url:'https://homologacao.pepday.com.br/?recovery=1',status:'pending'
+      back_url:recoveryAppUrl(environment)+'?recovery=1',status:'pending'
     },offer.request_id);
     if(!checkout.id||!validCheckoutUrl(checkout.init_point)||Number(checkout.auto_recurring?.transaction_amount)!==9.90){
       if(checkout.id)await provider('/preapproval/'+encodeURIComponent(checkout.id),'PUT',{status:'cancelled'});
