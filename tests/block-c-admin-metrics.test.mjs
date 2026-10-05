@@ -55,6 +55,8 @@ test('painel oferece 7, 30 e 90 dias e mostra funil QR para 30 dias PRO e pago',
   assert.match(html,/QR → 30 DIAS PRO/);
   assert.match(html,/30 DIAS PRO → PAGO/);
   assert.match(html,/CONVERSÕES PRO/);
+  assert.match(html,/Códigos PRO de cortesia/);
+  assert.match(html,/separados do cartão\/QR de 30 dias/i);
 });
 
 test('servidor local expõe /site/admin/ sem alterar a Home do app',async()=>{
