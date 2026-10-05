@@ -12,14 +12,14 @@ test('documentos jurídicos usam homologação atual e versões vigentes',()=>{
   assert.deepEqual(config.allowedRedirects,[authBase]);
   assert.equal(config.termsUrl,`${legalBase}termos.html`);
   assert.equal(config.privacyUrl,`${legalBase}privacidade.html`);
-  assert.equal(config.termsVersion,'terms-2026-09-30-2');
-  assert.equal(config.privacyVersion,'privacy-2026-09-30-2');
+  assert.equal(config.termsVersion,'terms-2026-10-05-3');
+  assert.equal(config.privacyVersion,'privacy-2026-10-05-3');
   assert.equal(config.sensitiveDataConsentVersion,'health-data-2026-09-30');
 });
 
 test('Termos preservam escopo não médico, responsabilidade e direitos de dados',async()=>{
   const html=await read('termos.html');
-  assert.match(html,/VERSÃO TERMS-2026-09-30-2/i);
+  assert.match(html,/VERSÃO TERMS-2026-10-05-3/i);
   assert.match(html,/não prescreve, indica ou recomenda substâncias, doses, tratamentos ou protocolos/i);
   assert.match(html,/não substitui avaliação ou orientação de profissional habilitado/i);
   assert.match(html,/Nada nestes Termos exclui garantias, responsabilidades ou direitos/i);
@@ -34,7 +34,8 @@ test('Termos preservam escopo não médico, responsabilidade e direitos de dados
   assert.match(html,/21\.756\.593\/0001-90/);
   assert.match(html,/Rua Doutor Pompilio Mercadante, 398, Sala 1408/i);
   assert.match(html,/wagnerpontieri@gmail\.com/i);
-  assert.match(html,/adequação fiscal\/contábil/i);
+  assert.match(html,/Google AdSense/i);
+  assert.match(html,/plano FREE pode exibir publicidade/i);
   assert.match(html,/privacidade\.html/);
 });
 
@@ -47,7 +48,7 @@ test('Termos deixam marketing opcional e push de bloqueio sem conteúdo sensíve
 test('Política informa dados sensíveis, fornecedores, direitos, exportação e contato',async()=>{
   const html=await read('privacidade.html');
   for(const text of [
-    'dados pessoais sensíveis','Supabase','Google','Mercado Pago','Brevo',
+    'dados pessoais sensíveis','Supabase','Google','Google AdSense','Mercado Pago','Brevo',
     'Firebase Cloud Messaging','direitos do titular','exportação em JSON',
     'exclusão da conta','wagnerpontieri@gmail.com','Wagner Pontieri Junior','WP Imports','21.756.593/0001-90'
   ]) assert.match(html,new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'));
@@ -56,7 +57,8 @@ test('Política informa dados sensíveis, fornecedores, direitos, exportação e
   assert.match(html,/não são tratados com base genérica em interesse legítimo ou simples execução contratual/i);
   assert.match(html,/Transferências internacionais/i);
   assert.match(html,/Rua Doutor Pompilio Mercadante, 398, Sala 1408/i);
-  assert.match(html,/adequação fiscal\/contábil/i);
+  assert.match(html,/publicidade não personalizada/i);
+  assert.match(html,/não envia ao AdSense substância, dose, rotina, frasco, histórico/i);
   assert.match(html,/termos\.html/);
 });
 
@@ -91,10 +93,10 @@ test('cadastro só fica juridicamente atual quando versões aceitas coincidem co
   assert.match(ui,/Seus dados foram preservados/);
 });
 
-test('documentos registram atualização jurídica de homologação em 30 de setembro de 2026',async()=>{
+test('documentos registram atualização jurídica da publicidade em 5 de outubro de 2026',async()=>{
   const [terms,privacy]=await Promise.all([read('termos.html'),read('privacidade.html')]);
-  assert.match(terms,/atualizada em 30 de setembro de 2026/i);
-  assert.match(privacy,/atualizada em 30 de setembro de 2026/i);
+  assert.match(terms,/atualizada em 5 de outubro de 2026/i);
+  assert.match(privacy,/atualizada em 5 de outubro de 2026/i);
 });
 
 test('procedimento interno de incidente cobre prazo, registro e retenção',async()=>{

@@ -10,6 +10,13 @@ Atualização: 05/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Checkpoint 05/10/2026 — Ads FREE em homologação
+
+- **PASS HUMANO / NÃO REPETIR — FREE mostra publicidade:** em homologação, usuário FREE/deslogado executou um cálculo e confirmou visualmente o bloco `PUBLICIDADE · PEPDAY FREE` com `Espaço publicitário` / `Prévia de homologação · somente PepDay FREE` logo após o resultado da calculadora. Isso confirma a regra de exibição somente após resultado e somente para FREE.
+- Regra aprovada: FREE monetizado por Ads; Trial 7 dias, cartão 30 dias, código promocional e PRO pago sem anúncios. Produção continua com Ads reais desativados até configuração/aprovação do provedor.
+- **PASS HUMANO / NÃO REPETIR — PRO sem publicidade:** em homologação, a conta `waeletronicos.cia@gmail.com`, com entitlement PRO ativo, executou o mesmo fluxo da calculadora e o bloco de publicidade não apareceu. Isso confirma a segregação visual FREE vs PRO usando o entitlement oficial do app.
+- **Próxima ação explícita:** integrar o provedor real de anúncios em produção, mantendo anúncios não personalizados e `enabled=false` até os IDs públicos aprovados estarem configurados; depois fazer um smoke de produção sem repetir os PASS FREE/PRO de homologação.
+
 ## Checkpoint 05/10/2026 — recuperação promovida e ATIVA em PROD
 
 - **Autorização expressa do proprietário:** promoção do bloco de recuperação para produção autorizada em 05/10/2026 após fechamento do E2E TEST. `main`/V2.9 permaneceram intocados; rollout feito pelo serviço PROD da branch `v3.0-bloco-b`.

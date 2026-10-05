@@ -9,9 +9,9 @@ export const config = Object.freeze({
   allowedRedirects: ['https://pepday.com.br/app/'],
   allowLocalhost: false,
   termsUrl: 'https://pepday.com.br/termos.html',
-  termsVersion: 'terms-2026-09-30-2',
+  termsVersion: 'terms-2026-10-05-3',
   privacyUrl: 'https://pepday.com.br/privacidade.html',
-  privacyVersion: 'privacy-2026-09-30-2',
+  privacyVersion: 'privacy-2026-10-05-3',
   sensitiveDataConsentVersion: 'health-data-2026-09-30',
   runtimeUrl: 'https://pepday.com.br/app/',
   ads: Object.freeze({
