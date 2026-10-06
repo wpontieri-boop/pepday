@@ -15,7 +15,8 @@ Atualização: 05/10/2026.
 - **PASS HUMANO / NÃO REPETIR — FREE mostra publicidade:** em homologação, usuário FREE/deslogado executou um cálculo e confirmou visualmente o bloco `PUBLICIDADE · PEPDAY FREE` com `Espaço publicitário` / `Prévia de homologação · somente PepDay FREE` logo após o resultado da calculadora. Isso confirma a regra de exibição somente após resultado e somente para FREE.
 - Regra aprovada: FREE monetizado por Ads; Trial 7 dias, cartão 30 dias, código promocional e PRO pago sem anúncios. Produção continua com Ads reais desativados até configuração/aprovação do provedor.
 - **PASS HUMANO / NÃO REPETIR — PRO sem publicidade:** em homologação, a conta `waeletronicos.cia@gmail.com`, com entitlement PRO ativo, executou o mesmo fluxo da calculadora e o bloco de publicidade não apareceu. Isso confirma a segregação visual FREE vs PRO usando o entitlement oficial do app.
-- **Próxima ação explícita:** integrar o provedor real de anúncios em produção, mantendo anúncios não personalizados e `enabled=false` até os IDs públicos aprovados estarem configurados; depois fazer um smoke de produção sem repetir os PASS FREE/PRO de homologação.
+- **Google AdSense criado:** conta AdSense configurada para `pepday.com.br`; publisher público `pub-9704076016670249` / client `ca-pub-9704076016670249`. Método de verificação escolhido: `ads.txt`. Linha oficial recebida do AdSense: `google.com, pub-9704076016670249, DIRECT, f08c47fec0942fa0`. Esses identificadores são públicos e não constituem segredo.
+- **Próxima ação explícita:** publicar `ads.txt` na raiz de `https://pepday.com.br/ads.txt` e só então clicar em **Verificar** no AdSense. Produção continua sem Ads reais até autorização expressa para o deploy e aprovação do Google.
 
 ## Checkpoint 05/10/2026 — recuperação promovida e ATIVA em PROD
 

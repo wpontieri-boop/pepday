@@ -13,7 +13,7 @@ const copy=async(src,dst)=>cp(path.join(root,src),path.join(out,dst),{recursive:
 await rm(out,{recursive:true,force:true});
 await mkdir(out,{recursive:true});
 
-for(const file of ['icon.svg','termos.html','privacidade.html']){
+for(const file of ['icon.svg','termos.html','privacidade.html','ads.txt']){
   await copy(file,file);
 }
 await copy('config.production.js','config.js');

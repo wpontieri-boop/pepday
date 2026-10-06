@@ -55,3 +55,12 @@ test('homologation previews ads while production remains disabled until approval
   assert.doesNotMatch(ads,/access=event\.detail/);
   assert.doesNotMatch(index,/pagead2\.googlesyndication\.com/);
 });
+
+test('production build publishes the exact AdSense ads.txt authorization',async()=>{
+  const [source,build]=await Promise.all([
+    readFile(new URL('../ads.txt',import.meta.url),'utf8'),
+    readFile(new URL('../scripts/build-public.mjs',import.meta.url),'utf8')
+  ]);
+  assert.equal(source.trim(),'google.com, pub-9704076016670249, DIRECT, f08c47fec0942fa0');
+  assert.match(build,/['"]ads\.txt['"]/);
+});
