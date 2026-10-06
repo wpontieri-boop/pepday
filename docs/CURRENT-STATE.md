@@ -10,6 +10,20 @@ Atualização: 05/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Checkpoint 05/10/2026 — PepDay Parceiros / Afiliados (conceito comercial aprovado)
+
+- **Objetivo:** transformar o cartão/QR de 30 dias PRO grátis em canal de aquisição rastreável para lojas, promotores, criadores, YouTubers e influenciadores, sem exigir cartão ou adesivo diferente para cada parceiro.
+- **Cadastro prévio no painel:** equipe comercial poderá cadastrar parceiros no painel pelo celular/tablet no momento da abordagem. Cada parceiro terá registro único interno (`partner_id`), nome público, tipo (ex.: `loja`, `promotor`, `influenciador`, `campanha`), status e regra comercial/comissão. Exemplos discutidos: loja como `Farmácia Brasil`; influenciador como `Úrsula`.
+- **Atribuição no fluxo do cartão:** no acesso ao QR genérico `/cartao/`, o cliente verá uma pergunta simples como **“Por quem você conheceu o PepDay?”** e fará busca/autocomplete apenas entre parceiros previamente cadastrados. O cliente seleciona o resultado correto; o backend grava o `partner_id`, evitando divergências de digitação.
+- **Link/código direto opcional:** parceiros podem receber URL própria, por exemplo `pepday.com.br/cartao/?ref=ursula`, para pré-identificar a origem automaticamente. O QR genérico continua funcionando com seleção manual do parceiro.
+- **Benefício do cliente permanece inalterado:** o cliente continua recebendo somente os 30 dias PRO grátis já aprovados. Não adicionar desconto extra ao cliente por parceiro/afiliado.
+- **Comissão é do parceiro, não do cliente:** a remuneração nasce apenas após **conversão paga real confirmada**, nunca apenas por cadastro ou ativação gratuita. O sistema deve suportar regras diferentes por parceiro, como valor fixo, percentual, primeira mensalidade ou recorrência limitada, sem fixar uma regra única neste momento.
+- **Métricas/atribuição automática:** acompanhar por parceiro pelo menos ativações do QR, usuários que efetivamente usaram o PepDay, conversões pagas, mensal/anual, receita atribuída, comissão calculada, comissão paga e saldo pendente. A origem deve ser persistida desde a ativação e vinculada ao ciclo posterior do assinante.
+- **Painel próprio:** criar área **Parceiros / Afiliados** no painel administrativo para cadastro, edição/status, regra de comissão, métricas, extrato e visão individual de cada parceiro. A implementação deve reutilizar o painel atual e respeitar os papéis OWNER/ADMIN/VIEWER já aprovados.
+- **Proteção contra fraude/atribuição:** comissão somente após evento financeiro canônico aprovado; evitar dupla atribuição e duplicidade de comissão. Definir regra de atribuição única por usuário/benefício antes da implementação.
+- **Compatibilidade com o cartão já aprovado:** este bloco deve ser aditivo ao fluxo de cartão 30 dias; não alterar a regra comercial existente nem repetir os PASS/NÃO REPETIR do cartão, salvo se a implementação tocar diretamente no fluxo já validado.
+- **Próxima ação explícita:** antes de codificar, fechar modelo de dados, permissões do painel, regra inicial de comissão e critérios de atribuição/antifraude; depois implementar primeiro em TEST/homologação, sem alterar PROD/main/V2.9 sem autorização expressa.
+
 ## Checkpoint 05/10/2026 — Ads FREE em homologação
 
 - **PASS HUMANO / NÃO REPETIR — FREE mostra publicidade:** em homologação, usuário FREE/deslogado executou um cálculo e confirmou visualmente o bloco `PUBLICIDADE · PEPDAY FREE` com `Espaço publicitário` / `Prévia de homologação · somente PepDay FREE` logo após o resultado da calculadora. Isso confirma a regra de exibição somente após resultado e somente para FREE.
