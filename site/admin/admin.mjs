@@ -71,6 +71,7 @@ async function adminContextForSession(){
 }
 
 function applyAdminPermissions(){
+  hide('partnersShortcut',config.environment!=='test'||config.projectRef!=='fsbqpyyprtymwrmzsacp');
   const level=adminContext?.access_level||'viewer';
   setText('adminRole',level.toUpperCase());
   setText('adminEmail',adminContext?.email||'—');

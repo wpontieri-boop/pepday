@@ -4,6 +4,7 @@
 config.local.json
 node_modules/
 public/
+preview/
 test-output/
 *.dump
 supabase/.temp/

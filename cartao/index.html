@@ -34,6 +34,14 @@
     <div>✓ Histórico e previsão de término</div>
     <div>✓ Alertas de reposição</div>
   </div>
+  <section id="partnerSearch" hidden style="text-align:left;margin:18px 0">
+    <h2>Por quem você conheceu o PepDay?</h2>
+    <p>Prévia em homologação: confira a busca. Sua escolha ainda não será vinculada à conta.</p>
+    <label>Nome ou cidade<input id="partnerQuery" maxlength="80" autocomplete="off" style="width:100%;padding:12px"></label>
+    <ul id="partnerResults" aria-label="Parceiros encontrados" style="list-style:none;padding:0"></ul>
+    <form id="partnerCodeForm"><label>Código do parceiro<input id="partnerCode" maxlength="100" autocomplete="off" style="width:100%;padding:12px"></label><button type="submit">Consultar código</button></form>
+    <p id="partnerSearchStatus" role="status" aria-live="polite"></p>
+  </section>
   <a id="openPepDay" href="../?from=cartao">Criar conta e liberar 30 dias PRO</a>
   <small>O benefício do cartão substitui o teste padrão de 7 dias e não se acumula com ele. Após os 30 dias, sua conta volta ao FREE se você não assinar o PRO.</small>
 </main>
@@ -41,5 +49,6 @@
   import {captureCardAcquisition} from '../src/acquisition.mjs';
   captureCardAcquisition();
 </script>
+<script type="module" src="../src/partner-public.mjs?v=1"></script>
 </body>
 </html>

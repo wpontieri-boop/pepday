@@ -1,0 +1,51 @@
+do $$declare p uuid; p2 uuid; t uuid; payload jsonb; data jsonb; n integer; stable_slug text; stable_code text;begin
+  p:=public.admin_save_partner(null,'{"public_name":"Parceiro QA Sintetico","partner_type":"loja","city":"Cidade QA","description":"Somente teste descartavel","email":"partner@example.invalid","phone":"+550000000000"}');
+  p2:=public.admin_save_partner(null,'{"public_name":"Parceiro QA Sintetico","partner_type":"loja"}');
+  if (select count(distinct slug) from partners where id in (p,p2))<>2 then raise exception 'ASSERT_SLUG'; end if;
+  if (select count(distinct public_code) from partners where id in (p,p2))<>2 then raise exception 'ASSERT_CODE'; end if;
+  perform public.admin_save_partner(null,jsonb_build_object('public_name',repeat('a',90),'partner_type','loja'));
+  perform public.admin_save_partner(null,jsonb_build_object('public_name',repeat('a',90),'partner_type','loja'));
+  select slug,public_code into stable_slug,stable_code from partners where id=p;
+  if jsonb_array_length(public.partner_public_search('Parceiro','')->'partners')<>0 then raise exception 'ASSERT_DRAFT_PUBLIC'; end if;
+  begin perform public.admin_set_partner_status(p,'active','cadastro_concluido');raise exception 'ASSERT_ACTIVATION';exception when others then if sqlerrm='ASSERT_ACTIVATION' then raise;end if;end;
+  -- Synthetic checksum CPF; no real person represented by this fixture.
+  payload:='{"legal_name":"Parceiro QA Sintetico","document":"12345678909","payee_name":"QA Sintetico","pix_type":"random","pix_key":"20000000-0000-4000-8000-000000000001","commission_percent":"12.50","reason":"configuracao_inicial"}';
+  if public.partner_document_valid('00000000000') or public.partner_document_valid('12345678900') then raise exception 'ASSERT_DOCUMENT';end if;
+  t:=public.admin_prepare_partner_stepup(p,payload);
+  begin perform public.admin_configure_partner(p,payload||'{"commission_percent":"14"}',t);raise exception 'ASSERT_PAYLOAD';exception when others then if sqlerrm='ASSERT_PAYLOAD' then raise;end if;end;
+  perform public.admin_configure_partner(p,payload,t);
+  begin perform public.admin_configure_partner(p,payload,t);raise exception 'ASSERT_REPLAY';exception when others then if sqlerrm='ASSERT_REPLAY' then raise;end if;end;
+  perform public.admin_set_partner_status(p,'active','cadastro_concluido');
+  data:=public.partner_public_search('Parceiro','');
+  if jsonb_array_length(data->'partners')<>1 or (data->'partners'->0)?|array['email','phone','document','pix_key','commission_percent','legal_name'] then raise exception 'ASSERT_PUBLIC_PRIVACY'; end if;
+  if jsonb_array_length(public.partner_public_search('',(select public_code from partners where id=p))->'partners')<>1 then raise exception 'ASSERT_CODE_LOOKUP';end if;
+  if jsonb_array_length(public.partner_public_search('%','')->'partners')<>0 then raise exception 'ASSERT_WILDCARD';end if;
+  if jsonb_array_length(public.partner_public_search('P','')->'partners')<>0 then raise exception 'ASSERT_SHORT_QUERY';end if;
+  perform public.admin_save_partner(p,'{"public_name":"Nome Alterado QA","partner_type":"loja","email":"partner@example.invalid","phone":"+550000000000"}');
+  if (select slug<>stable_slug or public_code<>stable_code from partners where id=p) then raise exception 'ASSERT_LINK_STABILITY';end if;
+  t:=public.admin_prepare_partner_stepup(p,payload);update partner_stepup_tickets set expires_at=now()-interval '1 second' where id=t;
+  begin perform public.admin_configure_partner(p,payload,t);raise exception 'ASSERT_EXPIRED';exception when others then if sqlerrm='ASSERT_EXPIRED' then raise;end if;end;
+  update admin_memberships set access_level='viewer' where user_id=auth.uid();
+  data:=public.admin_list_partners('Nome Alterado');
+  if (data->0->>'contact') is not null or (data->0->>'document_masked') is not null then raise exception 'ASSERT_VIEWER_PRIVACY';end if;
+  begin perform public.admin_save_partner(null,'{"public_name":"Negado","partner_type":"loja"}');raise exception 'ASSERT_VIEWER_WRITE';exception when others then if sqlerrm='ASSERT_VIEWER_WRITE' then raise;end if;end;
+  update admin_memberships set access_level='admin' where user_id=auth.uid();
+  begin perform public.admin_prepare_partner_stepup(p,payload);raise exception 'ASSERT_ADMIN_FINANCE';exception when others then if sqlerrm='ASSERT_ADMIN_FINANCE' then raise;end if;end;
+  update admin_memberships set access_level='owner' where user_id=auth.uid();
+  update admin_memberships set active=false where user_id=auth.uid();
+  begin perform public.admin_list_partners();raise exception 'ASSERT_INACTIVE';exception when others then if sqlerrm='ASSERT_INACTIVE' then raise;end if;end;
+  update admin_memberships set active=true where user_id=auth.uid();
+  perform set_config('request.jwt.claims',(auth.jwt()||'{"amr":[],"aal":"aal2"}')::text,true);
+  begin perform public.admin_prepare_partner_stepup(p,payload);raise exception 'ASSERT_STALE_AAL2';exception when others then if sqlerrm='ASSERT_STALE_AAL2' then raise;end if;end;
+  perform set_config('request.jwt.claims',(auth.jwt()||'{"aal":"aal1"}')::text,true);
+  begin perform public.admin_list_partners();raise exception 'ASSERT_AAL1';exception when others then if sqlerrm='ASSERT_AAL1' then raise;end if;end;
+  perform set_config('request.jwt.claims',(auth.jwt()||'{"aal":"aal2","session_id":"10000000-0000-4000-8000-000000000099"}')::text,true);
+  begin perform public.admin_list_partners();raise exception 'ASSERT_REVOKED';exception when others then if sqlerrm='ASSERT_REVOKED' then raise;end if;end;
+  if exists(select 1 from admin_audit_logs where action like 'partner_%' and (metadata::text like '%12345678909%' or metadata::text like '%20000000-0000-4000-8000-000000000001%')) then raise exception 'ASSERT_AUDIT_PRIVACY';end if;
+  for n in 1..125 loop data:=public.partner_public_search('Parceiro','');end loop;
+  if coalesce((data->>'limited')::boolean,false) is not true then raise exception 'ASSERT_RATE_LIMIT';end if;
+  if has_table_privilege('anon','public.partner_private_profiles','SELECT') or has_table_privilege('authenticated','public.partners','INSERT')
+    or has_function_privilege('anon','public.partner_public_search(text,text)','EXECUTE')
+    or has_function_privilege('authenticated','public.partner_admin_assert(boolean,boolean)','EXECUTE') then raise exception 'ASSERT_GRANTS';end if;
+end $$;
+rollback;
