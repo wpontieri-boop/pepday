@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 05/10/2026.
+Atualização: 06/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -9,6 +9,18 @@ Atualização: 05/10/2026.
 - Ambiente de homologação: `https://homologacao.pepday.com.br/` (Render, DNS verificado e certificado HTTPS emitido; fallback técnico `https://pepday-v3-homologacao.onrender.com/`)
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
+
+## Checkpoint 06/10/2026 — continuidade PC e especificação Parceiros / Afiliados
+
+- Protocolo executado: AGENTS.md e CURRENT-STATE integralmente, documentos relacionados de cartão, URLs, aquisição, RC e rollout de recuperação consultados; origem `https://github.com/wpontieri-boop/pepday.git`. PC estava limpo em `ead105d`, branch `v3.0-bloco-b`, 0 commits locais / 15 remotos. Fetch + comparação antes de alterar; fast-forward seguro para **`6513a5571af16d2c39da283a5186e21417502d5d`**, último checkpoint comercial aprovado de tracking, divergência **0/0** e árvore limpa antes da documentação. Não houve sobrescrita de trabalho entre computadores.
+- **Estado Render conferido por leitura em 06/10/2026:** workspace oficial `tea-da7iss0u01pc73d6vflg`; homologação `pepday-v3-homologacao`, serviço `srv-date0i6k1f9s73ft9vo0`, LIVE no commit `6513a55`, deploy `dep-db25o0k9v7es7385as20`, auto-deploy ON. PROD `pepday-public`, serviço `srv-davto4tg1s2s73brihf0`, LIVE no commit **`8035511ad9a19f431d38b894ac2fcb1ff0881829`**, deploy **`dep-db23o8uk1f9s73909fn0`**, auto-deploy OFF. Nenhuma mudança de serviço/configuração. TEST Supabase `fsbqpyyprtymwrmzsacp` e PROD `oslefjmwfnddxlotalxu` permanecem separados; nenhum banco/Edge foi alterado ou auditado novamente nesta etapa documental.
+- **Leitura temporal obrigatória:** checkpoints antigos de recusa/bloqueio de recuperação foram superados pelo PASS TEST `8983a4c` e rollout PROD `1551de6`. Não retomar os contratos cancelados nem repetir pagamento. Recuperação PROD está ativa conforme rollout registrado; sua próxima observação é etapa real programada e primeira conversão orgânica. AdSense está aguardando revisão conforme último registro, Ads reais desativados; status Google não foi consultado novamente nesta sessão.
+- **Decisão humana de especificação — 06/10/2026:** proprietário respondeu **“Adotar esses padrões”**: indicação válida por **30 dias antes da ativação**, link/código explícito prevalece antes do lock, vínculo definitivo na ativação, comissão liberada **30 dias após o primeiro pagamento confirmado**, **repasse manual pelo OWNER**, percentual obrigatório por parceiro **sem valor presumido**. Isto é aprovação de regras, não PASS de software.
+- Especificação consolidada em [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md): rotas `/admin/parceiros/` e futuro `/parceiro/`, matriz OWNER/ADMIN/VIEWER, dados públicos versus privados, modelo de dados, atribuição atômica, primeiro pagamento mensal/anual/recovery, percentual congelado na ativação, ledger idempotente, estornos/revisão, PWA Admin, sessão máxima 8h e step-up, critérios de aceite e fases P1–P5. Defaults técnicos documentados separadamente da aprovação humana. Ainda **não implementado / não homologado**.
+- **PASS / NÃO REPETIR preservados:** cartão/QR PROD e primeiro uso; painel TEST/PROD; OWNER senha/TOTP e papéis administrativos; sandbox mensal/cancelamento/webhook; recuperação TEST R$9,90/PRO/recorrente configurado R$14,90/replay; seis envios anteriores; rollout recovery PROD; Ads FREE/PRO em homologação; PWA Android/iPhone, push, exclusão, calculadora, sincronização, jurídico e landing. Não há novo PASS técnico/humano de produto nesta sessão. Documentação não exige rerodar testes de código; futuras fases validam só mudanças/dependências afetadas e regressão automatizada.
+- **Próxima ação explícita:** implementar **P1 em TEST/homologação** conforme a especificação: modelo/migrations, cadastro/permissões e configuração OWNER, links/códigos, busca pública e módulo dedicado com aliases TEST. Iniciar com feature gate desativado e testes próprios, sem repasse/cobrança/envio real. P2–P4 integram atribuição, financeiro e Admin PWA; mini painel P5 posterior. **PROD/main/V2.9 exigem autorização expressa específica e estão fora desta etapa.**
+
+Os registros seguintes são históricos; prevalece o checkpoint mais recente do mesmo assunto, sem apagar evidências anteriores.
 
 ## Checkpoint 05/10/2026 — PepDay Parceiros / Afiliados (conceito comercial aprovado)
 
@@ -39,7 +51,7 @@ Atualização: 05/10/2026.
 - **Motivo de bloqueio/revisão:** toda comissão bloqueada, anulada ou enviada para revisão deve registrar motivo e trilha de auditoria, para suporte e conciliação.
 - **Histórico/auditoria:** registrar eventos de atribuição, alteração de percentual, mudança de dados de pagamento e movimentações de comissão com ator, data e contexto mínimo necessário.
 - **Compatibilidade com o cartão já aprovado:** este bloco deve ser aditivo ao fluxo de cartão 30 dias; não alterar a regra comercial existente nem repetir os PASS/NÃO REPETIR do cartão, salvo se a implementação tocar diretamente no fluxo já validado.
-- **Próxima ação explícita:** antes de codificar, fechar modelo de dados, permissões do painel, regra inicial de comissão e critérios de atribuição/antifraude; depois implementar primeiro em TEST/homologação, sem alterar PROD/main/V2.9 sem autorização expressa.
+- **Próxima ação deste checkpoint atendida em 06/10/2026:** especificação fechada em [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md); seguir a fase P1 TEST registrada no checkpoint superior.
 
 ## Checkpoint 05/10/2026 — Ads FREE em homologação
 

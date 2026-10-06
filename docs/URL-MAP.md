@@ -1,6 +1,6 @@
 # PepDay — Mapa de URLs e Áreas
 
-Atualização: 05/10/2026.
+Atualização: 06/10/2026.
 
 ## Produção atual
 
@@ -24,14 +24,14 @@ Atualização: 05/10/2026.
 
 Para não aumentar ainda mais o painel administrativo principal, o módulo de Parceiros/Afiliados deve ficar separado visualmente, mas reutilizar a autenticação e as permissões administrativas já aprovadas.
 
-Arquitetura sugerida:
+Rotas fechadas para implementação em TEST conforme [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md), ainda não publicadas:
 - no **/admin/** haverá um botão/atalho **Parceiros & Afiliados**;
-- esse botão abrirá uma área dedicada, sugerida como **/admin/parceiros/**;
-- OWNER/ADMIN poderão operar conforme permissões que serão fechadas antes da implementação;
+- esse botão abrirá uma área dedicada em **/admin/parceiros/**;
+- OWNER/ADMIN poderão operar conforme a matriz da especificação; configuração financeira e repasses ficam com OWNER e step-up;
 - VIEWER permanece somente leitura;
-- o futuro mini painel do próprio parceiro deve ser separado do painel administrativo, em rota própria a definir, por exemplo **/parceiro/**, mostrando apenas dados daquele parceiro.
+- o futuro mini painel do próprio parceiro fica separado em **/parceiro/**, mostrando apenas dados daquele parceiro, na fase P5 posterior.
 
-A rota final do mini painel do parceiro ainda não está fechada e deve ser definida no bloco de especificação antes do Codex.
+Links públicos por parceiro: **/cartao/?ref=<slug>**, mais código curto único no fluxo do cartão. Em homologação, usar apenas `homologacao.pepday.com.br`. O admin TEST atual em **/site/admin/** será preservado com aliases canônicos **/admin/** e **/admin/parceiros/** no empacotamento TEST. Nenhuma dessas rotas novas deve ser anunciada como LIVE antes de implementar e verificar o build correspondente.
 
 ## Regra de continuidade
 
