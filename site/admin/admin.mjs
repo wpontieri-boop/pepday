@@ -71,6 +71,7 @@ async function adminContextForSession(){
 }
 
 function applyAdminPermissions(){
+  setText('environmentSummary',`Contas, cartão/QR, trial e conversão paga. Dados agregados do ambiente de ${config.environment==='production'?'produção':'homologação'}.`);
   hide('partnersShortcut',config.environment!=='test'||config.projectRef!=='fsbqpyyprtymwrmzsacp');
   const level=adminContext?.access_level||'viewer';
   setText('adminRole',level.toUpperCase());

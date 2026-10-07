@@ -3,35 +3,35 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#07131f">
 <title>PepDay Admin — Parceiros & Afiliados</title>
-<link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/site/admin/admin.css?v=32"><link rel="stylesheet" href="./partners.css?v=1">
+<link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/site/admin/admin.css?v=34"><link rel="stylesheet" href="./partners.css?v=2">
 </head><body>
 <header><a class="brand" href="/admin/"><img src="/icon.svg" alt=""><b>PEP<span>DAY</span></b></a><strong>Parceiros & Afiliados</strong></header>
 <main>
-<section class="card" id="access"><h1>Parceiros & Afiliados</h1><p id="accessStatus" role="status">Conferindo acesso administrativo…</p><a href="/admin/">Entrar no painel com senha e 2FA</a></section>
+<section class="card" id="access"><h1>Parceiros & Afiliados</h1><p id="accessStatus" role="status">Conferindo acesso administrativo…</p><a class="admin-button" href="/admin/">Entrar no painel com senha e 2FA</a></section>
 <section id="module" class="hidden">
-<div class="dash-head"><div><div class="eyebrow">HOMOLOGAÇÃO</div><h1>Parceiros & Afiliados</h1><p id="roleLabel"></p></div><div><a href="/admin/">Voltar ao painel</a><button id="exit" class="ghost">Sair</button></div></div>
+<div class="dash-head"><div><div class="eyebrow">HOMOLOGAÇÃO</div><h1>Parceiros & Afiliados</h1><p id="roleLabel"></p></div><div><a class="admin-button" href="/admin/">Voltar ao painel</a><button id="exit" class="ghost">Sair</button></div></div>
 <p class="status" id="status" role="status" aria-live="polite"></p>
 <section class="card"><h2>Buscar parceiros</h2><form id="filterForm"><label>Nome, cidade ou código<input id="filter" maxlength="100" autocomplete="off"></label><button>Buscar</button></form><div id="list" class="partner-list"></div></section>
 <section class="card hidden" id="editSection"><h2 id="editTitle">Cadastrar parceiro</h2>
-<form id="partnerForm">
+<p class="muted">* Campo obrigatório. E-mail e telefone são necessários para ativar.</p><form id="partnerForm" novalidate>
 <input type="hidden" id="partnerId">
-<label>Nome público<input id="publicName" required minlength="2" maxlength="100"></label>
-<label>Tipo<select id="partnerType"><option value="loja">Loja</option><option value="promotor">Promotor</option><option value="influenciador">Influenciador</option><option value="campanha">Campanha</option></select></label>
+<label>Nome público *<input id="publicName" required minlength="2" maxlength="100"></label>
+<label>Tipo *<select id="partnerType"><option value="loja">Loja</option><option value="promotor">Promotor</option><option value="influenciador">Influenciador</option><option value="campanha">Campanha</option></select></label>
 <label>Cidade<input id="city" maxlength="80"></label><label>Descrição pública / @<input id="description" maxlength="160"></label>
 <label>E-mail de contato<input id="contactEmail" type="email" maxlength="254"></label><label>Telefone / WhatsApp<input id="contactPhone" maxlength="30" type="tel"></label>
-<button>Salvar cadastro</button><button type="button" id="newPartner" class="ghost">Novo parceiro</button>
+<label>Contato comercial<input id="contactName" maxlength="120"></label><button>Salvar cadastro</button><button type="button" id="newPartner" class="ghost">Novo parceiro</button>
 </form><p class="muted">O cadastro começa como rascunho. A configuração financeira precisa ser validada pelo OWNER antes da ativação.</p></section>
-<section class="card hidden" id="financialSection"><h2>Configuração financeira · OWNER</h2><p>Selecione um parceiro. Informe os dados completos para substituir a configuração. Alterações exigem senha e novo código do autenticador.</p>
-<form id="financialForm" autocomplete="off">
-<label>Nome / razão social legal<input id="legalName" required minlength="2" maxlength="160"></label>
-<label>CPF ou CNPJ<input id="document" required maxlength="20" autocomplete="off"></label>
-<label>Titular do pagamento<input id="payeeName" required minlength="2" maxlength="160"></label>
-<label>Tipo de chave PIX<select id="pixType"><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="email">E-mail</option><option value="phone">Telefone internacional (+55…)</option><option value="random">Chave aleatória</option></select></label>
-<label>Chave PIX<input id="pixKey" required maxlength="254" autocomplete="off"></label>
-<label>Percentual individual (%)<input id="commissionPercent" required type="number" min="0" max="100" step="0.01"></label>
-<label>Motivo<select id="financialReason"><option value="configuracao_inicial">Configuração inicial</option><option value="ajuste_contratual">Ajuste contratual</option><option value="correcao_pagamento">Correção de pagamento</option></select></label>
-<button>Reautenticar e salvar configuração</button>
+<section class="card hidden" id="financialSection"><h2>Configuração financeira · OWNER</h2><p>Complete os campos obrigatórios (*). O cadastro inicial usa sua sessão administrativa válida. Após a primeira ativação, alterações financeiras exigem confirmação extra.</p>
+<form id="financialForm" autocomplete="off" novalidate>
+<label>Nome / razão social legal *<input id="legalName" required minlength="2" maxlength="160"></label>
+<div class="field"><details class="field-help"><summary aria-label="Ajuda: CPF ou CNPJ">?</summary><p>Identificação formal do parceiro, com dígitos verificadores. Não precisa ser igual à chave PIX.</p></details><label>CPF ou CNPJ *<input id="document" required maxlength="20" autocomplete="off"></label></div>
+<label>Titular do pagamento *<input id="payeeName" required minlength="2" maxlength="160"></label>
+<div class="field"><details class="field-help"><summary aria-label="Ajuda: Tipo de chave PIX">?</summary><p>Selecione o tipo da chave cadastrada no banco do destinatário. Telefone deve incluir + e código do país.</p></details><label>Tipo de chave PIX *<select id="pixType" required><option value="">Selecione</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="email">E-mail</option><option value="phone">Telefone internacional (+55…)</option><option value="random">Chave aleatória</option></select></label></div>
+<label>Chave PIX *<input id="pixKey" required maxlength="254" autocomplete="off"></label>
+<div class="field"><details class="field-help"><summary aria-label="Ajuda: Percentual individual (%)">?</summary><p>Comissão deste parceiro sobre o primeiro pagamento confirmado. Informe de 0 a 100, com até duas casas decimais. Não há percentual padrão.</p></details><label>Percentual individual (%) *<input id="commissionPercent" required type="number" min="0" max="100" step="0.01"></label></div>
+<div class="field"><details class="field-help"><summary aria-label="Ajuda: Motivo">?</summary><p>Configuração inicial: primeiro cadastro financeiro do parceiro. Ajuste contratual: mudança acordada de comissão ou condição comercial. Correção de pagamento: correção de PIX, titular ou dado financeiro cadastrado incorretamente.</p></details><label>Motivo *<select id="financialReason" required><option value="">Selecione</option><option value="configuracao_inicial">Configuração inicial</option><option value="ajuste_contratual">Ajuste contratual</option><option value="correcao_pagamento">Correção de pagamento</option></select></label></div>
+<button id="saveFinance">Salvar configuração financeira</button><button id="saveAndActivate" type="submit" value="activate">Salvar financeiro e ativar</button>
 </form></section>
 </section>
 <dialog id="stepup"><h2>Confirme esta alteração</h2><p>Use sua senha administrativa e o código do autenticador. Eles não serão salvos no cadastro.</p><form id="stepupPasswordForm"><label>Senha<input id="stepupPassword" type="password" required autocomplete="current-password"></label><button>Continuar</button></form><form id="stepupTotpForm" class="hidden"><label>Código do autenticador<input id="stepupCode" required pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code"></label><button>Confirmar e salvar</button></form><p id="stepupStatus" role="status"></p><button id="cancelStepup" type="button" class="ghost">Cancelar</button></dialog>
-</main><script src="/vendor/supabase-2.116.0.js"></script><script type="module" src="./partners.mjs?v=1"></script></body></html>
+</main><script src="/vendor/supabase-2.116.0.js"></script><script type="module" src="./partners.mjs?v=2"></script></body></html>

@@ -20,14 +20,14 @@ Atualização: 06/10/2026.
 3. O usuário usa o PepDay em **/app/** e, quando desejar, instala o PWA pelo botão/fluxo de instalação do navegador.
 4. O cartão físico continua apontando diretamente para **/cartao/** porque tem fluxo comercial próprio.
 
-## Parceiros / Afiliados — arquitetura planejada
+## Parceiros / Afiliados — P1 em homologação
 
 Para não aumentar ainda mais o painel administrativo principal, o módulo de Parceiros/Afiliados deve ficar separado visualmente, mas reutilizar a autenticação e as permissões administrativas já aprovadas.
 
-Rotas fechadas para implementação em TEST conforme [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md), ainda não publicadas:
+Rotas P1 publicadas somente em TEST conforme [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md):
 - no **/admin/** haverá um botão/atalho **Parceiros & Afiliados**;
 - esse botão abrirá uma área dedicada em **/admin/parceiros/**;
-- OWNER/ADMIN poderão operar conforme a matriz da especificação; configuração financeira e repasses ficam com OWNER e step-up;
+- OWNER/ADMIN poderão operar conforme a matriz da especificação; configuração financeira fica com OWNER, usando a sessão válida antes da primeira ativação e step-up depois; repasses ainda não implementados;
 - VIEWER permanece somente leitura;
 - o futuro mini painel do próprio parceiro fica separado em **/parceiro/**, mostrando apenas dados daquele parceiro, na fase P5 posterior.
 

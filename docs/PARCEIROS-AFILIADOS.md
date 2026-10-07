@@ -1,6 +1,6 @@
 # PepDay — Parceiros / Afiliados v1
 
-Data: 06/10/2026. Status: especificação fechada para iniciar implementação em TEST; ainda não implementada nem homologada.
+Data: 06/10/2026. Status: P1 implementado em TEST/homologação; refinamentos de UX/sessão aprovados em 06/10/2026. P2–P5 planejados; QA humano P1 pendente.
 
 ## Base e decisões
 
@@ -28,6 +28,16 @@ Cadastro em campo permite rascunho com nome público, tipo, cidade/descrição e
 Homônimos são permitidos. Slug e código são únicos por restrição no banco; normalizar acentos/caixa e resolver colisão atomicamente com sufixo opaco/numérico. Não incorporar CPF, telefone ou e-mail. Slug/código permanecem estáveis após renomear o parceiro e não são reutilizados após arquivamento.
 
 Busca pública expõe somente nome, cidade, tipo e descrição/@ público; resultados limitados, busca com mínimo de caracteres e rate limit no servidor. Somente parceiros ativos. Referência inválida, expirada ou parceiro suspenso não bloqueia o benefício: orientar busca ou continuar sem indicação. Não atribuir silenciosamente a outro parceiro.
+
+## Refinamentos P1 aprovados em 06/10/2026
+
+- Cadastro operacional: nome público, tipo, cidade, descrição/@, telefone/WhatsApp, e-mail e contato comercial. ADMIN salva rascunho; OWNER completa financeiro e ativa. Sem convite automático.
+- Financeiro obrigatório, marcado com `*`: nome/razão social, CPF/CNPJ, titular, tipo e chave PIX, percentual individual e motivo. CPF/CNPJ usa comprimento e dígitos verificadores (inclui CNPJ alfanumérico); PIX validado pelo tipo. Documento identifica o parceiro e não precisa coincidir com a chave PIX. Erros curtos por campo, inclusive documento já cadastrado.
+- Ajuda por clique/teclado/toque em CPF/CNPJ, tipo PIX, percentual, motivo e ativação. Motivos: **Configuração inicial:** primeiro cadastro financeiro do parceiro; **Ajuste contratual:** mudança acordada de comissão ou condição comercial; **Correção de pagamento:** correção de PIX, titular ou dado financeiro cadastrado incorretamente.
+- OWNER usa o login senha+TOTP válido para salvar o financeiro inicial e ativar no mesmo fluxo. Rascunho que nunca foi ativo não exige reautenticação a cada configuração. `first_activated_at`, verificado sob lock no servidor e preservado ao suspender, impede voltar ao fluxo inicial para contornar step-up. Após primeira ativação, edição financeira exige ticket existente de cinco minutos/uso único/sessão/alvo/payload, mesmo quando suspenso.
+- P1 agora limita acesso às próprias RPCs a oito horas desde a criação da sessão Auth e exige provas assinadas password+totp dentro da janela, membership atual, AAL2, fator verificado, sessão existente e `not_after` válido. Refresh, reload ou novo TOTP isolado não estendem a janela; nenhuma autorização por user_metadata/localStorage/relógio cliente. Expiração pede login normal, nunca novo bootstrap MFA. Aplicação global a outros caminhos administrativos e Admin PWA permanece P4.
+- Botões consistentes no painel e retorno, badges Rascunho/Ativo/Suspenso/Arquivado, ambiente resolvido sem mensagem transitória persistente. A ativação habilita link/código na busca P1; atribuição persistida continua P2.
+- Repasses e exportações sensíveis continuam planejados, sempre com step-up; equipe não foi alterada por este refinamento. Não declarar proteção global P4 implementada.
 
 ## Atribuição determinística
 
@@ -63,12 +73,12 @@ Todos os controles abaixo são verificados no backend, além de ocultar ações 
 | Criar/editar cadastro público e contato comercial | Sim | Sim | Não | Não |
 | Consultar identidade legal necessária à operação | Sim | Sim, mascarada por padrão | Não | Própria, mascarada |
 | Ativar/suspender parceiro | Sim | Sim, com regra financeira já aprovada | Não | Não |
-| Definir/mudar percentual e dados de pagamento | Sim + step-up | Não | Não | Solicitar revisão futura |
+| Definir/mudar percentual e dados de pagamento | Sim; sessão válida no rascunho inicial, step-up após primeira ativação | Não | Não | Solicitar revisão futura |
 | Liberar revisão, ajustes e confirmar repasse | Sim + step-up | Não | Não | Não |
 | Exportar dados pessoais/financeiros | Sim + step-up | Não | Não | Não na v1 |
 | Gerir equipe e acesso do parceiro | Sim + step-up | Não | Não | Não |
 
-ADMIN pode cadastrar o parceiro em campo e entregar link após ativação quando OWNER tiver aprovado a configuração financeira. Valores completos de CPF/PIX ficam fora da busca, métricas agregadas e respostas VIEWER. Não liberar permissões mediante `user_metadata` editável ou `partner_id` recebido do cliente.
+ADMIN não vê formulário nem controles financeiros editáveis, apenas resumo como “Aguardando aprovação do OWNER”. VIEWER permanece somente leitura. ADMIN pode cadastrar o parceiro em campo e entregar link após ativação quando OWNER tiver aprovado a configuração financeira. Valores completos de CPF/PIX ficam fora da busca, métricas agregadas e respostas VIEWER. Não liberar permissões mediante `user_metadata` editável ou `partner_id` recebido do cliente.
 
 ## Sessão e Admin PWA
 
@@ -116,7 +126,7 @@ Separar cliques direcionais, benefícios ativados, primeiro uso (evento existent
 
 ## Sequência de implementação TEST
 
-1. **P1 — próximo passo:** modelo/migrations, RPCs de cadastro/permissões, configuração financeira OWNER, slug/código, busca pública e módulo `/admin/parceiros/` com aliases TEST. Implementar desde P1 o step-up nas novas operações sensíveis; enquanto ele não estiver verificado, essas ações ficam indisponíveis, sem fallback AAL2 apenas. Feature gate TEST desativado por padrão; sem comissão, cobrança, envio ou repasse real. Testar P1 antes de ativar em homologação.
+1. **P1 — próximo passo:** modelo/migrations, RPCs de cadastro/permissões, configuração financeira OWNER, slug/código, busca pública e módulo `/admin/parceiros/` com aliases TEST. Aplicar desde P1 o step-up após primeira ativação conforme o refinamento acima; enquanto ele não estiver verificado, essas ações ficam indisponíveis, sem fallback AAL2 apenas. Feature gate TEST desativado por padrão; sem comissão, cobrança, envio ou repasse real. Testar P1 antes de ativar em homologação.
 2. **P2:** intenção, continuidade login/onboarding, vínculo atômico na concessão, lock/replay/concorrência e métricas. QA humano somente da nova escolha/link em conta descartável; não usar contas dos PASS para simular datas ou novo resgate.
 3. **P3:** ingestão financeira canônica de todos os planos, cálculo/ledger/reembolso/review/repasse manual com fixtures sintéticas isoladas e testes SQL com rollback. Nenhuma transferência/pagamento real para validar cálculo. Se integração financeira mudar, smoke específico do trecho alterado, preservando PASS históricos.
 4. **P4:** Admin PWA, sessão 8h e step-up em todos os caminhos admin; QA humano focado na instalação Admin e desafio novo. Não refazer cadastro de senha/TOTP do OWNER.

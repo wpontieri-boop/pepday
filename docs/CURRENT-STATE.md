@@ -10,6 +10,16 @@ Atualização: 06/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Checkpoint 06/10/2026 — refinamentos P1 UX/permissões/sessão somente TEST
+
+- Continuidade: quatro documentos obrigatórios lidos integralmente, repositório Mac limpo `v3.0-bloco-b`, fetch HEAD=origin **90f8c8fa1205296823197f3e222fd70412fb3cae**, divergência 0/0. Cópia isolada `pepday-p1` criada no workspace e conferida via novo fetch. Nenhuma divergência sobrescrita; main/V2.9/PROD intocados.
+- Implementado: ADMIN só operacional e resumo “Aguardando aprovação do OWNER”, VIEWER leitura; OWNER salva financeiro inicial e ativa com a mesma sessão senha+TOTP válida. Após primeira ativação, financeiro exige step-up mesmo suspenso. P1 verifica criação da sessão Auth e provas password/TOTP até 8h, revogação, `not_after`, membership/AAL2/fator; refresh não estende. P4 global/equipe/PWA não foi antecipado. Sem user_metadata como autorização.
+- Campos obrigatórios com `*` e erros específicos; CPF/CNPJ com checksum no cliente e servidor; PIX conforme tipo, independente do documento. Contato comercial privado; ajudas de motivo/percentual/PIX/documento/ativação; CTA, retorno, badges e ambiente corrigidos. Busca pública permanece sem CPF/PIX/contato/e-mail. Atribuição persistida continua P2.
+- Supabase TEST `fsbqpyyprtymwrmzsacp`: migration local `20261007013353_partners_p1_ux_session.sql`, remota **20261007013853** aplicada. Duas suites SQL no TEST real PASS/rollback; banco mantém 2 parceiros existentes e 0 ativos. Nenhuma conta, cobrança, envio ou cadastro QA novo persistido; nenhum segredo alterado.
+- **PASS TÉCNICO:** focados **13/13**, regressão **445/445**, SQL local+TEST, build TEST/sintaxe/diff. QA UI sintético OWNER/ADMIN/VIEWER em 390×844 e 1280×900 sem overflow, erros por campo, inicial sem modal e suspenso com modal. Screenshot revisada; não é PASS humano/E2E Auth. Advisors sem ERROR/nova FK sem índice. Evidências e limites em [PARTNERS-P1-TEST.md](operations/PARTNERS-P1-TEST.md).
+- **PASS/NÃO REPETIR históricos integralmente preservados.** Sem repetir bootstrap, cartão/QR, pagamento/recuperação, push, PWA ou QA humano anterior. PROD conferido por leitura em **8035511ad9a19f431d38b894ac2fcb1ff0881829**, deploy `dep-db23o8uk1f9s73909fn0`; nenhuma promoção autorizada.
+- **Próxima ação explícita:** QA humano focado OWNER login normal → cadastro financeiro inicial/ativação sem desafio repetido → edição financeira ativa com step-up; conferir ajudas no celular e registrar resultado. Concorrência real entre sessões permanece pendente. Não reiniciar bootstrap nem PASS anteriores. P2+ continua fora desta entrega.
+
 ## Checkpoint 06/10/2026 — P1 Parceiros / Afiliados implementado somente em TEST
 
 - Continuidade antes de alterar: AGENTS.md, CURRENT-STATE.md e PARCEIROS-AFILIADOS.md integralmente; fetch, branch `v3.0-bloco-b`, árvore limpa, HEAD/origin `4793e1adb170fe9a87cd62a2b6fcba50816d0bd1`, divergência 0/0. Último checkpoint aprovado documental preservado.
