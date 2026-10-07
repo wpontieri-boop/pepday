@@ -17,3 +17,10 @@ test('Every financial mandatory field produces its own error',()=>{
  for(const value of ['-1','101','1.234','NaN','1e1'])assert.ok(financialErrors({...fixture,commission_percent:value}).commission_percent);
  assert.deepEqual(financialErrors({...fixture,commission_percent:'0'}),{});
 });
+test('Partial finance validates only changed fields and always requires a reason',()=>{
+ assert.deepEqual(financialErrors({commission_percent:'16',reason:'ajuste_contratual'},{partial:true}),{});
+ assert.deepEqual(financialErrors({payee_name:'Novo Titular',reason:'correcao_pagamento'},{partial:true}),{});
+ assert.ok(financialErrors({commission_percent:'16'},{partial:true}).reason);
+ for(const key of ['document','payee_name','legal_name','pix_key','pix_type','commission_percent'])assert.ok(financialErrors({[key]:'',reason:'correcao_pagamento'},{partial:true})[key],key);
+ assert.ok(financialErrors({document:'••••8909',reason:'correcao_pagamento'},{partial:true}).document);
+});

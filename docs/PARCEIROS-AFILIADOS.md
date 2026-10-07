@@ -1,6 +1,6 @@
 # PepDay — Parceiros / Afiliados v1
 
-Data: 06/10/2026. Status: P1 implementado em TEST/homologação; refinamentos de UX/sessão aprovados em 06/10/2026. P2–P5 planejados; QA humano P1 pendente.
+Data: 06/10/2026. Status: P1 implementado em TEST/homologação; refinamentos de UX/sessão aprovados em 06/10/2026. P2–P5 planejados; configuração inicial/validações P1 com PASS humano; aceite humano da edição parcial com step-up pendente.
 
 ## Base e decisões
 
@@ -37,6 +37,8 @@ Busca pública expõe somente nome, cidade, tipo e descrição/@ público; resul
 - OWNER usa o login senha+TOTP válido para salvar o financeiro inicial e ativar no mesmo fluxo. Rascunho que nunca foi ativo não exige reautenticação a cada configuração. `first_activated_at`, verificado sob lock no servidor e preservado ao suspender, impede voltar ao fluxo inicial para contornar step-up. Após primeira ativação, edição financeira exige ticket existente de cinco minutos/uso único/sessão/alvo/payload, mesmo quando suspenso.
 - P1 agora limita acesso às próprias RPCs a oito horas desde a criação da sessão Auth e exige provas assinadas password+totp dentro da janela, membership atual, AAL2, fator verificado, sessão existente e `not_after` válido. Refresh, reload ou novo TOTP isolado não estendem a janela; nenhuma autorização por user_metadata/localStorage/relógio cliente. Expiração pede login normal, nunca novo bootstrap MFA. Aplicação global a outros caminhos administrativos e Admin PWA permanece P4.
 - Botões consistentes no painel e retorno, badges Rascunho/Ativo/Suspenso/Arquivado, ambiente resolvido sem mensagem transitória persistente. A ativação habilita link/código na busca P1; atribuição persistida continua P2.
+- Edição financeira parcial (refinamento 06/10/2026): parceiro configurado abre com razão social, tipo PIX, percentual e máscaras de CPF/CNPJ/PIX/titular. Não exigir reinformar dados para mudar somente percentual+motivo. Ações explícitas Alterar habilitam novos valores; Cancelar mantém o existente. Backend recebe patch, preserva campos omitidos internamente sob lock e não retorna CPF/PIX integrais. Mascarados não editados não são validados como vazios. Atualização pós-primeira ativação continua exigindo step-up para qualquer campo financeiro.
+- Ativo mostra somente Salvar alteração financeira e ajuda/status Parceiro ativo. Arquivados ficam ocultos por padrão na consulta backend e interface, com controle Mostrar/Ocultar arquivados; ativos, rascunhos e suspensos precedem o histórico. Arquivar nunca apaga cadastro nem auditoria/fixtures técnicas.
 - Repasses e exportações sensíveis continuam planejados, sempre com step-up; equipe não foi alterada por este refinamento. Não declarar proteção global P4 implementada.
 
 ## Atribuição determinística

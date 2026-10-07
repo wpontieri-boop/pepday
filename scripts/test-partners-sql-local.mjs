@@ -21,8 +21,10 @@ try{
   await db.exec(team.slice(start,team.indexOf('end $$;',start)+7));
   await db.exec(await read('supabase/migrations/20261006213126_partners_p1_test.sql'));
   await db.exec(await read('supabase/migrations/20261007013353_partners_p1_ux_session.sql'));
+  await db.exec(await read('supabase/migrations/20261007022142_partners_financial_patch.sql'));
   const result=await db.exec((await read('supabase/tests/partners_p1_local.sql'))+(await read('supabase/tests/partners_p1_assertions.sql')));
   assert.ok(result);
   await db.exec((await read('supabase/tests/partners_p1_local.sql'))+(await read('supabase/tests/partners_p1_ux_assertions.sql')));
+  await db.exec((await read('supabase/tests/partners_p1_local.sql'))+(await read('supabase/tests/partners_financial_patch_assertions.sql')));
   console.log('P1 PostgreSQL: all assertions PASS (rollback, synthetic data only)');
 }catch(e){console.error(e.message,e.code,e.detail||'',e.where||'',e.position,e.internalPosition,e.internalQuery||'',e.query?.slice(Math.max(0,Number(e.position)-200),Number(e.position)+200));process.exitCode=1}finally{await db.close()}

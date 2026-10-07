@@ -6,7 +6,7 @@ do $$declare p uuid; p2 uuid; t uuid; payload jsonb; data jsonb; n integer; stab
   perform public.admin_save_partner(null,jsonb_build_object('public_name',repeat('a',90),'partner_type','loja'));
   perform public.admin_save_partner(null,jsonb_build_object('public_name',repeat('a',90),'partner_type','loja'));
   select slug,public_code into stable_slug,stable_code from partners where id=p;
-  if jsonb_array_length(public.partner_public_search('Parceiro','')->'partners')<>0 then raise exception 'ASSERT_DRAFT_PUBLIC'; end if;
+  if jsonb_array_length(public.partner_public_search('Parceiro QA Sintetico','')->'partners')<>0 then raise exception 'ASSERT_DRAFT_PUBLIC'; end if;
   begin perform public.admin_set_partner_status(p,'active','cadastro_concluido');raise exception 'ASSERT_ACTIVATION';exception when others then if sqlerrm='ASSERT_ACTIVATION' then raise;end if;end;
   -- Synthetic checksum CPF; no real person represented by this fixture.
   payload:='{"legal_name":"Parceiro QA Sintetico","document":"12345678909","payee_name":"QA Sintetico","pix_type":"random","pix_key":"20000000-0000-4000-8000-000000000001","commission_percent":"12.50","reason":"configuracao_inicial"}';
@@ -16,7 +16,7 @@ do $$declare p uuid; p2 uuid; t uuid; payload jsonb; data jsonb; n integer; stab
   perform public.admin_configure_partner(p,payload,t);
   begin perform public.admin_configure_partner(p,payload,t);raise exception 'ASSERT_REPLAY';exception when others then if sqlerrm='ASSERT_REPLAY' then raise;end if;end;
   perform public.admin_set_partner_status(p,'active','cadastro_concluido');
-  data:=public.partner_public_search('Parceiro','');
+  data:=public.partner_public_search('Parceiro QA Sintetico','');
   if jsonb_array_length(data->'partners')<>1 or (data->'partners'->0)?|array['email','phone','document','pix_key','commission_percent','legal_name'] then raise exception 'ASSERT_PUBLIC_PRIVACY'; end if;
   if jsonb_array_length(public.partner_public_search('',(select public_code from partners where id=p))->'partners')<>1 then raise exception 'ASSERT_CODE_LOOKUP';end if;
   if jsonb_array_length(public.partner_public_search('%','')->'partners')<>0 then raise exception 'ASSERT_WILDCARD';end if;
@@ -42,7 +42,7 @@ do $$declare p uuid; p2 uuid; t uuid; payload jsonb; data jsonb; n integer; stab
   perform set_config('request.jwt.claims',(auth.jwt()||'{"aal":"aal2","session_id":"10000000-0000-4000-8000-000000000099"}')::text,true);
   begin perform public.admin_list_partners();raise exception 'ASSERT_REVOKED';exception when others then if sqlerrm='ASSERT_REVOKED' then raise;end if;end;
   if exists(select 1 from admin_audit_logs where action like 'partner_%' and (metadata::text like '%12345678909%' or metadata::text like '%20000000-0000-4000-8000-000000000001%')) then raise exception 'ASSERT_AUDIT_PRIVACY';end if;
-  for n in 1..125 loop data:=public.partner_public_search('Parceiro','');end loop;
+  for n in 1..125 loop data:=public.partner_public_search('Parceiro QA Sintetico','');end loop;
   if coalesce((data->>'limited')::boolean,false) is not true then raise exception 'ASSERT_RATE_LIMIT';end if;
   if has_table_privilege('anon','public.partner_private_profiles','SELECT') or has_table_privilege('authenticated','public.partners','INSERT')
     or has_function_privilege('anon','public.partner_public_search(text,text)','EXECUTE')
