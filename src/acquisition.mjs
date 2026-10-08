@@ -1,4 +1,4 @@
-import {isReferralTest,readReferralToken,forgetReferralToken} from './partner-referral.mjs';
+import {isReferralEnvironment,readReferralToken,forgetReferralToken} from './partner-referral.mjs';
 const STORAGE_KEY='pepday.acquisition.v1';
 
 function safeStorage(storage){
@@ -40,7 +40,7 @@ export function captureCardAcquisition(storage=globalThis.localStorage,now=new D
 export async function claimPendingCardAcquisition(client,storage=globalThis.localStorage,{location=globalThis.location}={}){
   const marker=readAcquisition(storage);
   if(!marker||!client?.rpc)return null;
-  const p2=isReferralTest(undefined,location),token=p2?readReferralToken(storage):null;
+  const p2=isReferralEnvironment(undefined,location),token=p2?readReferralToken(storage):null;
   const {data,error}=await client.rpc(p2?'claim_partner_card_acquisition':'claim_card_acquisition',{
     p_first_seen_at:marker.firstSeenAt,...(p2?{p_intent_token:token}:{})
   });

@@ -10,6 +10,15 @@ Atualização: 08/10/2026.
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
 
+## Checkpoint 08/10/2026 — promoção autorizada P1+P2 para PROD, em publicação
+
+- Autorização expressa do proprietário em08/10/2026: promover somente P1+P2 já aprovados. P3/comissões calculadas/ledger/payout/repasse/P4/P5 fora do escopo. Baseline branch v3.0-bloco-b limpa, HEAD=origin1e4d778e49f50cd28b69dbe86deac8d62f840006/0/0 após fetch, PC oficial e clone comparados/atualizados sem sobrescrever divergências. Todos os PASS/NÃO REPETIR abaixo permanecem válidos.
+- Estado real inicial confirmou PROD8035511ad9a19f431d38b894ac2fcb1ff0881829/deploydep-db23o8uk1f9s73909fn0/auto-deployOFF,39migrations e sem módulo parceiros; nenhum desencontro com o pedido. Rollback e guardas registrados antes das alterações em [PARTNERS-P1-P2-PROD.md](operations/PARTNERS-P1-P2-PROD.md).
+- Supabase PROD oslefjmwfnddxlotalxu recebeu a única migration partners_p1_p2_production, remota20261008231123/local20261008225617, reunindo seis etapas aprovadas com apenas guardas/issuer de PROD. Edges partner-public/partner-referral v1ACTIVE, sem republicar as10anteriores. **Gates enabled=false/referral_enabled=false** até conclusão do deploy/smokes. Nenhum dado TEST copiado;0parceiros/0intenções/1grant histórico preservado/1historical_none/OWNER existente preservado.
+- PASS técnico PROD:472/472regressão,4/4focados build/ambiente; SQL local TEST/PROD e cinco suites PROD reais com ROLLBACK, admin legado/EXECUTE/RLS, card sem parceiro, privacidade/exportação/exclusão/leitura/lock/replay. Browser isolado TEST/PROD mobile/desktop,pré-lock e sete cenários pós-lock/viewport,zero mutações indevidas/overflow. Edges públicas gateOFF200/sem PII/TEST origin403/leitura sem login401. Advisors0ERROR, avisos intencionais/históricos documentados;8funções existentes e card/export core preservados por digest. Sem pagamento, usuário/parceiro/grant artificial permanente.
+- Frontend restrito aos pares exatos projeto/domínio TEST/PROD; armazenamento e Auth separados; buildPROD inclui/admin/parceiros/; não ampliou guardas cloud antigas. Diff22caminhos P1/P2/cache; landing/config/Ads/Firebase/billing/recovery preservados. Main/V2.9 preservados.
+- **Próxima ação explícita:** publicar o commit funcional aprovado manualmente no Render PROD, conferir cinco rotas/16artefatos e ligar os dois gates somente após PASS. Documentar commit/deploy/gates finais; produção frontend ainda8035511 neste commit de preparação.
+
 ## Checkpoint 08/10/2026 — correção UX P2 após atribuição definitiva, somente TEST
 
 - Continuidade integral: AGENTS.md, CURRENT-STATE.md, PARCEIROS-AFILIADOS.md e operations/PARTNERS-P2-TEST.md. Após fetch, PC oficial `C:/Users/wagne/Documents/PepDay-V3` e clone de trabalho `pepday-p2` limpos, branch `v3.0-bloco-b`, HEAD=origin **020619d79cd0b91bd11a8ff639ccb2faae92dff1**, divergência0/0. TEST LIVE nesse checkpoint documental; PROD8035511. Todos os PASS/NÃO REPETIR preservados.

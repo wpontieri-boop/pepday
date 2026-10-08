@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 
 test('build público separa landing, app, admin e cartão',async()=>{
   const dir=await mkdtemp(path.join(tmpdir(),'pepday-public-'));
@@ -56,6 +57,17 @@ test('build público separa landing, app, admin e cartão',async()=>{
     assert.match(admin,/PAINEL PRIVADO/);
     assert.match(admin,/noindex,nofollow/);
     assert.match(card,/href="\/app\/\?from=cartao"/);
+    assert.match(await readFile(path.join(dir,'admin','parceiros','index.html'),'utf8'),/Parceiros/);
+    const acquisition=await import(pathToFileURL(path.join(dir,'app','src','acquisition.mjs')).href);
+    const referral=await import(pathToFileURL(path.join(dir,'app','src','partner-referral.mjs')).href);
+    const map=new Map(),storage={setItem:(k,v)=>map.set(k,v),getItem:k=>map.get(k)||null,removeItem:k=>map.delete(k)};
+    referral.saveReferralToken('a'.repeat(64),storage);acquisition.captureCardAcquisition(storage);
+    assert.ok(map.has('pepday.production.oslefjmwfnddxlotalxu.referral.v1'));
+    await acquisition.claimPendingCardAcquisition({rpc:async(name,args)=>{
+      assert.equal(name,'claim_partner_card_acquisition');assert.equal(args.p_intent_token,'a'.repeat(64));
+      return {data:{benefit:{code:'CARD_PRO_GRANTED'}},error:null};
+    }},storage,{location:{hostname:'pepday.com.br'}});
+    assert.equal(referral.readReferralToken(storage),null);
   }finally{
     await rm(dir,{recursive:true,force:true});
   }

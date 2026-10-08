@@ -1,5 +1,7 @@
 import {config} from '../config.js';
-const KEY='pepday.test.fsbqpyyprtymwrmzsacp.referral.v1';
+import {isPartnerEnvironment} from './partner-environment.mjs';
+const KEY=`pepday.${config.environment}.${config.projectRef}.referral.v1`;
+export const isReferralEnvironment=(settings=config,location=globalThis.location)=>isPartnerEnvironment(settings,location);
 const valid=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 export function isReferralTest(settings=config,location=globalThis.location){
   return settings.environment==='test'&&settings.projectRef==='fsbqpyyprtymwrmzsacp'&&location?.hostname==='homologacao.pepday.com.br';

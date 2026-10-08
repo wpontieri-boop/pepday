@@ -4,6 +4,8 @@ import {readFile,mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
 const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_EXECUTABLE});
+const production=process.env.PARTNERS_UI_ENV==='production',host=production?'pepday.com.br':'homologacao.pepday.com.br';
+const project=production?'oslefjmwfnddxlotalxu':'fsbqpyyprtymwrmzsacp',environment=production?'production':'test';
 await mkdir('test-output',{recursive:true});
 const original={public_name:'Parceiro Original QA',city:'Cidade A',description:'@original'};
 try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
@@ -11,14 +13,14 @@ try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
   const context=await browser.newContext({viewport}),page=await context.newPage();
   let state={partner_locked:scenario==='pending-to-locked'?false:true,partner:scenario==='none-new-ref'?null:original};
   let mutations=0,reads=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await context.addInitScript(({consumed})=>{
+  await context.addInitScript(({consumed,project,environment})=>{
    const encode=value=>btoa(JSON.stringify(value)).replaceAll('=','').replaceAll('+','-').replaceAll('/','_');
    const user={id:'30000000-0000-4000-8000-000000000001',aud:'authenticated'};
    const exp=Math.floor(Date.now()/1000)+3600;
    const access_token=[encode({alg:'HS256',typ:'JWT'}),encode({sub:user.id,aud:'authenticated',role:'authenticated',exp}),encode('synthetic-signature')].join('.');
-   localStorage.setItem('pepday-test-fsbqpyyprtymwrmzsacp-auth',JSON.stringify({access_token,refresh_token:'synthetic',expires_at:exp,expires_in:3600,token_type:'bearer',user}));
-   if(consumed)localStorage.setItem('pepday.test.fsbqpyyprtymwrmzsacp.referral.v1','a'.repeat(64));
-  },{consumed:scenario==='partner-consumed-token'});
+   localStorage.setItem(`pepday-${environment}-${project}-auth`,JSON.stringify({access_token,refresh_token:'synthetic',expires_at:exp,expires_in:3600,token_type:'bearer',user}));
+   if(consumed)localStorage.setItem(`pepday.${environment}.${project}.referral.v1`,'a'.repeat(64));
+  },{consumed:scenario==='partner-consumed-token',project,environment});
   await page.route('**/*',async route=>{
    const request=route.request(),url=new URL(request.url());
    if(url.pathname==='/auth/v1/user'){
@@ -33,11 +35,11 @@ try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
     await route.fulfill({json:{enabled:true,code:'INTENT_EXPIRED_OR_MISSING'}});return;
    }
    if(url.pathname==='/functions/v1/partner-public'){await route.fulfill({json:{enabled:true,partners:[]}});return}
-   if(url.hostname!=='homologacao.pepday.com.br'){await route.fulfill({status:400,body:'Unmocked API'});return}
+   if(url.hostname!==host){await route.fulfill({status:400,body:'Unmocked API'});return}
    const path=url.pathname==='/cartao/'?'cartao/index.html':url.pathname.replace(/^\//,'');
-   try{const body=await readFile(new URL('../'+path,import.meta.url));await route.fulfill({body,contentType:/\.(mjs|js)$/.test(path)?'text/javascript':path.endsWith('.html')?'text/html':path.endsWith('.svg')?'image/svg+xml':'text/css'})}catch{await route.fulfill({status:404,body:''})}
+   try{const body=await readFile(new URL('../'+(production?'public/':'')+path,import.meta.url));await route.fulfill({body,contentType:/\.(mjs|js)$/.test(path)?'text/javascript':path.endsWith('.html')?'text/html':path.endsWith('.svg')?'image/svg+xml':'text/css'})}catch{await route.fulfill({status:404,body:''})}
   });
-  await page.goto('https://homologacao.pepday.com.br/cartao/'+(scenario.includes('new-ref')?'?ref=outro-parceiro':''));
+  await page.goto('https://'+host+'/cartao/'+(scenario.includes('new-ref')?'?ref=outro-parceiro':''));
   if(scenario==='pending-to-locked'){
    await page.locator('#partnerNoReferral').waitFor({state:'visible'});
    // Activation in another tab, without a focus event: action itself must recheck.

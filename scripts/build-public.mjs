@@ -38,6 +38,7 @@ await mkdir(path.join(out,'admin'),{recursive:true});
 await copy('site/admin/index.html','admin/index.html');
 await copy('site/admin/admin.css','admin/admin.css');
 await copy('site/admin/admin.mjs','admin/admin.mjs');
+await copy('site/admin/parceiros','admin/parceiros');
 
 await mkdir(path.join(out,'cartao'),{recursive:true});
 let card=await readFile(path.join(root,'cartao','index.html'),'utf8');

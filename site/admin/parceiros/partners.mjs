@@ -1,9 +1,10 @@
 import {financialErrors,normalizeDocument,normalizePix} from './validation.mjs?v=3';
 import {config} from '/config.js';
+import {isPartnerEnvironment} from '/src/partner-environment.mjs';
 const $=id=>document.getElementById(id),hide=(id,value=true)=>$(id).classList.toggle('hidden',value);
 const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:`pepday-${config.environment}-${config.projectRef}-admin-auth`}});
 let context=null,selected=null,pending=null,factor='',busy=false,reauthClient=null,includeArchived=false;
-const messages={PARTNER_NO_CHANGES:'Altere o percentual ou escolha um dado financeiro para editar.',PARTNER_LOGIN_EXPIRED:'Sua sessão administrativa expirou. Entre no painel novamente com senha e TOTP.',PARTNER_STEPUP_REQUIRED:'Este parceiro já foi ativado. Confirme a alteração com senha e TOTP.',PARTNERS_DISABLED:'Módulo aguardando ativação em homologação.',PARTNER_FINANCIAL_CONFIGURATION_REQUIRED:'Complete a configuração financeira, e-mail e telefone antes de ativar.',PARTNER_INVALID_FINANCIAL_DATA:'Confira CPF/CNPJ, percentual e os dados financeiros.',PARTNER_INVALID_PIX:'Confira o tipo e o formato da chave PIX.',PARTNER_STEPUP_INVALID:'A autorização expirou ou não corresponde à alteração. Reautentique.',PARTNER_RECENT_PASSWORD_TOTP_REQUIRED:'Confirme novamente senha e código do autenticador.',PARTNER_SESSION_REVOKED:'Sessão encerrada. Entre novamente no painel.',PARTNER_NOT_EDITABLE:'Parceiro arquivado ou indisponível.'};
+const messages={PARTNER_NO_CHANGES:'Altere o percentual ou escolha um dado financeiro para editar.',PARTNER_LOGIN_EXPIRED:'Sua sessão administrativa expirou. Entre no painel novamente com senha e TOTP.',PARTNER_STEPUP_REQUIRED:'Este parceiro já foi ativado. Confirme a alteração com senha e TOTP.',PARTNERS_DISABLED:'Módulo aguardando ativação neste ambiente.',PARTNER_FINANCIAL_CONFIGURATION_REQUIRED:'Complete a configuração financeira, e-mail e telefone antes de ativar.',PARTNER_INVALID_FINANCIAL_DATA:'Confira CPF/CNPJ, percentual e os dados financeiros.',PARTNER_INVALID_PIX:'Confira o tipo e o formato da chave PIX.',PARTNER_STEPUP_INVALID:'A autorização expirou ou não corresponde à alteração. Reautentique.',PARTNER_RECENT_PASSWORD_TOTP_REQUIRED:'Confirme novamente senha e código do autenticador.',PARTNER_SESSION_REVOKED:'Sessão encerrada. Entre novamente no painel.',PARTNER_NOT_EDITABLE:'Parceiro arquivado ou indisponível.'};
 function errorText(e){return messages[e?.message]||'Não foi possível concluir. Confira os dados e seu acesso.'}
 async function rpc(name,args={}){const {data,error}=await client.rpc(name,args);if(error)throw error;return data}
 function text(id,value){$(id).textContent=value}
@@ -37,7 +38,7 @@ document.querySelectorAll('[data-financial-edit]').forEach(button=>button.addEve
 async function load(){
   try{
     const m=await rpc('admin_partner_referral_metrics');
-    text('referralMetrics',m.enabled?`${m.clicks} cliques dirigidos · ${m.intents_created} intenções criadas · ${m.intents_replaced} substituídas · ${m.intents_expired} expiradas · ${m.intents_consumed} consumidas · ${m.benefits_with_partner} benefícios com parceiro · ${m.benefits_without_partner} sem parceiro`:'Atribuição aguardando ativação em homologação.');
+    text('referralMetrics',m.enabled?`${m.clicks} cliques dirigidos · ${m.intents_created} intenções criadas · ${m.intents_replaced} substituídas · ${m.intents_expired} expiradas · ${m.intents_consumed} consumidas · ${m.benefits_with_partner} benefícios com parceiro · ${m.benefits_without_partner} sem parceiro`:'Atribuição aguardando ativação neste ambiente.');
     $('referralPartnerMetrics').replaceChildren();for(const p of m.partners||[]){const li=document.createElement('li');li.textContent=`${p.public_name} · ${p.clicks} cliques · ${p.activations} ativações`;$('referralPartnerMetrics').append(li)}
   }catch{text('referralMetrics','Indicadores temporariamente indisponíveis.')}
   const rows=await rpc('admin_list_partners',{p_query:$('filter').value.trim(),p_include_archived:includeArchived});
@@ -68,7 +69,7 @@ async function load(){
   }
 }
 async function init(){
-  if(config.environment!=='test'||config.projectRef!=='fsbqpyyprtymwrmzsacp'||location.hostname!=='homologacao.pepday.com.br'){text('accessStatus','Módulo disponível somente na homologação.');return}
+  if(!isPartnerEnvironment(config,location)){text('accessStatus','Módulo indisponível neste endereço.');return}
   try{
     const {data,error}=await client.auth.getUser();if(error||!data?.user)throw new Error('AUTH_REQUIRED');
     context=await rpc('get_admin_context');if(context.aal!=='aal2')throw new Error('MFA_REQUIRED');

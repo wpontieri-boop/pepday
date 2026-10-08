@@ -1,6 +1,6 @@
 import {config} from '../config.js';
 import {referralAction,readReferralToken} from './partner-referral.mjs';
-import {initializeCloud} from './cloud.mjs';
+import {isPartnerEnvironment,createPartnerCardClient} from './partner-environment.mjs';
 import {readPartnerLock,lockedMessage} from './partner-lock.mjs';
 export function isPartnerTest(config,location){
   return config.environment==='test'&&config.projectRef==='fsbqpyyprtymwrmzsacp'&&location.hostname==='homologacao.pepday.com.br';
@@ -12,14 +12,14 @@ export async function publicPartnerSearch(query='',ref='',{fetcher=fetch}={}){
   if(!res.ok)throw new Error('Busca temporariamente indisponível.');
   return res.json();
 }
-if(typeof document!=='undefined'&&isPartnerTest(config,globalThis.location)){
+if(typeof document!=='undefined'&&isPartnerEnvironment(config,globalThis.location)){
   const panel=document.getElementById('partnerSearch');
   if(panel){
     const input=document.getElementById('partnerQuery'),results=document.getElementById('partnerResults'),status=document.getElementById('partnerSearchStatus');
     let timer,sequence=0,busy=false,pending=null,referralEnabled=false,locked=false,checking=true,checkSequence=0;
     let refreshing=false,refreshQueued=false,refHandled=false;
     const choices=document.getElementById('partnerChoices'),cta=document.getElementById('openPepDay');
-    const client=initializeCloud(globalThis.supabase.createClient,config,location.href).client;
+    const client=createPartnerCardClient(globalThis.supabase.createClient,config,location);
     const ref=new URL(globalThis.location.href).searchParams.get('ref')||'';
     const controls=()=>{
       choices.hidden=locked||checking||!referralEnabled;

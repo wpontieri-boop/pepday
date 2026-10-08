@@ -4,6 +4,7 @@ import {readFile,mkdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
 const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_EXECUTABLE});
+const production=process.env.PARTNERS_UI_ENV==='production',base=production?'https://pepday.com.br':'https://homologacao.pepday.com.br';
 const partners=[{public_name:'Homônimo QA',city:'Cidade A',description:'@qa-a',slug:'qa-a',public_code:'QA000001'},{public_name:'Homônimo QA',city:'Cidade B',description:'@qa-b',slug:'qa-b',public_code:'QA000002'}];
 await mkdir('test-output',{recursive:true});
 try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
@@ -25,9 +26,9 @@ try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
   }
   // Never forward a synthetic browser request to a real origin.
   const path=url.pathname==='/cartao/'?'cartao/index.html':url.pathname.replace(/^\//,'');
-  try{const body=await readFile(new URL('../'+path,import.meta.url));await route.fulfill({body,contentType:path.endsWith('.mjs')||path.endsWith('.js')?'text/javascript':path.endsWith('.html')?'text/html':path.endsWith('.svg')?'image/svg+xml':'text/css'})}catch{await route.fulfill({status:404,body:''})}
+  try{const body=await readFile(new URL('../'+(production?'public/':'')+path,import.meta.url));await route.fulfill({body,contentType:path.endsWith('.mjs')||path.endsWith('.js')?'text/javascript':path.endsWith('.html')?'text/html':path.endsWith('.svg')?'image/svg+xml':'text/css'})}catch{await route.fulfill({status:404,body:''})}
  });
- await page.goto('https://homologacao.pepday.com.br/cartao/?ref=qa-a');
+ await page.goto(base+'/cartao/?ref=qa-a');
  await page.waitForFunction(()=>document.getElementById('partnerOrigin').textContent.includes('Cidade A')&&!document.getElementById('partnerNoReferral').disabled);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.includes('referral')).length),1);

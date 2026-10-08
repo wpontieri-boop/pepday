@@ -3,7 +3,8 @@ import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';
 const {PGlite}=await import(pathToFileURL(process.env.PGLITE_MODULE).href);
 const db=new PGlite();
-const read=name=>readFile(new URL('../'+name,import.meta.url),'utf8');
+const production=process.env.PARTNERS_PRODUCTION==='1';
+const read=async name=>(await readFile(new URL('../'+name,import.meta.url),'utf8')).replaceAll('\r\n','\n');
 try{
   await db.exec(`create role anon;create role authenticated;create role service_role;
     create schema auth;create schema vault;
@@ -24,9 +25,10 @@ try{
     create function bootstrap_p2_local() returns trigger language plpgsql as $$begin insert into profiles(id) values(new.id);insert into subscriptions(user_id) values(new.id);insert into trials(user_id) values(new.id);return new;end$$;
     create trigger bootstrap after insert on auth.users for each row execute function bootstrap_p2_local();`);
   const team=await read('supabase/migrations/20261004230000_admin_team_roles_mfa.sql');
+  if(production)await db.exec("update vault.decrypted_secrets set decrypted_secret='https://oslefjmwfnddxlotalxu.supabase.co'");
   const start=team.indexOf('create or replace function public.admin_assert_access');
   await db.exec(team.slice(start,team.indexOf('end $$;',start)+7));
-  for(const name of ['20261006213126_partners_p1_test','20261007013353_partners_p1_ux_session','20261007022142_partners_financial_patch'])await db.exec(await read(`supabase/migrations/${name}.sql`));
+  if(!production)for(const name of ['20261006213126_partners_p1_test','20261007013353_partners_p1_ux_session','20261007022142_partners_financial_patch'])await db.exec(await read(`supabase/migrations/${name}.sql`));
   const acquisition=await read('supabase/migrations/20260928205127_block_c_acquisition_attribution.sql');
   await db.exec(acquisition.slice(0,acquisition.indexOf('create or replace function public.claim_card_acquisition'))+'commit;');
   const card=await read('supabase/migrations/20261001184711_card_qr_30d_benefit.sql');
@@ -37,10 +39,10 @@ try{
     select claim_card_acquisition();`);
   const core=(await db.query(`select prosrc from pg_proc where oid='public.claim_card_acquisition(timestamptz)'::regprocedure`)).rows[0].prosrc;
   const entitlement=(await db.query(`select prosrc from pg_proc where oid='public.get_entitlement()'::regprocedure`)).rows[0].prosrc;
-  await db.exec(await read('supabase/migrations/20261008202729_partners_p2_test.sql'));
+  if(!production){await db.exec(await read('supabase/migrations/20261008202729_partners_p2_test.sql'));
   assert.equal((await db.query(`select prosrc from pg_proc where oid='public.claim_card_acquisition_core_p2(timestamptz)'::regprocedure`)).rows[0].prosrc,core);
   assert.equal((await db.query(`select prosrc from pg_proc where oid='public.get_entitlement()'::regprocedure`)).rows[0].prosrc,entitlement);
-  assert.equal((await db.query(`select source from partner_attributions`)).rows[0].source,'historical_none');
+  assert.equal((await db.query(`select source from partner_attributions`)).rows[0].source,'historical_none');}
   await db.exec(`alter table subscriptions add column provider_plan_id text,add column provider_status text,add column billing_status text,add column provider_subscription_id text,add column last_payment_status text,add column current_period_start timestamptz,add column plan text,add column cancel_at_period_end boolean,add column cancelled_at timestamptz,add column next_plan text,add column created_at timestamptz;
     alter table trials add column completed_at timestamptz,add column created_at timestamptz;
     create table settings(id uuid,user_id uuid);
@@ -49,10 +51,18 @@ try{
     create table vial_movements(id uuid,user_id uuid,created_at timestamptz);create table local_data_imports(id uuid,user_id uuid,created_at timestamptz);`);
   await db.exec('begin;'+card.slice(card.indexOf('create or replace function public.export_my_data()')));
   const exportCore=(await db.query(`select prosrc from pg_proc where oid='public.export_my_data()'::regprocedure`)).rows[0].prosrc;
-  await db.exec(await read('supabase/migrations/20261008210119_partners_p2_privacy.sql'));
+  if(production)await db.exec(await read('supabase/migrations/20261008225617_partners_p1_p2_production.sql'));
+  else await db.exec(await read('supabase/migrations/20261008210119_partners_p2_privacy.sql'));
   assert.equal((await db.query(`select prosrc from pg_proc where oid='public.export_my_data_core_p2()'::regprocedure`)).rows[0].prosrc,exportCore);
-  await db.exec(await read('supabase/migrations/20261008221143_partners_p2_locked_read.sql'));
-  await db.exec(await read('supabase/tests/partners_p2_assertions.sql'));
-  await db.exec(await read('supabase/tests/partners_p2_locked_read.sql'));
+  if(!production)await db.exec(await read('supabase/migrations/20261008221143_partners_p2_locked_read.sql'));
+  const promoted=sql=>production?sql.replaceAll('fsbqpyyprtymwrmzsacp','oslefjmwfnddxlotalxu'):sql;
+  await db.exec(promoted(await read('supabase/tests/partners_p2_assertions.sql')));
+  await db.exec(promoted(await read('supabase/tests/partners_p2_locked_read.sql')));
+  if(production){
+    assert.equal((await db.query(`select prosrc from pg_proc where oid='public.claim_card_acquisition_core_p2(timestamptz)'::regprocedure`)).rows[0].prosrc,core);
+    assert.equal((await db.query(`select prosrc from pg_proc where oid='public.get_entitlement()'::regprocedure`)).rows[0].prosrc,entitlement);
+    for(const suite of ['partners_p1_assertions','partners_p1_ux_assertions','partners_financial_patch_assertions'])await db.exec(await read('supabase/tests/partners_production_bootstrap.sql')+promoted(await read('supabase/tests/'+suite+'.sql')));
+    console.log('PASS PROD promotion local SQL: exact migration, all P1/P2 suites with rollback, commercial core preserved');
+  }
   console.log('PASS P2 local SQL: real card core unchanged, historical backfill, transactional assertions and rollback');
 }catch(e){console.error(e.message,e.code,e.where||'');process.exitCode=1}finally{await db.close()}
