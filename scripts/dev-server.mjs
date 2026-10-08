@@ -11,7 +11,7 @@ const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=
   '.json':'application/json','.svg':'image/svg+xml'};
 const permitted=new Set(['index.html','app.js','style.css','account.css','manifest.json','icon.svg','sw.js','config.js',
   'termos.html','privacidade.html','cartao/index.html','site/index.html','site/site.css',
-  'site/admin/index.html','site/admin/admin.css','site/admin/admin.mjs','site/admin/parceiros/index.html','site/admin/parceiros/partners.css','site/admin/parceiros/partners.mjs','src/partner-public.mjs','src/partner-referral.mjs',
+  'site/admin/index.html','site/admin/admin.css','site/admin/admin.mjs','site/admin/parceiros/index.html','site/admin/parceiros/partners.css','site/admin/parceiros/partners.mjs','src/partner-public.mjs','src/partner-referral.mjs','src/partner-lock.mjs',
   'src/import-completion.mjs','src/account-ui.mjs','src/account.mjs','src/cloud.mjs','src/legacy-import.mjs',
   'src/entitlement.mjs','src/access-control.mjs','src/pro-gate.mjs','src/local-db.mjs',
   'src/pepday-repository.mjs','src/local-data-migration.mjs','src/sync-outbox.mjs','src/sync-api.mjs',

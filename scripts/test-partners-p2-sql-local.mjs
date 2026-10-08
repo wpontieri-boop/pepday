@@ -51,6 +51,8 @@ try{
   const exportCore=(await db.query(`select prosrc from pg_proc where oid='public.export_my_data()'::regprocedure`)).rows[0].prosrc;
   await db.exec(await read('supabase/migrations/20261008210119_partners_p2_privacy.sql'));
   assert.equal((await db.query(`select prosrc from pg_proc where oid='public.export_my_data_core_p2()'::regprocedure`)).rows[0].prosrc,exportCore);
+  await db.exec(await read('supabase/migrations/20261008221143_partners_p2_locked_read.sql'));
   await db.exec(await read('supabase/tests/partners_p2_assertions.sql'));
+  await db.exec(await read('supabase/tests/partners_p2_locked_read.sql'));
   console.log('PASS P2 local SQL: real card core unchanged, historical backfill, transactional assertions and rollback');
 }catch(e){console.error(e.message,e.code,e.where||'');process.exitCode=1}finally{await db.close()}

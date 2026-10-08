@@ -38,6 +38,7 @@ try{for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
  await page.locator('#partnerSwapCancel').click();assert.match(await page.locator('#partnerOrigin').textContent(),/Cidade A/);
  await page.locator('#partnerResults button').nth(1).click();await page.locator('#partnerSwap[open]').waitFor();
  await page.locator('#partnerSwapConfirm').click();await page.waitForFunction(()=>document.getElementById('partnerOrigin').textContent.includes('Cidade B'));
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.getElementById('partnerOrigin').textContent.includes('Cidade B')&&!document.getElementById('partnerNoReferral').disabled);assert.equal(creates,count+1,'Focus must not replay the original URL');
  await page.locator('#partnerCode').fill('QA000001');await page.locator('#partnerCodeForm button').click();await page.waitForFunction(()=>document.getElementById('partnerOrigin').textContent.includes('Cidade A'));
  await page.locator('#partnerCode').fill('INVALID');await page.locator('#partnerCodeForm button').click();await page.waitForFunction(()=>document.getElementById('partnerSearchStatus').textContent.includes('indisponível'));assert.match(await page.locator('#partnerOrigin').textContent(),/Cidade A/);
  await page.screenshot({path:`test-output/p2-card-${viewport.width}.png`,fullPage:true});

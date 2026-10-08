@@ -43,12 +43,14 @@
   <section id="partnerSearch" hidden style="text-align:left;margin:18px 0">
     <h2>Por quem você conheceu o PepDay?</h2>
     <p id="partnerOrigin" role="status">Você pode continuar sem indicação.</p>
+    <div id="partnerChoices" hidden>
     <p>A indicação fica guardada por até 30 dias neste navegador e é confirmada na liberação do benefício. Um benefício já ativado mantém sua indicação original.</p>
     <label>Nome ou cidade<input id="partnerQuery" maxlength="80" autocomplete="off" style="width:100%;padding:12px"></label>
     <ul id="partnerResults" aria-label="Parceiros encontrados" style="list-style:none;padding:0"></ul>
     <form id="partnerCodeForm"><label>Código do parceiro<input id="partnerCode" maxlength="100" autocomplete="off" style="width:100%;padding:12px"></label><button type="submit">Consultar código</button></form>
-    <p id="partnerSearchStatus" role="status" aria-live="polite"></p>
     <button id="partnerNoReferral" type="button">Continuar sem indicação</button>
+    </div>
+    <p id="partnerSearchStatus" role="status" aria-live="polite"></p>
   </section>
   <a id="openPepDay" href="../?from=cartao">Criar conta e liberar 30 dias PRO</a>
   <small>O benefício do cartão substitui o teste padrão de 7 dias e não se acumula com ele. Após os 30 dias, sua conta volta ao FREE se você não assinar o PRO.</small>
@@ -58,6 +60,7 @@
   import {captureCardAcquisition} from '../src/acquisition.mjs';
   captureCardAcquisition();
 </script>
-<script type="module" src="../src/partner-public.mjs?v=2"></script>
+<script defer src="../vendor/supabase-2.116.0.js"></script>
+<script type="module" src="../src/partner-public.mjs?v=3"></script>
 </body>
 </html>
