@@ -70,6 +70,7 @@ async function load(){
 }
 async function init(){
   if(!isPartnerEnvironment(config,location)){text('accessStatus','Módulo indisponível neste endereço.');return}
+  text('partnerEnvironment',config.environment==='production'?'PRODUÇÃO':'HOMOLOGAÇÃO');
   try{
     const {data,error}=await client.auth.getUser();if(error||!data?.user)throw new Error('AUTH_REQUIRED');
     context=await rpc('get_admin_context');if(context.aal!=='aal2')throw new Error('MFA_REQUIRED');

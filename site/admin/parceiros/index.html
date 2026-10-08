@@ -9,7 +9,7 @@
 <main>
 <section class="card" id="access"><h1>Parceiros & Afiliados</h1><p id="accessStatus" role="status">Conferindo acesso administrativo…</p><a class="admin-button" href="/admin/">Entrar no painel com senha e 2FA</a></section>
 <section id="module" class="hidden">
-<div class="dash-head"><div><div class="eyebrow">HOMOLOGAÇÃO</div><h1>Parceiros & Afiliados</h1><p id="roleLabel"></p></div><div><a class="admin-button" href="/admin/">Voltar ao painel</a><button id="exit" class="ghost">Sair</button></div></div>
+<div class="dash-head"><div><div class="eyebrow" id="partnerEnvironment"></div><h1>Parceiros & Afiliados</h1><p id="roleLabel"></p></div><div><a class="admin-button" href="/admin/">Voltar ao painel</a><button id="exit" class="ghost">Sair</button></div></div>
 <p class="status" id="status" role="status" aria-live="polite"></p>
 <section class="card"><h2>Indicações e ativações</h2><p id="referralMetrics" role="status">Conferindo indicadores…</p><p class="muted">Cliques e intenções não são conversões. Ativação é a concessão dos 30 dias PRO com vínculo fechado. Estes indicadores não calculam comissões.</p><ul id="referralPartnerMetrics"></ul></section>
 <section class="card"><h2>Buscar parceiros</h2><form id="filterForm"><label>Nome, cidade ou código<input id="filter" maxlength="100" autocomplete="off"></label><button>Buscar</button></form><button type="button" id="toggleArchived" class="ghost" aria-pressed="false">Mostrar arquivados</button><div id="list" class="partner-list"></div></section>
@@ -35,4 +35,4 @@
 </form></section>
 </section>
 <dialog id="stepup"><h2>Confirme esta alteração</h2><p>Use sua senha administrativa e o código do autenticador. Eles não serão salvos no cadastro.</p><form id="stepupPasswordForm"><label>Senha<input id="stepupPassword" type="password" required autocomplete="current-password"></label><button>Continuar</button></form><form id="stepupTotpForm" class="hidden"><label>Código do autenticador<input id="stepupCode" required pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code"></label><button>Confirmar e salvar</button></form><p id="stepupStatus" role="status"></p><button id="cancelStepup" type="button" class="ghost">Cancelar</button></dialog>
-</main><script src="/vendor/supabase-2.116.0.js"></script><script type="module" src="./partners.mjs?v=5"></script></body></html>
+</main><script src="/vendor/supabase-2.116.0.js"></script><script type="module" src="./partners.mjs?v=6"></script></body></html>
