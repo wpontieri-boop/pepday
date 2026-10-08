@@ -1,6 +1,6 @@
 # PepDay — Parceiros / Afiliados v1
 
-Data: 06/10/2026. Status: P1 implementado em TEST/homologação; refinamentos de UX/sessão aprovados em 06/10/2026. P2–P5 planejados; configuração inicial/validações P1 com PASS humano; aceite humano da edição parcial com step-up pendente.
+Especificação aprovada em06/10/2026; estado operacional atualizado em08/10/2026: **P1/P2 fechados com PASS humano em TEST e LIVE em PROD após autorização expressa**, gatesON. Edição parcial/step-up, permissões e pós-lock jáPASS em homologação; não repetir. Próxima validação curta de ambiente PROD e evidências em [CURRENT-STATE.md](CURRENT-STATE.md) e [PARTNERS-P1-P2-PROD.md](operations/PARTNERS-P1-P2-PROD.md). P3/P4/P5 permanecem planejados, fora da implementação/publicação desta tarefa. As regras comerciais abaixo não foram ampliadas no rollout.
 
 ## Base e decisões
 

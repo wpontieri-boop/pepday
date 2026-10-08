@@ -9,6 +9,7 @@ Atualização: 08/10/2026.
 | Landing pública | https://pepday.com.br/ | Página comercial principal. Apresenta o PepDay e direciona para entrar/usar o app. |
 | Aplicativo | https://pepday.com.br/app/ | PepDay PWA: calculadora, rotinas, conta, planos e instalação. A instalação é feita a partir do próprio app/navegador. |
 | Administração | https://pepday.com.br/admin/ | Painel interno OWNER/ADMIN/VIEWER. |
+| Parceiros / Afiliados | https://pepday.com.br/admin/parceiros/ | Módulo interno P1/P2; autenticação administrativa existente. |
 | Cartão / QR | https://pepday.com.br/cartao/ | Entrada do cartão físico com benefício de 30 dias PRO. |
 | Termos | https://pepday.com.br/termos.html | Termos de Uso. |
 | Privacidade | https://pepday.com.br/privacidade.html | Política de Privacidade. |
@@ -20,13 +21,13 @@ Atualização: 08/10/2026.
 3. O usuário usa o PepDay em **/app/** e, quando desejar, instala o PWA pelo botão/fluxo de instalação do navegador.
 4. O cartão físico continua apontando diretamente para **/cartao/** porque tem fluxo comercial próprio.
 
-## Parceiros / Afiliados — P1/P2 em homologação
+## Parceiros / Afiliados — P1/P2 em produção e homologação
 
-P1 fechado; P2 adiciona origem/intent de30dias na mesma rota `/cartao/?ref=<slug>`, código/manual com confirmação e indicadores em `/admin/parceiros/`, somente TEST. Publicação/gate/QA em [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md); não há nova rota de portal nem mudança de produção.
+P1/P2 fechados em TEST e promovidos com autorização expressa em08/10/2026: origem/intenção de30dias na mesma rota `/cartao/?ref=<slug>`, código/manual com confirmação e indicadores em `/admin/parceiros/`. Produção usa pepday.com.br e homologação usa homologacao.pepday.com.br, com projetos/Auth/armazenamento separados. Publicação/gates/QA em [PARTNERS-P1-P2-PROD.md](operations/PARTNERS-P1-P2-PROD.md) e [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md). Sem portalP5/P3/comissões calculadas/repasse.
 
 Para não aumentar ainda mais o painel administrativo principal, o módulo de Parceiros/Afiliados deve ficar separado visualmente, mas reutilizar a autenticação e as permissões administrativas já aprovadas.
 
-Rotas P1 publicadas somente em TEST conforme [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md):
+Rotas P1/P2 publicadas nos dois ambientes conforme [PARCEIROS-AFILIADOS.md](PARCEIROS-AFILIADOS.md) e rolloutPROD:
 - no **/admin/** haverá um botão/atalho **Parceiros & Afiliados**;
 - esse botão abrirá uma área dedicada em **/admin/parceiros/**;
 - OWNER/ADMIN poderão operar conforme a matriz da especificação; configuração financeira fica com OWNER, usando a sessão válida antes da primeira ativação e step-up depois; repasses ainda não implementados;
