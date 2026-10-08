@@ -1,4 +1,4 @@
-# PepDay — Current State
+﻿# PepDay — Current State
 
 Atualização: 08/10/2026.
 
@@ -20,7 +20,7 @@ Atualização: 08/10/2026.
 - **PASS TÉCNICO —08/10/2026:** focados23/23; regressão469/469; SQL PostgreSQL local e TEST real com rollback, isolamento/grants/ausência/sem writes/grant, gate/dados/corpos comerciais preservados. Browser isolado SDK real/respostas sintéticas em390×844 e1280×900:7cenários pós-lock por tamanho, mais pré-lock/homônimos/modal/código/sem indicação/focus. Sem overflow; screenshots revisadas. Build TEST/sintaxe/diff/segredos PASS. Não equivale a novo PASS humano.
 - Advisors após DDL:0ERROR; WARN authenticated SECURITY DEFINER da leitura esperado/revisado por auth.uid/projeção mínima/grants, sem acesso anon ou escrita; avisos históricos e5FKs históricas sem índice preservados. Detalhes em [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md).
 - **Publicação desta correção confirmada:** commit funcional **24adaeb05cbc05c193c4101168dd5e5eabc4b421**, Render TEST deploy **dep-db41fdlg1s2s73c36350 LIVE**,08/10/2026 19:22:58 Brasília. App `/`, `/cartao/`, `/admin/`, `/admin/parceiros/`, alias `/site/admin/`: HTTP200;11artefatos publicados idênticos ao build TEST por hash de texto CRLF/LF normalizado. Edge inspect HTTP200/gateON/sem criação, RPC nova sem login HTTP401. PROD LIVE8035511/deploydep-db23o8uk1f9s73909fn0/auto-deployOFF; main25f1d48 preservada, main/V2.9/Supabase PROD intocados. Commit posterior de encerramento apenas documental.
-- **Próxima ação explícita:** QA humano **somente pós-lock na MESMA conta `waeletronicos.cia+pepdayp2@gmail.com`**, no mesmo navegador autenticado: abrir `/cartao/`, conferir Parceiro Teste Mac/mensagem definitiva e ausência de controles de troca; abrir nova ref e conferir original inalterado. Não criar outra conta nem repetir ativação/P1. Registrar relato/data/ambiente antes de fechar P2; P3 fora do escopo.
+- **PASS HUMANO / NÃO REPETIR — TEST/homologação, 08/10/2026:** QA pós-lock concluído na mesma conta `waeletronicos.cia+pepdayp2@gmail.com`. Em `/cartao/`, a UI exibiu **“Indicação confirmada: Parceiro Teste Mac”**, informou que o vínculo não pode ser alterado após a ativação e ocultou busca, código e **Continuar sem indicação**, mantendo apenas o CTA para abrir o PepDay. Em seguida, ao abrir `?ref=teste-pos-lock`, a interface preservou **Parceiro Teste Mac** e exibiu **“A referência deste link foi ignorada; sua escolha definitiva foi mantida.”**. Evidência: captura humana da tela em homologação. Não repetir salvo alteração direta no pós-lock/atribuição.`r`n- **P2 Parceiros/Afiliados — FECHADO EM HOMOLOGAÇÃO:** jornada humana completa fechada: ref válida → intenção → login/onboarding → grant 30d → atribuição travada → tentativa pós-lock ignorada com feedback correto. Não repetir os PASS deste bloco.`r`n- **Próxima ação explícita:** decidir a próxima etapa após P2. P3 (financeiro/comissão/ledger/repasse manual) permanece fora do escopo até novo pedido/autorização. Produção continua preservada; eventual promoção P1+P2 para PROD exige autorização expressa.
 
 ## Checkpoint 08/10/2026 — P2 Parceiros/Afiliados somente TEST
 
@@ -425,3 +425,4 @@ Ao continuar o PepDay:
 4. comparar `HEAD...origin/v3.0-bloco-b`;
 5. não sobrescrever divergências entre máquinas;
 6. continuar apenas a partir do checkpoint sincronizado no GitHub.
+
