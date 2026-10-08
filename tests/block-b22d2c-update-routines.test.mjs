@@ -6,7 +6,7 @@ const migrationUrl = new URL(
   '../supabase/migrations/20260925223000_block_b22d2c_update_routines.sql',
   import.meta.url,
 );
-const sql = await readFile(migrationUrl, 'utf8');
+const sql = (await readFile(migrationUrl, 'utf8')).replaceAll('\r\n','\n');
 const signature = 'uuid,uuid,uuid,uuid,bigint,jsonb,jsonb';
 
 test('D2-C adiciona somente update versionado de Rotinas', () => {

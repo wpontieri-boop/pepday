@@ -18,7 +18,13 @@
     .card-benefit{margin:18px 0;padding:14px 16px;border:1px solid #2f7795;border-radius:16px;background:#46d8ff0d;color:#dff8ff;font-weight:700;line-height:1.45}
     .card-benefit span{display:block;margin-top:4px;color:var(--cyan);font-size:13px;font-weight:700}
     a{display:block;width:100%;padding:15px 18px;border-radius:14px;background:linear-gradient(90deg,#34c9f5,#56e6ff);color:#04131b;text-decoration:none;font-weight:900;margin-top:8px}
-    small{display:block;color:#7fa0af;line-height:1.5;margin-top:14px}@media(max-width:520px){main{padding:22px}.benefits{grid-template-columns:1fr}h1{font-size:29px}}
+    small{display:block;color:#7fa0af;line-height:1.5;margin-top:14px}
+    #partnerSearch{border-top:1px solid #24546b;padding-top:12px}#partnerSearch h2{font-size:20px}
+    input,button{font:inherit;border:1px solid #2f7795;border-radius:10px;background:#081722;color:var(--text);padding:12px}
+    label{display:block;margin:12px 0;font-size:14px}label input{display:block;margin-top:6px;width:100%}
+    button{cursor:pointer;margin:4px 0;min-height:44px}button:disabled{opacity:.55}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan)}
+    #partnerResults button{width:100%;text-align:left}#partnerOrigin{color:var(--cyan)}dialog{width:min(460px,90vw);background:var(--card);color:var(--text);border:1px solid #2f7795;border-radius:18px;padding:24px}dialog::backdrop{background:#000b}
+    @media(max-width:520px){main{padding:22px}.benefits{grid-template-columns:1fr}h1{font-size:29px}}
   </style>
 </head>
 <body>
@@ -36,19 +42,22 @@
   </div>
   <section id="partnerSearch" hidden style="text-align:left;margin:18px 0">
     <h2>Por quem você conheceu o PepDay?</h2>
-    <p>Prévia em homologação: confira a busca. Sua escolha ainda não será vinculada à conta.</p>
+    <p id="partnerOrigin" role="status">Você pode continuar sem indicação.</p>
+    <p>A indicação fica guardada por até 30 dias neste navegador e é confirmada na liberação do benefício. Um benefício já ativado mantém sua indicação original.</p>
     <label>Nome ou cidade<input id="partnerQuery" maxlength="80" autocomplete="off" style="width:100%;padding:12px"></label>
     <ul id="partnerResults" aria-label="Parceiros encontrados" style="list-style:none;padding:0"></ul>
     <form id="partnerCodeForm"><label>Código do parceiro<input id="partnerCode" maxlength="100" autocomplete="off" style="width:100%;padding:12px"></label><button type="submit">Consultar código</button></form>
     <p id="partnerSearchStatus" role="status" aria-live="polite"></p>
+    <button id="partnerNoReferral" type="button">Continuar sem indicação</button>
   </section>
   <a id="openPepDay" href="../?from=cartao">Criar conta e liberar 30 dias PRO</a>
   <small>O benefício do cartão substitui o teste padrão de 7 dias e não se acumula com ele. Após os 30 dias, sua conta volta ao FREE se você não assinar o PRO.</small>
 </main>
+<dialog id="partnerSwap" aria-labelledby="partnerSwapTitle"><h2 id="partnerSwapTitle">Confirmar troca de indicação</h2><p id="partnerSwapText"></p><button id="partnerSwapConfirm" type="button">Confirmar troca</button> <button id="partnerSwapCancel" type="button">Manter indicação anterior</button></dialog>
 <script type="module">
   import {captureCardAcquisition} from '../src/acquisition.mjs';
   captureCardAcquisition();
 </script>
-<script type="module" src="../src/partner-public.mjs?v=1"></script>
+<script type="module" src="../src/partner-public.mjs?v=2"></script>
 </body>
 </html>

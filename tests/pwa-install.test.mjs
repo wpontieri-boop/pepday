@@ -70,6 +70,6 @@ test('painel admin mostra adoção PWA e consulta RPC agregada',async()=>{
 
 test('service worker atual inclui módulo de instalação e novo cache',async()=>{
   const sw=await read('sw.js');
-  assert.match(sw,/pepday-v3-profile-sync-31/);
+  assert.match(sw,/pepday-v3-profile-sync-32/);
   assert.match(sw,/\.\/src\/pwa-install\.mjs/);
 });

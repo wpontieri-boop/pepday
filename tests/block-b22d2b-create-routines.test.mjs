@@ -6,7 +6,7 @@ const migrationUrl = new URL(
   '../supabase/migrations/20260925210000_block_b22d2b_create_routines.sql',
   import.meta.url,
 );
-const sql = await readFile(migrationUrl, 'utf8');
+const sql = (await readFile(migrationUrl, 'utf8')).replaceAll('\r\n','\n');
 const signature = 'uuid,uuid,uuid,uuid,uuid,text,numeric,text,integer,text,integer[],date,time,integer';
 
 test('D2-B adiciona somente a criação versionada de Rotinas', () => {

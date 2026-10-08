@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 06/10/2026.
+Atualização: 08/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -9,6 +9,18 @@ Atualização: 06/10/2026.
 - Ambiente de homologação: `https://homologacao.pepday.com.br/` (Render, DNS verificado e certificado HTTPS emitido; fallback técnico `https://pepday-v3-homologacao.onrender.com/`)
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
+
+## Checkpoint 08/10/2026 — P2 Parceiros/Afiliados somente TEST
+
+- Continuidade integral: AGENTS.md, CURRENT-STATE.md, PARCEIROS-AFILIADOS.md, URL-MAP.md e operations/PARTNERS-P1-TEST.md; PC oficial `C:/Users/wagne/Documents/PepDay-V3` limpo após fetch, branch `v3.0-bloco-b`, HEAD=origin **2b297dc241f14a77695c503422bc0e35bebf8649**, divergência0/0. P1 fechado/aprovado; todos os PASS/NÃO REPETIR preservados. Clone isolado `pepday-p2` do mesmo checkpoint; nenhuma divergência sobrescrita.
+- P2: capability emitida no servidor, hash somente no banco, validade server-side30dias; link/código/manual, continuidade no navegador, troca manual confirmada e sem indicação; grant+vínculo+snapshot regra/versão/percentual+consumo atômicos, locks/unicidades/retry/replay, ausência selada em chamadas novas/legadas. Seis grants anteriores `historical_none`, sem parceiro retroativo. Benefício comercial/entitlement preservados.
+- UI `/cartao/` mostra origem pública/busca/código/modal; app confirma vínculo efetivo e protege benefício anterior. Indicadores agregados admin sem PII/cálculo de comissão. Exportação somente origem própria pública; exclusão anonimiza vínculo.
+- Supabase TEST **fsbqpyyprtymwrmzsacp**: migrations locais **20261008202729_partners_p2_test.sql/20261008210119_partners_p2_privacy.sql**, remotas **20261008204601/20261008210257**. Não reaplicar por timestamps. Edge nova **partner-referral v1 ACTIVE**, pública antes de login com capability/guardas/limites; P1 preservado. Novo gate **partner_config.referral_enabled default OFF**, ainda OFF durante validação. Nenhum secret/env novo. Detalhes em [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md).
+- **PASS TÉCNICO — TEST,08/10/2026:** focados **18/18**, regressão **464/464**, SQL local/TEST real rollback; concorrência real **new-new,legacy-new,new-legacy**, lock comprovado/1grant/atribuição/cleanupzero; browser sintético mobile/desktop, build/sintaxe/diff, privacidade/exportação/exclusão. Três testes antigos normalizam CRLF no PC e três checks acompanham cache32; migrations/fluxos antigos intactos. Não é PASS humano Auth/OAuth.
+- Advisors:0ERROR/0FK nova sem índice; INFO backend sem policies e WARN RPCs autenticados revisados/esperados; avisos históricos preservados. Cleanup: **2parceiros (1ativo/1arquivado),6grants,6historical_none,0intenções/atribuições de fixtures**. Nenhuma conta/parceiro aprovado editado para teste.
+- **PROD preservada:** LIVE **8035511ad9a19f431d38b894ac2fcb1ff0881829**, deploy **dep-db23o8uk1f9s73909fn0**, auto-deploy OFF. Main/V2.9/Supabase PROD intocados. Sem P3+, mini painel, repasse, cobrança ou PWA Admin final.
+- **Publicação P2 pendente nesta versão inicial:** confirmar Render TEST LIVE/hashes/rotas, depois ligar gate somente TEST e registrar. Último TEST anterior **2b297dc**, deploy **dep-db3dvp8473hc73be8eeg** LIVE.
+- **Próxima ação:** concluir publicação/ativação TEST e **QA humano somente P2 com conta descartável nova do proprietário**, link Parceiro Teste Mac → cadastro/login → onboarding → grant30d/vínculo → nova ref sem alteração. **Não há PASS humano P2**. Não reutilizar contas PASS/não repetir P1. P3 exige fechamento/novo pedido.
 
 ## Checkpoint 06/10/2026 — edição financeira parcial e arquivados somente TEST
 

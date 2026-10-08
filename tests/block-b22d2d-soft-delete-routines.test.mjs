@@ -6,7 +6,7 @@ const migrationUrl = new URL(
   '../supabase/migrations/20260925234500_block_b22d2d_soft_delete_routines.sql',
   import.meta.url,
 );
-const sql = await readFile(migrationUrl, 'utf8');
+const sql = (await readFile(migrationUrl, 'utf8')).replaceAll('\r\n','\n');
 const signature = 'uuid,uuid,uuid,uuid,bigint,jsonb';
 
 test('D2-D adiciona somente soft-delete versionado de Rotinas', () => {

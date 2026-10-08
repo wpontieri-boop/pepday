@@ -35,6 +35,11 @@ document.querySelectorAll('[data-financial-edit]').forEach(button=>button.addEve
   clearErrors($('financialForm'));button.textContent=enable?'Cancelar alteração':button.getAttribute('aria-label');if(enable)$(ids[0]).focus();
 }));
 async function load(){
+  try{
+    const m=await rpc('admin_partner_referral_metrics');
+    text('referralMetrics',m.enabled?`${m.clicks} cliques dirigidos · ${m.intents_created} intenções criadas · ${m.intents_replaced} substituídas · ${m.intents_expired} expiradas · ${m.intents_consumed} consumidas · ${m.benefits_with_partner} benefícios com parceiro · ${m.benefits_without_partner} sem parceiro`:'Atribuição aguardando ativação em homologação.');
+    $('referralPartnerMetrics').replaceChildren();for(const p of m.partners||[]){const li=document.createElement('li');li.textContent=`${p.public_name} · ${p.clicks} cliques · ${p.activations} ativações`;$('referralPartnerMetrics').append(li)}
+  }catch{text('referralMetrics','Indicadores temporariamente indisponíveis.')}
   const rows=await rpc('admin_list_partners',{p_query:$('filter').value.trim(),p_include_archived:includeArchived});
   if(selected){const current=rows.find(p=>p.id===selected.id);if(current)selected=current}
   const list=$('list');list.replaceChildren();
@@ -48,7 +53,7 @@ async function load(){
     const code=document.createElement('code');code.textContent=`${p.public_code} · ${link.href}`;
     const hint=document.createElement('p');hint.className='muted';hint.textContent=p.status==='active'?'Parceiro disponível na busca pública.':'Link reservado; indisponível para indicação enquanto não estiver ativo.';
     const summary=document.createElement('p');summary.className='financial-summary';summary.textContent=p.financial_ready?'Configuração financeira aprovada pelo OWNER.':'Aguardando aprovação do OWNER';
-    const help=document.createElement('details');help.className='activation-help';const helpTitle=document.createElement('summary');helpTitle.textContent=p.status==='active'?'ⓘ Parceiro ativo':p.status==='archived'?'ⓘ Histórico preservado':'ⓘ Ativar parceiro';const helpBody=document.createElement('p');helpBody.textContent=p.status==='archived'?'Cadastro arquivado e preservado para histórico e auditoria. Não recebe novas indicações.':p.status==='active'?'Link e código disponíveis na busca pública. Configuração financeira aprovada pelo OWNER. A atribuição persistida ao cliente será entregue no P2.':'A ativação torna o link e o código válidos para indicação. Exige financeiro aprovado pelo OWNER, e-mail e telefone. A atribuição persistida ao cliente será entregue no P2.';help.append(helpTitle,helpBody);
+    const help=document.createElement('details');help.className='activation-help';const helpTitle=document.createElement('summary');helpTitle.textContent=p.status==='active'?'ⓘ Parceiro ativo':p.status==='archived'?'ⓘ Histórico preservado':'ⓘ Ativar parceiro';const helpBody=document.createElement('p');helpBody.textContent=p.status==='archived'?'Cadastro arquivado e preservado para histórico e auditoria. Não recebe novas indicações.':p.status==='active'?'Link e código disponíveis na busca pública. A indicação é fechada na liberação dos 30 dias PRO.':'A ativação torna o link e o código válidos para indicação. Exige financeiro aprovado pelo OWNER, e-mail e telefone.';help.append(helpTitle,helpBody);
     const actions=document.createElement('div');actions.className='partner-actions';
     if(context.can_write&&p.status!=='archived'){
       actions.append(action('Editar cadastro',async()=>edit(p)));

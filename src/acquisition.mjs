@@ -1,3 +1,4 @@
+import {isReferralTest,readReferralToken,forgetReferralToken} from './partner-referral.mjs';
 const STORAGE_KEY='pepday.acquisition.v1';
 
 function safeStorage(storage){
@@ -36,12 +37,17 @@ export function captureCardAcquisition(storage=globalThis.localStorage,now=new D
   try{target.setItem(STORAGE_KEY,JSON.stringify(marker));return marker}catch{return null}
 }
 
-export async function claimPendingCardAcquisition(client,storage=globalThis.localStorage){
+export async function claimPendingCardAcquisition(client,storage=globalThis.localStorage,{location=globalThis.location}={}){
   const marker=readAcquisition(storage);
   if(!marker||!client?.rpc)return null;
-  const {data,error}=await client.rpc('claim_card_acquisition',{p_first_seen_at:marker.firstSeenAt});
+  const p2=isReferralTest(undefined,location),token=p2?readReferralToken(storage):null;
+  const {data,error}=await client.rpc(p2?'claim_partner_card_acquisition':'claim_card_acquisition',{
+    p_first_seen_at:marker.firstSeenAt,...(p2?{p_intent_token:token}:{})
+  });
   if(error)throw error;
+  if(data?.benefit?.code==='CARD_PRO_NEEDS_ONBOARDING')return data;
   try{safeStorage(storage)?.removeItem(STORAGE_KEY)}catch{}
+  if(p2&&readReferralToken(storage)===token)forgetReferralToken(storage);
   return data||null;
 }
 

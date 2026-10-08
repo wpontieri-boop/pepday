@@ -126,6 +126,10 @@ Auditoria registra ator, alvo, ação, data, valores financeiros/regra e motivo;
 
 Separar cliques direcionais, benefícios ativados, primeiro uso (evento existente), primeiras conversões mensal/anual, pagamentos/renovações atribuídos, receita bruta confirmada, reembolsos, receita retida e comissão pendente/em revisão/liberada/paga/revertida. Coortes usam mesmas contas; sem denominador = “—”. Não somar receita de recuperação e parceiro como vendas diferentes. Portal futuro mostra agregados e extrato do próprio parceiro, sem identidade do cliente, CPF/PIX de terceiros ou rotinas.
 
+## Estado das fases — 08/10/2026
+
+P1 fechado e homologado, conforme CURRENT-STATE. P2 implementado tecnicamente somente TEST (intenção, continuidade, concessão/vínculo atômicos, snapshot, métricas e privacidade), com QA humano novo pendente. Evidências/limites em [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md). P3–P5 ainda não implementados; produção não autorizada. A sequência abaixo é o plano original; não repetir P1 ou PASS anteriores.
+
 ## Sequência de implementação TEST
 
 1. **P1 — próximo passo:** modelo/migrations, RPCs de cadastro/permissões, configuração financeira OWNER, slug/código, busca pública e módulo `/admin/parceiros/` com aliases TEST. Aplicar desde P1 o step-up após primeira ativação conforme o refinamento acima; enquanto ele não estiver verificado, essas ações ficam indisponíveis, sem fallback AAL2 apenas. Feature gate TEST desativado por padrão; sem comissão, cobrança, envio ou repasse real. Testar P1 antes de ativar em homologação.

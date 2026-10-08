@@ -388,7 +388,10 @@ async function refresh() {
       }
       if(benefit?.code==='CARD_PRO_GRANTED'&&benefit.ends_at){
         const until=new Intl.DateTimeFormat('pt-BR',{dateStyle:'long'}).format(new Date(benefit.ends_at));
-        status(`Benefício do cartão ativado: 30 dias de PepDay PRO grátis até ${until}. Sem cartão e sem cobrança automática.`);
+        const origin=result.partner_locked?(result.partner?` Indicação confirmada: ${result.partner.public_name}.`:' Benefício ativado sem indicação.') : '';
+        status(`Benefício do cartão ativado: 30 dias de PepDay PRO grátis até ${until}. Sem cartão e sem cobrança automática.${origin}`);
+      }else if(benefit?.code==='CARD_PRO_ALREADY_GRANTED'&&result.partner_locked){
+        status(result.partner?`Seu benefício já foi ativado. A indicação permanece: ${result.partner.public_name}.`:'Seu benefício já foi ativado sem indicação. Uma nova indicação não altera esse benefício.');
       }
     }).catch(error=>console.warn('PepDay atribuição do cartão adiada:',error?.code||error?.name||'erro'));
     status(hydrationDelayed

@@ -1,6 +1,6 @@
 # PepDay — Mapa de URLs e Áreas
 
-Atualização: 06/10/2026.
+Atualização: 08/10/2026.
 
 ## Produção atual
 
@@ -20,7 +20,9 @@ Atualização: 06/10/2026.
 3. O usuário usa o PepDay em **/app/** e, quando desejar, instala o PWA pelo botão/fluxo de instalação do navegador.
 4. O cartão físico continua apontando diretamente para **/cartao/** porque tem fluxo comercial próprio.
 
-## Parceiros / Afiliados — P1 em homologação
+## Parceiros / Afiliados — P1/P2 em homologação
+
+P1 fechado; P2 adiciona origem/intent de30dias na mesma rota `/cartao/?ref=<slug>`, código/manual com confirmação e indicadores em `/admin/parceiros/`, somente TEST. Publicação/gate/QA em [PARTNERS-P2-TEST.md](operations/PARTNERS-P2-TEST.md); não há nova rota de portal nem mudança de produção.
 
 Para não aumentar ainda mais o painel administrativo principal, o módulo de Parceiros/Afiliados deve ficar separado visualmente, mas reutilizar a autenticação e as permissões administrativas já aprovadas.
 
