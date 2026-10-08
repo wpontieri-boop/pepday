@@ -29,7 +29,7 @@ Atualização: 08/10/2026. PASS técnico; QA humano da nova jornada pendente. P1
 Não reaplicar por diferenças de timestamp.
 
 - Tabelas: `partner_referral_intents`, `partner_attributions`, `partner_click_events`, `partner_click_daily`; RLS sem policies, todos os grants diretos revogados inclusive service_role. Todas as FKs indexadas. Trigger impede alteração do vínculo/snapshot, admitindo somente remoção dos identificadores nas FKs de exclusão.
-- Gate `partner_config.referral_enabled`: default OFF, independente de P1 já ON. Ainda OFF durante os testes; concessão antiga continua funcionando com ausência selada. Ativar somente após verificações e publicação TEST.
+- Gate `partner_config.referral_enabled`: default OFF, independente de P1 já ON. OFF durante os testes; concessão antiga continua funcionando com ausência selada. **ON somente TEST após todos os PASS e conferência do deploy**; estado/Edge verificados em08/10/2026 18:16 Brasília. PROD não possui estas migrations/gate.
 - RPC `partner_referral_action`: somente service_role, via Edge pública intent/inspect/clear; capability autentica intenção existente, body/ref/op limitados, quota compartilhada com busca P1 **120 chamadas/minuto**. CORS sozinho não autoriza. Não aceita partner_id/prazo do cliente.
 - Edge nova `partner-referral`: ID `eae07879-ad63-4929-9c2f-b75926f82049`, **v1 ACTIVE**, `index.mjs`, verify_jwt=false para criação pública anterior ao login com autenticação por capability nas operações existentes; TEST URL/origin, POST/OPTIONS, máximo1024bytes, projeção mínima/allowlists, quota SQL. Edge P1 `partner-public` v2 preservada.
 - Variáveis existentes: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEYS`. Nenhuma env/secret nova, nenhum valor no Git. Sem token bruto/PII/IP/fingerprint/log de payload.
@@ -54,7 +54,11 @@ Não reaplicar por diferenças de timestamp.
 
 ## Publicação e QA novo pendente
 
-Nesta versão documental inicial, aguarda publicação/conferência do código TEST. Depois conferir Render LIVE/hashes/rotas, ligar somente referral_enabled TEST e registrar.
+**Publicação TEST confirmada:** commit funcional **125ff7f65cf4b14da182fdb4c087f8eaa22ded41**, Render deploy **dep-db40f4k9v7es73cdblhg LIVE**, terminado08/10/2026 21:14:07 UTC (18:14 Brasília). App TEST em `/`, `/cartao/`, `/admin/`, `/admin/parceiros/` e alias `/site/admin/`: HTTP200. Oito artefatos publicados (cartão, HTML/JS admin, partner-public/referral, acquisition, account-ui e SW) conferidos por SHA-256 de texto com CRLF/LF normalizados, correspondendo ao build TEST. Endpoint público inspect HTTP200 antes/depois do gate, false→true, sem criar intenção nem expor dados privados.
+
+P2 ativado no TEST depois das verificações. Backend conserva2parceiros/6grants/6historical_none/0intenções/0vínculos com parceiro; Parceiro Teste Mac ativo, slug `parceiro-teste-mac`, código `5361EF86`, regra **versão2/16%** conferida, sem alteração. Snapshot final será o da ativação da conta nova.
+
+PROD novamente confirmada LIVE em **8035511ad9a19f431d38b894ac2fcb1ff0881829**, mesmo deploy **dep-db23o8uk1f9s73909fn0**, sem promoção. Ref remota `main` **25f1d48d34b395be285d35391b6a5b7ebe6d848c** conferida e não modificada por esta sessão; não confundir HEAD de main com commit LIVE de produção. Commit posterior de encerramento é somente documentação, sem mudar o código funcional já verificado.
 
 QA humano exclusivamente P2, com **conta TEST descartável nova fornecida/criada pelo proprietário**, no mesmo navegador:
 
