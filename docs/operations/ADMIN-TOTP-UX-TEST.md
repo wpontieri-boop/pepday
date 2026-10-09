@@ -34,6 +34,16 @@ Commit funcional final `830ae68ac949490e82c8eb7c55bd4e16ad9774f6`, deploy `dep-d
 - admin.mjs: `A75EEC6076A5027983231221C4996E32997BA77A15FA7CC93C7642380D1B629A`
 - admin.css: `0C1B0DC21C5F00F3B77B1ABB83B80AE9D6CDE370EABF73762182FEA6EF32E189`
 
-## Promoção preparada, ainda não autorizada
+## Promoção preparada — histórico anterior à autorização
 
 Após confirmar TEST LIVE e hashes, pedir autorização da promoção pequena dos três artefatos Admin. PROD permanece 5f0a678 / dep-db42cpk9v7es738s3hn0, auto-deploy OFF. Não há migration/configuração/secreto para aplicar. Rollback frontend é o commit funcional PROD anterior; não resetar fator, alterar senha ou enfraquecer guardas. A publicação futura deve conferir o pacote e smoke somente desta tela. Nenhum QA humano antigo deve ser repetido.
+
+## Promoção PROD autorizada e concluída — 09/10/2026
+
+Proprietário autorizou expressamente os três arquivos Admin. PC/GitHub em 166de8f, limpos/0/0 após fetch. Render confirmou PROD anterior 5f0a678/auto-deploy OFF e TEST LIVE 166de8f. Build público atual e archive 5f0a678 comparados: 94 arquivos, somente admin/index.html, admin/admin.mjs e admin/admin.css diferem. Normalização exclusiva CRLF/LF para texto; binários sem transformação. Antes do deploy, cinco arquivos Admin/config publicados conferiram com o baseline.
+
+Deploy manual **dep-db4gualg1s2s739d8sn0 LIVE**, commit **166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6**, finalizado **09/10/2026 12:58:46 Brasília**. Serviço srv-davto4tg1s2s73brihf0 / workspace tea-da7iss0u01pc73d6vflg, npm run build:public/public, auto-deploy OFF preservado. Rollback 5f0a678 / dep-db42cpk9v7es738s3hn0.
+
+Pós-deploy: 94/94 arquivos HTTP200/hash correspondente ao build, incluindo os três hashes acima; configuração production/oslefjmwfnddxlotalxu sem TEST. A diferença inicial de hash da licença sem extensão era exclusivamente CRLF/LF; normalização textual corrigida no helper de verificação ignorado, sem alteração de produto. /admin/ HTTP200 com ações e JS v37/CSS v35. Chrome/Edge reais, mobile/desktop: quatro smokes de visitante PASS (login/guardas/refresh/sem overflow/erro JS/zero backend). Perfis vazios, nenhum login real ou mutação Supabase. Não repetir PASS humano; regressão 472/472 e oito matrizes Auth sintéticas aprovadas na implementação continuam válidas.
+
+Nenhum arquivo de código novo nesta promoção; P1/P2/billing/recovery/cartão/landing/app cliente, main/V2.9 e backend preservados. Encerramento documental no CURRENT-STATE registra P3 como próxima etapa TEST, sem implementar P3 ou autorizar sua produção.
