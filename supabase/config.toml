@@ -68,3 +68,9 @@ enabled = true
 verify_jwt = false
 # TEST exclusivamente; sessão validada diretamente no Auth e elegibilidade no SQL.
 entrypoint = "./functions/recovery-checkout/index.mjs"
+
+[functions.partner-finance-worker]
+enabled = true
+verify_jwt = false
+# TEST exato + sandbox; token PostgreSQL curto, hash e uso único. Sem cobrança/transferência.
+entrypoint = "./functions/partner-finance-worker/index.mjs"
