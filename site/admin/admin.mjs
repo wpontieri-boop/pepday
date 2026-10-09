@@ -16,13 +16,23 @@ const fmtDate=value=>{
 };
 
 if(!globalThis.supabase?.createClient) throw new Error('SDK Supabase indisponível.');
+const adminAuthStorageKey=`pepday-${config.environment}-${config.projectRef}-admin-auth`;
+let authAttemptController=null;
+async function adminAuthFetch(input,options={}){
+  const url=typeof input==='string'?input:input.url;
+  if(!url.startsWith(config.supabaseUrl+'/auth/v1/'))return fetch(input,options);
+  const logout=new URL(url).pathname==='/auth/v1/logout';
+  const signal=logout?AbortSignal.timeout(10000):authAttemptController?.signal;
+  return fetch(input,signal?{...options,signal:options.signal?AbortSignal.any([options.signal,signal]):signal}:options);
+}
 const client=globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{
+  global:{fetch:adminAuthFetch},
   auth:{
     flowType:'pkce',
     persistSession:true,
     autoRefreshToken:true,
     detectSessionInUrl:true,
-    storageKey:`pepday-${config.environment}-${config.projectRef}-admin-auth`
+    storageKey:adminAuthStorageKey
   }
 });
 
@@ -32,6 +42,23 @@ let promoRows=[];
 let adminContext=null;
 let bootstrapEmail='';
 let activeMfaFactorId='';
+let currentAuthStage='login';
+let authAttemptVersion=0;
+let authAttemptTask=null;
+let endingAuthAttempt=false;
+
+async function runAuthAttempt(action){
+  const version=++authAttemptVersion;
+  const controller=new AbortController();
+  authAttemptController=controller;
+  const task=action(version);
+  authAttemptTask=task;
+  try{return await task}catch(error){if(attemptIsCurrent(version))throw error}finally{
+    if(authAttemptTask===task)authAttemptTask=null;
+    if(authAttemptController===controller)authAttemptController=null;
+  }
+}
+const attemptIsCurrent=version=>version===authAttemptVersion&&!endingAuthAttempt;
 
 function authStatus(message){setText('authStatus',message)}
 function promoStatus(message){setText('promoAdminStatus',message)}
@@ -48,6 +75,8 @@ function syncPromoExpiry(){
 function setBusy(value){
   busy=value;
   document.querySelectorAll('button').forEach(button=>button.disabled=value);
+  // An in-flight TOTP request must not hide the way out of this attempt.
+  for(const id of ['mfaBack','mfaLogout'])if($(id))$(id).disabled=endingAuthAttempt;
 }
 
 async function currentUser(){
@@ -57,6 +86,13 @@ async function currentUser(){
 }
 
 function authStage(stage='login'){
+  currentAuthStage=stage;
+  if(stage==='mfa-challenge'&&!history.state?.pepdayAdminTotp){
+    history.pushState({...history.state,pepdayAdminTotp:true},'',location.href);
+  }else if(stage==='login'&&history.state?.pepdayAdminTotp){
+    const {pepdayAdminTotp,...state}=history.state;
+    history.replaceState(state,'',location.href);
+  }
   hide('loginForm',stage!=='login');
   hide('firstAccess',stage!=='login');
   hide('bootstrapCodeForm',stage!=='bootstrap');
@@ -84,24 +120,30 @@ function applyAdminPermissions(){
   }
 }
 
-async function beginMfa(context){
+async function beginMfa(context,version=authAttemptVersion){
+  if(!attemptIsCurrent(version))return;
   adminContext=context;
   const listed=await client.auth.mfa.listFactors();
+  if(!attemptIsCurrent(version))return;
   if(listed.error)throw listed.error;
   const verified=(listed.data?.totp||[]).find(factor=>factor.status==='verified')||null;
   const assurance=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(!attemptIsCurrent(version))return;
   if(assurance.error)throw assurance.error;
 
   if(verified&&assurance.data?.currentLevel==='aal2'){
     adminContext=await adminContextForSession();
-    await openDashboard();
+    if(!attemptIsCurrent(version))return;
+    await openDashboard(version);
     return;
   }
 
   if(verified){
     activeMfaFactorId=verified.id;
+    setText('mfaChallengeIdentity',`Conta: ${context.email}`);
     authStage('mfa-challenge');
     authStatus('Informe o código do seu autenticador.');
+    $('mfaChallengeCode')?.focus();
     return;
   }
 
@@ -121,8 +163,9 @@ async function beginMfa(context){
   authStatus('Configure o autenticador e confirme o primeiro código.');
 }
 
-async function afterPrimaryAuth({bootstrap=false}={}){
+async function afterPrimaryAuth({bootstrap=false,version=authAttemptVersion}={}){
   const context=await adminContextForSession();
+  if(!attemptIsCurrent(version))return;
 
   if(bootstrap&&context.password_configured){
     await client.auth.signOut({scope:'local'});
@@ -139,11 +182,12 @@ async function afterPrimaryAuth({bootstrap=false}={}){
     return;
   }
 
-  await beginMfa(context);
+  await beginMfa(context,version);
 }
 
-async function openDashboard(){
+async function openDashboard(version=authAttemptVersion){
   adminContext=await adminContextForSession();
+  if(!attemptIsCurrent(version))return;
   if(adminContext?.aal!=='aal2')throw new Error('MFA_REQUIRED');
   hide('authCard');
   hide('dashboard',false);
@@ -164,8 +208,47 @@ async function resetAdminUi(message='Entre com sua senha para acessar o painel.'
   $('setPasswordForm')?.reset();
   $('mfaEnrollForm')?.reset();
   $('mfaChallengeForm')?.reset();
+  setText('mfaChallengeIdentity','');
+  $('mfaQr')?.removeAttribute('src');
+  setText('mfaSecret','');
+  hide('mfaSecretWrap');
   authStatus(message);
 }
+
+function clearAdminAuthStorage(){
+  // Never clear app data, another environment, or another client's Auth key.
+  for(const name of ['localStorage','sessionStorage']){
+    try{for(const key of [adminAuthStorageKey,`${adminAuthStorageKey}-code-verifier`,`${adminAuthStorageKey}-user`])globalThis[name]?.removeItem(key)}catch{}
+  }
+}
+
+async function endAdminAttempt(message){
+  if(endingAuthAttempt)return;
+  endingAuthAttempt=true;
+  ++authAttemptVersion;
+  authAttemptController?.abort();
+  setBusy(true);
+  await resetAdminUi('Encerrando esta tentativa…');
+  let failed=false;
+  try{
+    // Aborted Auth work must settle before disposing any session it produced.
+    await authAttemptTask?.catch(()=>{});
+    const result=await client.auth.signOut({scope:'local'});
+    failed=!!result.error;
+  }catch{failed=true}finally{
+    clearAdminAuthStorage();
+    await resetAdminUi(failed?'Sessão removida deste navegador. Não foi possível confirmar a saída no servidor. Entre novamente.':message);
+    endingAuthAttempt=false;
+    setBusy(false);
+    $('email')?.focus();
+  }
+}
+
+$('mfaBack')?.addEventListener('click',()=>endAdminAttempt('Informe o e-mail e a senha para iniciar uma nova tentativa.'));
+$('mfaLogout')?.addEventListener('click',()=>endAdminAttempt('Sessão administrativa encerrada.'));
+window.addEventListener('popstate',event=>{
+  if(currentAuthStage==='mfa-challenge'&&!event.state?.pepdayAdminTotp)void endAdminAttempt('Informe o e-mail e a senha para iniciar uma nova tentativa.');
+});
 
 function renderTeam(rows){
   const list=$('teamList');
@@ -459,13 +542,16 @@ $('loginForm')?.addEventListener('submit',async event=>{
   const email=$('email').value.trim(),password=$('password').value;
   setBusy(true);authStatus('Entrando…');
   try{
-    const {error}=await client.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    await afterPrimaryAuth();
+    await runAuthAttempt(async version=>{
+      const {error}=await client.auth.signInWithPassword({email,password});
+      if(!attemptIsCurrent(version))return;
+      if(error)throw error;
+      await afterPrimaryAuth({version});
+    });
   }catch(error){
     console.error('PepDay admin password:',error?.code||error?.name||'erro');
     authStatus('E-mail, senha ou acesso administrativo inválido.');
-  }finally{setBusy(false)}
+  }finally{$('password').value='';if(!endingAuthAttempt)setBusy(false)}
 });
 
 $('firstAccess')?.addEventListener('click',async()=>{
@@ -540,13 +626,16 @@ $('mfaChallengeForm')?.addEventListener('submit',async event=>{
   if(!/^\d{6}$/.test(code)){authStatus('Informe o código de 6 dígitos do autenticador.');return}
   setBusy(true);
   try{
-    const {error}=await client.auth.mfa.challengeAndVerify({factorId:activeMfaFactorId,code});
-    if(error)throw error;
-    await openDashboard();
+    await runAuthAttempt(async version=>{
+      const {error}=await client.auth.mfa.challengeAndVerify({factorId:activeMfaFactorId,code});
+      if(!attemptIsCurrent(version))return;
+      if(error)throw error;
+      await openDashboard(version);
+    });
   }catch(error){
     console.error('PepDay admin mfa challenge:',error?.code||error?.name||'erro');
-    authStatus('Código 2FA inválido.');
-  }finally{setBusy(false)}
+    if(!endingAuthAttempt)authStatus('Código 2FA inválido. Tente um novo código ou volte para usar outro e-mail.');
+  }finally{$('mfaChallengeCode').value='';if(!endingAuthAttempt){setBusy(false);if(currentAuthStage==='mfa-challenge')$('mfaChallengeCode').focus()}}
 });
 
 $('teamForm')?.addEventListener('submit',async event=>{
@@ -650,23 +739,24 @@ $('promoRedemptionsClose')?.addEventListener('click',()=>hide('promoRedemptions'
 
 $('refresh')?.addEventListener('click',loadMetrics);
 $('logout')?.addEventListener('click',async()=>{
-  if(busy)return;setBusy(true);
-  try{await client.auth.signOut({scope:'local'})}finally{
-    setBusy(false);
-    await resetAdminUi('Sessão encerrada.');
-  }
+  if(busy)return;
+  await endAdminAttempt('Sessão encerrada.');
 });
 
 client.auth.onAuthStateChange(event=>{
-  if(event==='SIGNED_OUT')queueMicrotask(()=>resetAdminUi('Sessão encerrada.'));
+  if(event==='SIGNED_OUT'&&!endingAuthAttempt){++authAttemptVersion;queueMicrotask(()=>resetAdminUi('Sessão encerrada.'))}
 });
 
 (async()=>{
   try{
-    const user=await currentUser();
-    if(!user){await resetAdminUi();return}
-    const context=await adminContextForSession();
-    await beginMfa(context);
+    await runAuthAttempt(async version=>{
+      const user=await currentUser();
+      if(!attemptIsCurrent(version))return;
+      if(!user){await resetAdminUi();return}
+      const context=await adminContextForSession();
+      if(!attemptIsCurrent(version))return;
+      await beginMfa(context,version);
+    });
   }catch(error){
     console.error('PepDay admin init:',error?.code||error?.name||'erro');
     await client.auth.signOut({scope:'local'}).catch(()=>{});

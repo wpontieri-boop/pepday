@@ -1,6 +1,6 @@
 # PepDay — Current State
 
-Atualização: 08/10/2026.
+Atualização: 09/10/2026.
 
 ## Fonte de verdade operacional
 
@@ -9,6 +9,18 @@ Atualização: 08/10/2026.
 - Ambiente de homologação: `https://homologacao.pepday.com.br/` (Render, DNS verificado e certificado HTTPS emitido; fallback técnico `https://pepday-v3-homologacao.onrender.com/`)
 - Produção V2.9 / `main`: **não alterar sem autorização expressa**.
 - Antes de qualquer alteração, ler `AGENTS.md`, conferir branch, alterações locais e sincronização com `origin/v3.0-bloco-b`.
+
+## Checkpoint 09/10/2026 — UX do login Admin / TOTP, somente TEST
+
+- Continuidade obrigatória concluída antes do código: AGENTS.md e este documento integralmente, operação Admin relacionada; fetch e comparação das três mudanças documentais com o PC oficial, fast-forward sem sobrescrever divergências. Branch `v3.0-bloco-b`, árvore limpa, HEAD/origin **9ac4b9a7a54e682069042f2fbdc4ca784a5760a4**, divergência 0/0.
+- Causa confirmada da UX: a etapa TOTP escondia o formulário de senha sem oferecer voltar/trocar e-mail/sair. Faltava cancelamento explícito da tentativa e proteção contra conclusão assíncrona depois da saída. A causa dos códigos recusados no Edge não foi demonstrada; o PASS humano de novo login Chrome PROD permanece válido. Não tratar como falha global de TOTP.
+- Implementado somente no frontend Admin: identidade da conta na etapa TOTP, **Voltar e usar outro e-mail** e **Sair**, campos vazios ao reiniciar, saída Auth com `scope:local`, limpeza das três chaves exatas Admin do ambiente atual, cancelamento de requisição Auth pendente e descarte de resposta antiga. Logout tem limite de espera e mensagem honesta se o servidor não confirmar a saída. Refresh retoma o desafio da sessão AAL1; voltar do navegador encerra a tentativa e avançar não a ressuscita. Código inválido limpa o campo e permite nova tentativa. Contraste/foco/toque dos botões corrigidos, caches HTML JS/CSS atualizados.
+- Segurança preservada: OWNER `wpontieri@gmail.com`, senha/fator existentes, AAL2 obrigatório, guards/sessão máxima, memberships/auditoria e isolamento TEST/PROD. Nenhum fallback MFA, reset de fator, migration, função/Edge, credencial ou escrita de backend. P1/P2, billing/recovery/cartão/landing/app cliente intocados.
+- Arquivos: `site/admin/index.html`, `site/admin/admin.mjs`, `site/admin/admin.css`; runner isolado `scripts/test-admin-totp-ui.mjs`; assertion de chave de sessão ajustada em `tests/block-c-admin-metrics.test.mjs`. Detalhes/reprodução em [ADMIN-TOTP-UX-TEST.md](operations/ADMIN-TOTP-UX-TEST.md).
+- **PASS TÉCNICO — 09/10/2026:** sintaxe dos dois módulos, build TEST e público local, focados **20/20**, regressão completa **472/472**, zero falhas/skip; Chrome e Edge instalados, oito matrizes TEST/PROD × 390×844/1280×900, SDK real fixado e respostas Auth/RPC sintéticas, sem login real/mutação remota. Senha→TOTP, inválido→retry, refresh/back/forward, troca de e-mail, saída local, restauração AAL2, cancelamento de resposta pendente, falha de logout e armazenamento isolado PASS; dashboard nunca liberado em AAL1. Sem erro JS/overflow; screenshot Edge mobile revisada. Comparação do build público com 9ac4b9a, normalizando somente CRLF/LF: apenas os três artefatos `/admin/` mudam. Não é novo PASS humano do OWNER.
+- Estado TEST: publicação automática será verificada após push. PROD confirmado por leitura em **5f0a678730802a1d684b40191dc5c431cb65e6a0**, deploy **dep-db42cpk9v7es738s3hn0 LIVE**, auto-deploy OFF. Nenhuma publicação PROD autorizada nesta correção; main/V2.9 preservados.
+- **PASS/NÃO REPETIR:** P1+P2 fechados em PROD e todos os registros históricos abaixo preservados. Nenhum QA humano antigo deve ser repetido.
+- **Próxima ação explícita:** confirmar publicação/hash em TEST e devolver o resultado para autorização expressa da pequena promoção frontend para PROD; não publicar PROD antes dessa autorização.
 
 ## Checkpoint 08/10/2026 — P1+P2 Parceiros/Afiliados LIVE em PROD
 

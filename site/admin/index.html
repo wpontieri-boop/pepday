@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07131f">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./admin.css?v=34">
+  <link rel="stylesheet" href="./admin.css?v=35">
   <title>PepDay Admin — Aquisição</title>
 </head>
 <body>
@@ -55,8 +55,11 @@
 
     <form id="mfaChallengeForm" class="hidden">
       <p class="auth-step">Confirme o código do seu autenticador para abrir o painel.</p>
+      <p id="mfaChallengeIdentity" class="auth-step"></p>
       <label>Código do autenticador<input id="mfaChallengeCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
       <button type="submit">Confirmar 2FA</button>
+      <button class="ghost auth-secondary" id="mfaBack" type="button">Voltar e usar outro e-mail</button>
+      <button class="ghost auth-secondary" id="mfaLogout" type="button">Sair</button>
     </form>
 
     <p class="status" id="authStatus" role="status"></p>
@@ -234,6 +237,6 @@
   </section>
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
-<script type="module" src="./admin.mjs?v=35"></script>
+<script type="module" src="./admin.mjs?v=36"></script>
 </body>
 </html>

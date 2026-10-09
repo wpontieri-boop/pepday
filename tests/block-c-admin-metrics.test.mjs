@@ -41,7 +41,8 @@ test('painel administrativo exige senha e MFA antes de carregar métricas',async
 
 test('painel usa sessão administrativa separada e OTP só no primeiro acesso',async()=>{
   const source=await read('site/admin/admin.mjs');
-  assert.match(source,/storageKey:\s*`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-admin-auth`/);
+  assert.match(source,/const adminAuthStorageKey=`pepday-\$\{config\.environment\}-\$\{config\.projectRef\}-admin-auth`/);
+  assert.match(source,/storageKey:adminAuthStorageKey/);
   assert.match(source,/shouldCreateUser:false/);
   assert.match(source,/bootstrap&&context\.password_configured/);
   assert.match(source,/get_admin_acquisition_metrics/);
