@@ -26,6 +26,14 @@ Comparação dos pacotes públicos de 9ac4b9a e desta correção, normalizando e
 
 Cancelamento adicional: a consulta `get_admin_context` recebe AbortSignal somente durante a tentativa de autenticação. Uma resposta dessa consulta pendente após TOTP válido também é cancelada antes de encerrar a sessão; o runner verifica esse caso nas oito matrizes. As outras RPCs e regras do backend permanecem iguais. Regressão 472/472 novamente PASS após esse ajuste.
 
+## Publicação TEST confirmada
+
+Commit funcional final `830ae68ac949490e82c8eb7c55bd4e16ad9774f6`, deploy `dep-db4gg1psrm7s738n2k6g` LIVE em 09/10/2026 12:28:19 Brasília. HTTP200 nos dois aliases e seis artefatos iguais ao build aprovado, normalizando somente CRLF/LF. SHA256 (LF), igual em `/admin/` e `/site/admin/`:
+
+- index.html: `222029F9EA3CCD973F45D55F71CF5A59FB3C9884B22F17E67081218DC60850A5`
+- admin.mjs: `A75EEC6076A5027983231221C4996E32997BA77A15FA7CC93C7642380D1B629A`
+- admin.css: `0C1B0DC21C5F00F3B77B1ABB83B80AE9D6CDE370EABF73762182FEA6EF32E189`
+
 ## Promoção preparada, ainda não autorizada
 
 Após confirmar TEST LIVE e hashes, pedir autorização da promoção pequena dos três artefatos Admin. PROD permanece 5f0a678 / dep-db42cpk9v7es738s3hn0, auto-deploy OFF. Não há migration/configuração/secreto para aplicar. Rollback frontend é o commit funcional PROD anterior; não resetar fator, alterar senha ou enfraquecer guardas. A publicação futura deve conferir o pacote e smoke somente desta tela. Nenhum QA humano antigo deve ser repetido.
