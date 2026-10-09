@@ -27,6 +27,7 @@ for(const [browserName,executablePath] of Object.entries(executables)){
   const context=await browser.newContext({viewport,serviceWorkers:'block'}),page=await context.newPage();
   const errors=[],logins=[],scopes=[],factorCalls=[],unexpected=[];
   let delayVerify=false,releaseVerify,verifyStarted,logoutFailure=false;
+  let delayContext=false,releaseContext,contextStarted;
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',async route=>{
    const req=route.request(),url=new URL(req.url());
@@ -56,7 +57,10 @@ for(const [browserName,executablePath] of Object.entries(executables)){
      if(req.postDataJSON().code!=='123456')return reply({code:'mfa_verification_failed',msg:'Synthetic invalid code'},422);
      return reply(session(email,'aal2',project));
     }
-    if(url.pathname==='/rest/v1/rpc/get_admin_context')return reply({email,access_level:'owner',password_configured:true,aal:claims.aal,can_write:true,can_manage_team:true});
+    if(url.pathname==='/rest/v1/rpc/get_admin_context'){
+     if(delayContext){delayContext=false;contextStarted();await new Promise(resolve=>releaseContext=resolve)}
+     return reply({email,access_level:'owner',password_configured:true,aal:claims.aal,can_write:true,can_manage_team:true});
+    }
     if(url.pathname.startsWith('/rest/v1/rpc/')){
      assert.equal(claims.aal,'aal2','RPC dashboard must never run at AAL1');
      return reply(url.pathname.includes('team')||url.pathname.includes('audit')||url.pathname.includes('codes')||url.pathname.includes('candidates')?[]:{});
@@ -97,6 +101,10 @@ for(const [browserName,executablePath] of Object.entries(executables)){
   const started=new Promise(resolve=>verifyStarted=resolve);delayVerify=true;
   await page.locator('#mfaChallengeCode').fill('123456');await page.locator('#mfaChallengeForm button[type=submit]').click();await started;
   await page.locator('#mfaBack').click();await clean();releaseVerify();
+  await login('first@example.invalid');
+  const contextPending=new Promise(resolve=>contextStarted=resolve);delayContext=true;
+  await page.locator('#mfaChallengeCode').fill('123456');await page.locator('#mfaChallengeForm button[type=submit]').click();await contextPending;
+  await page.locator('#mfaLogout').click();await clean();releaseContext();
   await login('second@example.invalid');logoutFailure=true;await page.locator('#mfaLogout').click();await clean();
   assert.match(await page.locator('#authStatus').textContent(),/Não foi possível confirmar a saída no servidor/);logoutFailure=false;
   await page.reload();await loginReady();assert.equal(await page.locator('#mfaChallengeForm').isVisible(),false);

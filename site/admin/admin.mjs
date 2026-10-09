@@ -102,7 +102,9 @@ function authStage(stage='login'){
 }
 
 async function adminContextForSession(){
-  const {data,error}=await client.rpc('get_admin_context');
+  const request=client.rpc('get_admin_context');
+  if(authAttemptController)request.abortSignal(authAttemptController.signal);
+  const {data,error}=await request;
   if(error)throw error;
   return data;
 }

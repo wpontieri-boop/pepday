@@ -24,6 +24,8 @@ Cada matriz cobre senha→TOTP, código inválido/retry, refresh, back/forward, 
 
 Comparação dos pacotes públicos de 9ac4b9a e desta correção, normalizando exclusivamente finais de linha Windows/Unix: somente `admin/index.html`, `admin/admin.mjs` e `admin/admin.css` mudam. Nenhum arquivo de parceiros, billing, recovery, cartão, landing ou app cliente muda funcionalmente.
 
+Cancelamento adicional: a consulta `get_admin_context` recebe AbortSignal somente durante a tentativa de autenticação. Uma resposta dessa consulta pendente após TOTP válido também é cancelada antes de encerrar a sessão; o runner verifica esse caso nas oito matrizes. As outras RPCs e regras do backend permanecem iguais. Regressão 472/472 novamente PASS após esse ajuste.
+
 ## Promoção preparada, ainda não autorizada
 
 Após confirmar TEST LIVE e hashes, pedir autorização da promoção pequena dos três artefatos Admin. PROD permanece 5f0a678 / dep-db42cpk9v7es738s3hn0, auto-deploy OFF. Não há migration/configuração/secreto para aplicar. Rollback frontend é o commit funcional PROD anterior; não resetar fator, alterar senha ou enfraquecer guardas. A publicação futura deve conferir o pacote e smoke somente desta tela. Nenhum QA humano antigo deve ser repetido.
