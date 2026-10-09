@@ -32,8 +32,10 @@ Supabase TEST `fsbqpyyprtymwrmzsacp`; Render TEST `srv-date0i6k1f9s73ft9vo0`, bu
 
 ## Publicação, limites e próxima ação
 
-Frontend aguardando publicação automática TEST deste commit. Gate será ON somente após LIVE/hashes/smoke; banco permanece sem dados financeiros artificiais. Registrar o resultado no CURRENT-STATE.
+Frontend **LIVE TEST no commit b6ecaddfcc7d2de9a859262edc11e938bc54ee76**, deploy **dep-db4l592vcj2c73c4fs8g**, concluído09/10/2026 20:46:36UTC (17:46:36Brasília). Dez verificações HTTP200/hash, config TEST exata; Edge GET405/POST sem token401. Gate **finance_enabled=true**, enabled/referral_enabled preservados true. Cron **job3**, ativo5min; pg_net **1224 HTTP200 TEST_FINANCE_COMPLETE**, sources/reconciled/review=0, sem erro. Banco segue17users/2parceiros/0pagamentos P3/0comissões/0lotes/0ledger; nenhuma fonte atribuída com assinatura. Commit documental subsequente não muda estes artefatos e dispara somente TEST. PROD no mesmo166de8f/deploy, main25f1d48d intacta.
 
 Não repetir QA humano P1/P2/Admin2FA/pagamentos/recovery/cartão. Nova validação humana possível é somente leitura/clareza da interface financeira P3 em TEST; não criar cobrança, parceiro ou transferência para fazê-la. Suítes sintéticas já cobrem lançamentos/lotes. APIs do provedor foram verificadas por documentação oficial e mocks; não houve cobrança nova nem fonte atribuída real para um E2E financeiro, e não inventar esse PASS.
 
 Antes de PROD: autorização específica posterior, procedimento de promoção P3, política fiscal/contratual de retenção e conferência de destinatário/comprovantes privados. P4/P5, painel de parceiro e pagamentos automáticos não implementados. Rollback TEST: gate `finance_enabled=false` pausa P3 sem mexer em P1/P2/billing; preservar ledger e restaurar frontend anterior, sem apagar histórico nem reduzir MFA.
+
+Hashes SHA-256 de texto normalizando somente CRLF/LF, iguais nos dois aliases TEST: financeiro HTML `e6597697de21d5a72f7cfc2d87dee1a9140675fe8f885f845dd8d0fbd93ca2f6`; JS `20556e0353d76ee8f77cdbb8e84971ef6e1f6884471f66188d963f5dee8d8545`; CSS `f15b405d9481bca72dc6921a4aca82f03790911e3fad356ae3523547cd3be0cb`.
