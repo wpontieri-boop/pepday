@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>PepDay — Fiscal P3 TEST</title><link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/site/admin/admin.css?v=34"><link rel="stylesheet" href="./fiscal.css?v=1"></head>
+<body><header><a class="brand" href="/admin/"><img src="/icon.svg" alt=""><b>PEP<span>DAY</span></b></a><strong>Fiscal de parceiros · TEST</strong></header>
+<main><section class="card" id="access"><h1>Complemento fiscal</h1><p id="accessStatus" role="status">Conferindo acesso…</p><a href="/admin/">Entrar no Admin</a></section>
+<section id="module" class="hidden"><div class="dash-head"><h1>Fiscal e documentos · HOMOLOGAÇÃO</h1><a href="/admin/parceiros/financeiro/">Voltar ao financeiro</a><button id="exit" type="button">Sair</button></div>
+<p class="muted">Repasses não são automáticos. Sem validação fiscal/contratual o repasse permanece bloqueado.</p><p id="status" role="status"></p>
+<section class="card"><label>Parceiro<select id="partner" required><option value="">Escolha um parceiro</option></select></label><button id="refresh" type="button">Atualizar</button><p id="kind"></p><p id="state"></p><p id="ready"></p></section>
+<section id="profileSection" class="card owner hidden"><h2>Cadastro fiscal e retenção</h2><form id="profileForm">
+<label>Situação fiscal<select id="profileState"><option value="pending">Pendente</option><option value="divergent">Divergente</option><option value="approved">Aprovado</option></select></label>
+<label><input id="fiscalRequired" type="checkbox"> Exigir documento fiscal conforme parecer contábil</label>
+<label>Referência contábil (privada)<input id="accountingReference" maxlength="120" autocomplete="off"></label>
+<label>Referência contratual (privada)<input id="legalReference" maxlength="120" autocomplete="off"></label>
+<h3>Retenção validada por categoria</h3><p class="muted">Não presumir prazos ou fundamentos. Aprovar somente após parecer.</p><div id="retentionFields"></div>
+<label>Motivo<input id="profileReason" required minlength="3" maxlength="200" autocomplete="off"></label><button type="submit">Salvar após confirmação OWNER</button></form></section>
+<section id="documentSection" class="card owner hidden"><h2>Documentos privados</h2><form id="documentForm">
+<label>Tipo do documento<select id="documentType" required><option value="" selected disabled>Escolha o tipo do documento</option><option value="contract">Contrato</option><option value="fiscal">Documento fiscal</option><option value="receipt">Recibo</option><option value="payout_proof">Comprovante de repasse</option></select></label>
+<label id="documentPayoutLabel" class="hidden">Lote reservado<select id="documentPayout"><option value="">Escolha o lote</option></select></label>
+<label>Arquivo privado (PDF, PNG, JPEG até 5 MB)<input id="documentFile" type="file" required accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"></label>
+<label>Motivo<input id="documentReason" required minlength="3" maxlength="200" autocomplete="off"></label>
+<button type="submit" id="documentSubmit" disabled>Registrar e enviar</button></form><div id="documents" class="rows"></div></section>
+<section id="batchSection" class="card owner hidden"><h2>Conferência fiscal por lote</h2><p class="muted">Valores informados manualmente após análise contábil, sem alíquotas automáticas.</p><div id="batches" class="rows"></div></section>
+<section class="card"><h2>Situação</h2><div id="readonly"></div></section></section>
+<dialog id="batchDialog"><h2>Conferência de lote</h2><p id="batchTitle"></p><form id="batchForm">
+<label>Situação<select id="batchState"><option value="pending">Pendente</option><option value="divergent">Divergente</option><option value="approved">Aprovado</option></select></label>
+<label>Tributo (se houver)<input id="taxName" maxlength="80" autocomplete="off"></label>
+<label>Fundamento da retenção<input id="taxBasis" maxlength="120" autocomplete="off"></label>
+<label>Valor retido (R$)<input id="taxValue" inputmode="decimal" placeholder="12,34" autocomplete="off"></label>
+<label><input type="checkbox" id="noWithholding"> Sem retenção, conforme conferência contábil</label>
+<label>Referência contábil privada<input id="batchAccounting" maxlength="120" autocomplete="off"></label>
+<label>Motivo<input id="batchReason" required minlength="3" maxlength="200" autocomplete="off"></label>
+<button type="submit">Continuar com segurança OWNER</button></form><button id="cancelBatch" type="button">Cancelar</button></dialog>
+<dialog id="stepup"><h2>Confirmação OWNER</h2><p id="stepupAction"></p><form id="passwordForm"><label>Senha<input id="password" type="password" required autocomplete="current-password"></label><button>Continuar</button></form><form id="totpForm" class="hidden"><label>Novo código TOTP<input id="totp" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"></label><button>Confirmar</button></form><p id="stepupStatus" role="status"></p><button type="button" id="cancelStepup">Cancelar</button></dialog>
+</main><script src="/vendor/supabase-2.116.0.js"></script><script type="module" src="./fiscal.mjs?v=1"></script></body></html>

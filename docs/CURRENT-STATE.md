@@ -1,6 +1,18 @@
 # PepDay — Current State
 
-Atualização: 09/10/2026.
+Atualização: 10/10/2026.
+
+## Checkpoint 10/10/2026 — recuperação fiscal P3 após perda do workspace Work (TEST)
+
+- **Escopo autorizado somente TEST**: recuperação do Complemento Fiscal e Contratual P3, CPF/CNPJ. O chat original Work desapareceu; nenhum frontend fiscal não commitado foi recuperado. Os novos arquivos abaixo foram **reconstruídos**, não recuperados byte-a-byte.
+- Preflight: AGENTS.md e CURRENT-STATE integralmente; repositório `wpontieri-boop/pepday`, branch `v3.0-bloco-b`, PC CenterPhone HEAD=origin `a796db1`, 0/0, árvore limpa. Cópia independente `C:/Users/wagne/Documents/PepDay-P3-Fiscal-Recovery`, branch `recovery/p3-fiscal-test` criada do mesmo checkpoint. Mac online no gerenciador, mas não respondeu ao terminal remoto; nenhuma divergência do Mac foi sobrescrita.
+- **Supabase TEST conferido sem reaplicação:** migration remota `20261009211431 partners_p3_fiscal_test` já aplicada; funções `admin_partner_fiscal`, `admin_partner_fiscal_action`, `admin_partner_document_access`, `partner_document_complete`, validação de retenção e bloqueio fiscal presentes. Edge `partner-documents` v1 ACTIVE, fontes copiados do ambiente TEST; helper `partner-documents-probe` aposentado conforme o relatório anterior. Bucket privado `partner-documents-test` (PDF/PNG/JPEG, 5 MB). **PASS real de armazenamento com PDF sintético foi informado pela sessão Work anterior e não repetido**.
+- Back-end parcial versionado como evidência: `supabase/functions/partner-documents/` recuperado e `docs/operations/P3-FISCAL-FUNCTIONS-TEST-SNAPSHOT.sql` gerado do catálogo TEST. Snapshot **NÃO É MIGRATION**, não inclui DDL completo de tabelas/storage/RLS/grants/trigger; recuperar migration integral é pendência para futura reprodução/promoção. Nenhum dado ou segredo real exportado.
+- **Frontend fiscal reconstruído isoladamente:** `site/admin/parceiros/fiscal/` + link TEST em `site/admin/parceiros/financeiro/index.html`; escolha do tipo de documento sem seleção inicial (placeholder obrigatório), contrato sem lote e fiscal/recibo/comprovante com lote reservado, upload/download Edge privado; reenvio do mesmo arquivo pendente após verificação SHA256; revisão documental/política de retenção configurável; estado fiscal de parceiro e lote, retenções manuais, sem alíquota/prazo presumidos; step-up senha+novo TOTP e ticket único existentes. OWNER manipula; ADMIN/VIEWER somente leitura.
+- **PASS local do frontend reconstruído:** sintaxe Node + build:test; novos testes focados **4/4**; regressão automatizada **487/487** (483 base + 4 novos); browser Chrome 12/12 e Edge 12/12, cada um OWNER/ADMIN/VIEWER × TEST/PROD bloqueado × celular/desktop, com RPC/Auth sintéticos, requisições interceptadas e sem acesso a backend real, sem overflow/erro JS. Não é PASS humano nem fluxo fiscal real E2E.
+- **Nenhum deploy realizado ainda neste checkpoint.** Não reaplicar migration, não criar pagamento, partner fixture permanente ou documento real; preservados P1/P2, billing, Admin/2FA, todos PASS HUMANO/NÃO REPETIR, PROD, `main` e V2.9.
+- Ver `docs/operations/P3-FISCAL-RECOVERY.md` para limites e testes. Obrigações fiscais/contratuais de CPF/CNPJ ainda dependem de contabilidade/assessoria jurídica e permanecem bloqueadas no sistema até configuração documentada.
+- **Próxima ação:** revisar diff/segredos e salvar recovery branch no GitHub; integrar somente TEST após revisão, conferir hashes e UI publicada. Antes de qualquer PROD, recuperar migration fiscal completa e obter autorização expressa.
 
 ## Fonte de verdade operacional
 
