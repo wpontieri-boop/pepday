@@ -22,12 +22,13 @@
 - OWNER opera com MFA recente, ADMIN/VIEWER consultam sem dados privados. Sem pagamento automático.
 - Arquivos: `site/admin/parceiros/fiscal/index.html`, `fiscal.mjs`, `fiscal.css`, link TEST de `site/admin/parceiros/financeiro/index.html`, runner isolado `scripts/test-partners-p3-fiscal-ui.mjs`.
 
-## Pendências obrigatórias antes de declarar PASS / publicar TEST
-- Rodar e registrar browser QA focado da tela reconstruída, especialmente escolha vazia inicial, troca de tipo, lote, refresh, papel, TOTP inválido/retry e nenhum bypass.
-- Validar os contratos de retorno `admin_partner_fiscal_action` e o upload/download via Edge com dados sintéticos descartáveis, **sem repetir o PASS real anterior**. Qualquer teste de escrita deve ser descartável e limitado a TEST.
-- Inspecionar diff/segredos, teste sintaxe/build/regressão automatizada, ambiente sem overflow. Conferir hashes de artefatos após eventual deploy TEST.
-- Revisão fiscal/contábil e contratual **não homologada**. Nunca aprovar automaticamente retenção e nunca usar documento real de pessoa física nos testes.
-- **PROD/main/V2.9 preservados**. Não reaplicar migration nem mexer em dados financeiros de P3.
+## Validação técnica e publicação em TEST (10/10/2026)
+- Código recuperado em `recovery/p3-fiscal-test` e commit `db33996` (0/0, limpo); fast-forward seguro desse commit à branch oficial `v3.0-bloco-b`, push/fetch sincronizado.
+- **PASS técnico novo:** sintaxe JS, `npm run build:test`, testes focados 4/4 e `npm test` **487/487**, zero falhas e zero skips após atualização da interface.
+- **PASS browser sintético isolado:** Chrome 12/12 e Edge 12/12, OWNER/ADMIN/VIEWER × ambiente TEST/PROD bloqueado × 390×844/1280×900; toda requisição interceptada. Escolha do documento inicialmente vazia, tipo e lote obrigatórios, refresh, TOTP inválido/retry e nenhuma escrita sem confirmação; sem overflow nem erro JS.
+- **TEST LIVE:** deploy Render `dep-db4rmo8ae00c7393r4ng` do commit `db33996`; oito artefatos HTML/JS/CSS, incluindo dois aliases, em `https://homologacao.pepday.com.br` responderam HTTP200 e apresentaram SHA256 igual ao build local (normalizado CRLF/LF).
+- Não houve nova migration, Edge deploy, transferência, cobrança, documento real ou fixture persistente. PASS anterior do PDF sintético permanece válido e não foi repetido. Smokes no navegador foram **sintéticos**, não autenticação OWNER humana nem E2E de uploads.
+- Revisão fiscal/contábil e contratual **não homologada**. Nunca aprovar automaticamente retenção ou prazo de guarda. **PROD/main/V2.9 preservados**, auto-deploy PROD OFF.
 
 ## Próxima ação
-Executar QA focalizado da interface fiscal na branch de recuperação, corrigir qualquer falha e completar o snapshot versionado do schema fiscal antes de integrar na branch oficial. Depois, mediante PASS técnico, publicar **somente em TEST** e documentar deploy; PROD exige nova autorização e parecer fiscal/contratual.
+Completar a recuperação da migration fiscal integral (schema/tabelas, RLS, grants, triggers e storage) para permitir reprodução fiel em outro ambiente, antes de qualquer promoção para PROD. Se necessário, QA humano **somente da interface fiscal nova em TEST**. Definições CPF/CNPJ e retenção aguardam parecer contábil/jurídico. PROD exige autorização específica.
