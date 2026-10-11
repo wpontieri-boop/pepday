@@ -19,7 +19,7 @@ test('document selection is initially empty, required, never implicitly chosen',
  assert.match(js,/function resetDocType\(\)/);
  assert.match(js,/\$\('documentType'\)\.value=''/);
  assert.match(js,/\$\('documentType'\)\.addEventListener\('change',syncDocSelection\)/);
- assert.match(js,/!type\|\|\(type!=='contract'&&/);
+ assert.match(js,/!type\|\|!fileReady/);
 });
 test('private storage contract and no real money transfer',async()=>{
  const edge=await file('supabase/functions/partner-documents/document-core.mjs');
@@ -47,7 +47,7 @@ test('fiscal TEST checkbox has explicit label grid, avoiding unsupported implici
  assert.match(html,/<label class="fiscal-checkbox-row"><input id="fiscalRequired" type="checkbox"><span>Exigir documento fiscal/);
  assert.match(html,/<label class="fiscal-checkbox-row"><input type="checkbox" id="noWithholding"><span>Sem retenção/);
  assert.match(html,/fiscal\.css\?v=4/);
- assert.match(html,/fiscal\.mjs\?v=4/);
+ assert.match(html,/fiscal\.mjs\?v=5/);
  assert.match(js,/checkbox\.className='fiscal-checkbox-row'/);
  assert.match(js,/caption\.textContent='Parecer jurídico\/contábil validado'/);
  assert.match(css,/\.fiscal-checkbox-row\{display:grid!important;grid-template-columns:22px minmax\(0,1fr\)!important/);

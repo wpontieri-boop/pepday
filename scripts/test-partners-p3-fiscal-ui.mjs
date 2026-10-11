@@ -27,8 +27,8 @@ for(const environment of ['test','production'])for(const role of ['owner','admin
    assert.equal(await page.locator('#documentType').inputValue(),'');
    assert.equal(await page.locator('#documentSubmit').isDisabled(),true);
    await page.selectOption('#documentType','fiscal');assert.equal(await page.locator('#documentPayoutLabel').isVisible(),true);assert.equal(await page.locator('#documentSubmit').isDisabled(),true);
-   await page.selectOption('#documentPayout',batch);assert.equal(await page.locator('#documentSubmit').isDisabled(),false);
-   await page.selectOption('#documentType','contract');assert.equal(await page.locator('#documentPayoutLabel').isVisible(),false);assert.equal(await page.locator('#documentSubmit').isDisabled(),false);
+   await page.selectOption('#documentPayout',batch);assert.equal(await page.locator('#documentSubmit').isDisabled(),true);
+   await page.selectOption('#documentType','contract');assert.equal(await page.locator('#documentPayoutLabel').isVisible(),false);assert.equal(await page.locator('#documentSubmit').isDisabled(),true);
    await page.locator('#refresh').click();await page.waitForFunction(()=>!document.getElementById('refresh').disabled);assert.equal(await page.locator('#documentType').inputValue(),'');
    await page.fill('#profileReason','Revisão fiscal sintética pendente');await page.locator('#profileForm button').click();await page.locator('#stepup[open]').waitFor();
    assert.ok(!(await page.evaluate(()=>fiscalCalls)).includes('admin_partner_fiscal_action'));

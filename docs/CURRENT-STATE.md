@@ -2,6 +2,16 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — QA técnico CPF isolado e prontidão do envio fiscal (TEST)
+
+- **Autorização e recuperação:** execução autônoma técnica exclusivamente TEST. Mac/GitHub após fetch: branch `v3.0-bloco-b`, HEAD=origin=`fe0f673`, 0/0, árvore inicialmente limpa; nenhuma alteração não commitada anterior encontrada. Todos os **PASS HUMANO / NÃO REPETIR** preservados; PDF privado, login humano e CNPJ não repetidos.
+- **PASS backend real CPF:** script `supabase/tests/partners_p3_fiscal_cpf_assertions.sql` executado no Supabase TEST com **ROLLBACK**. Fixture deliberadamente inválida de 11 zeros: prova classificação estrutural CPF, não valida identidade/checksum/P1. CPF reconhecido, situação pendente, aprovação incompleta e documento sem arquivo recusados; comissão não liberada; reserva/confirmação de repasse bloqueadas. Replay, AAL1, sessão inválida e step-up vencido recusados. Nenhum provedor financeiro acionado; nenhuma transferência.
+- **Integridade após rollback:** contagens e digests de parceiros/perfis privados, memberships e guardas iguais antes/depois; usuários 17, sessões 13, parceiros 2; tabelas fiscais/documentos/eventos/pagamentos/comissões/lotes/ledger 0. Sem fixture permanente ou alteração de parceiro existente. Migration/Edge/Storage já aplicados apenas conferidos, não reaplicados.
+- **Defeito novo comprovado e corrigido:** selecionar Contrato habilitava envio sem arquivo/motivo. Frontend agora exige arquivo válido e campos obrigatórios, recalcula em input/change e após limpeza por visibilitychange. Cache `fiscal.mjs?v=5`; CSS v4 preservado. OWNER/senha/TOTP/AAL2/step-up e backend intocados.
+- **PASS navegador técnico:** Chrome isolado, viewports reais **390×844 e 1280×900**; cinco checkboxes e Sem retenção alinhados (20px, legenda à direita, diferença central 0px), sem overflow/erro JS. Tipo inicial/reset vazio e envio bloqueado sem requisitos ou MIME permitido; quatro categorias verificadas. Auth/RPC simulados, zero escrita; sem upload de arquivo. Não declarar PASS humano ou login E2E.
+- **PASS regressão:** sintaxe, focais fiscais **13/13**, suíte completa **496/496** (0 falha/skip), build TEST e diff-check. Evidências e limites: [QA técnico](operations/P3-FISCAL-TECHNICAL-QA-20261011.md). Deploy TEST e integridade serão registrados após confirmação LIVE.
+- **Pendências e próxima ação explícita:** obter parecer contábil/jurídico real sobre CPF/CNPJ, documentos, tributos/retenções e guarda; depois configurar e validar em TEST em etapa autorizada. Nenhuma alíquota/prazo inferido ou aprovação jurídica/contábil declarada. Repasses seguem condicionados à validação fiscal; PROD/main/V2.9/P1/P2 intocados.
+
 ## Checkpoint 11/10/2026 — observação humana fiscal P3 e correção final de checkbox (TEST)
 
 - **Evidência humana somente de exibição:** quatro capturas Mac Chrome enviadas pelo usuário em **11/10/2026 às 14:39:00, 14:39:07, 14:39:14 e 14:39:21 (BRT)**, na rota `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`, continuando o parceiro CNPJ já aprovado como PASS HUMANO de leitura (não repetir).

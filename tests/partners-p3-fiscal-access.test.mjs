@@ -42,7 +42,7 @@ test('fiscal login and retry UI maps only access errors and does not change OWNE
  const html=await file('index.html'),js=await file('fiscal.mjs'),css=await file('fiscal.css');
  assert.match(html,/<a class="access-link" href="\/admin\/">Entrar no Admin \(senha \+ 2FA\)<\/a>/);
  assert.match(html,/id="retryAccess"/);
- assert.match(html,/fiscal\.mjs\?v=4/);
+ assert.match(html,/fiscal\.mjs\?v=5/);
  assert.match(js,/access-message\.mjs\?v=2/);
  assert.match(js,/if\(target==='accessStatus'\)status\(fiscalAccessMessage\(e\),target\)/);
  assert.match(js,/accessStage=stage/);

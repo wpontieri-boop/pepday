@@ -29,7 +29,11 @@ function retentionInputs(){
 function getRetention(){const result={};for(const type of Object.keys(TYPES)){const validated=$('r_'+type+'_validated').checked,legal_basis=$('r_'+type+'_legal_basis').value.trim(),start_event=$('r_'+type+'_start_event').value.trim(),months=$('r_'+type+'_months').value.trim();result[type]={validated,legal_basis,start_event};if(months)result[type].months=months}return result}
 function setRetention(data){for(const type of Object.keys(TYPES)){const v=data?.[type]||{};$('r_'+type+'_validated').checked=v.validated===true;$('r_'+type+'_legal_basis').value=v.legal_basis||'';$('r_'+type+'_start_event').value=v.start_event||'';$('r_'+type+'_months').value=v.months??''}}
 function ensureProfile(){const retention=getRetention();if($('profileState').value==='approved'){if(!$('accountingReference').value.trim()||!$('legalReference').value.trim()||Object.values(retention).some(r=>!r.validated||r.legal_basis.length<3||r.start_event.length<3))throw Error('PARTNER_FISCAL_PENDING')}return retention}
-function syncDocSelection(){const type=$('documentType').value;hide('documentPayoutLabel',!type||type==='contract');$('documentPayout').required=Boolean(type&&type!=='contract');$('documentSubmit').disabled=busy||!details?.can_manage||!type||(type!=='contract'&&!$('documentPayout').value);}
+function syncDocSelection(){const type=$('documentType').value,file=$('documentFile').files[0];
+ hide('documentPayoutLabel',!type||type==='contract');$('documentPayout').required=Boolean(type&&type!=='contract');
+ const fileReady=Boolean(file&&file.size>0&&file.size<=5242880&&['application/pdf','image/png','image/jpeg'].includes(file.type));
+ $('documentSubmit').disabled=busy||!details?.can_manage||!type||!fileReady||!$('documentForm').checkValidity();
+}
 function resetDocType(){// Explicit empty selection: never silently default to contract or fiscal.
  $('documentForm').reset();$('documentType').value='';$('documentPayout').value='';syncDocSelection()
 }
@@ -102,10 +106,11 @@ $('totpForm').addEventListener('submit',e=>{e.preventDefault();task(async()=>{
  },'stepupStatus')});
 $('cancelBatch').addEventListener('click',()=>$('batchDialog').close());$('cancelStepup').addEventListener('click',()=>{$('stepup').close();clearAttempt()});$('stepup').addEventListener('cancel',clearAttempt);
 $('documentType').addEventListener('change',syncDocSelection);$('documentPayout').addEventListener('change',syncDocSelection);
+$('documentForm').addEventListener('input',syncDocSelection);$('documentForm').addEventListener('change',syncDocSelection);
 $('retryAccess').addEventListener('click',init);
 $('partner').addEventListener('change',()=>task(async()=>{finance=null;await load()}));$('refresh').addEventListener('click',()=>task(async()=>{finance=null;await load()}));
 $('exit').addEventListener('click',()=>task(async()=>{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;reset();status('Sessão local encerrada.','accessStatus')}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden){$('password').value='';$('totp').value='';$('documentFile').value=''}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){$('password').value='';$('totp').value='';$('documentFile').value='';syncDocSelection()}});
 retentionInputs();resetDocType();
 async function init(){if(!allowed){status('Disponível somente em homologação TEST.','accessStatus');return}
  if(!authObserved){client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')reset()});authObserved=true}
