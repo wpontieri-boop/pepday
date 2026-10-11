@@ -2,6 +2,14 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — decisão de produto: documentação fiscal enviada pelo próprio parceiro (PLANEJAMENTO, NÃO IMPLEMENTADO)
+
+- **Decisão expressa do usuário:** desenvolver convite/link individual e seguro para que o próprio lojista/afiliado CPF ou CNPJ preencha os dados fiscais pertinentes, aceite contrato e **envie seus documentos diretamente**, sem conta Admin e sem o OWNER precisar fazer upload. OWNER revisa, pede correções e aprova; pendências fiscais continuam bloqueando repasses. Convite privado deve ser inteiramente distinto do código/QR público de indicação do cliente.
+- **Especificação proposta, NÃO código nem PASS técnico:** [proposta de autoatendimento e consulta contábil de 13/10](operations/PARTNERS-P3-SELF-SERVICE-DOCUMENTS-PROPOSAL-20261011.md), com fluxo de convite verificável/revogável, isolamento de sessão, upload privado, revisão, LGPD e matriz documental condicionada a parecer. Fontes oficiais Receita/NFS-e/ANPD consultadas em 11/10/2026. **Nenhuma exigência de envio, tributo, alíquota, prazo de guarda ou coleta real foi ativada.**
+- **Compatibilidade obrigatória:** P1 aprovado exige OWNER configurar perfil financeiro/PIX e ativar o parceiro; o novo portal não pode habilitar parceiro automaticamente ou modificar identidade/PIX/percentual sem desenho de mudança P1 específica e autorização própria. P1/P2, Admin/2FA, PDF privado, P3 QA 13/13 e regressão 496/496 permanecem PASS/NÃO REPETIR e não foram reexecutados.
+- **Proposta preliminar sujeita a contadora/jurídico:** CPF — dados mínimos/identificação e contrato, avaliação de RPA/recibo e possíveis obrigações IRRF/INSS/ISS/escrituração; CNPJ/MEI — CNPJ/representação quando necessária e documento fiscal de serviço na competência aplicável; comprovante de repasse é da pagadora, não exigência antecipada do parceiro. **Não exigir RG/CNH/selfie/CCMEI/contrato social de todos indiscriminadamente**, usar minimização LGPD.
+- **Estado da sessão:** somente novo documento operacional e registro oficial; nenhuma migration, frontend, Edge, schema, credencial, upload ou deploy de funcionalidade nova. PROD/main/V2.9/P1/P2 intocados. Próxima ação técnica: implementar em TEST o fluxo de convite/verificação/upload de documentação com defaults pendentes/sem liberação; próxima ação humana: enviar questionário à contadora em **terça 13/10/2026**, obter matriz escrita e revisão jurídica contratual, sem presumir aprovação.
+
 ## Checkpoint 11/10/2026 — QA técnico CPF isolado e prontidão do envio fiscal (TEST)
 
 - **Autorização e recuperação:** execução autônoma técnica exclusivamente TEST. Mac/GitHub após fetch: branch `v3.0-bloco-b`, HEAD=origin=`fe0f673`, 0/0, árvore inicialmente limpa; nenhuma alteração não commitada anterior encontrada. Todos os **PASS HUMANO / NÃO REPETIR** preservados; PDF privado, login humano e CNPJ não repetidos.
