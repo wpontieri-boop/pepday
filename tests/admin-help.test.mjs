@@ -5,12 +5,13 @@ import {helpTopics,visibleTopics,normalized} from '../site/admin/admin-help-data
 const html=await readFile(new URL('../site/admin/index.html',import.meta.url),'utf8');
 const css=await readFile(new URL('../site/admin/admin-help.css',import.meta.url),'utf8');
 const js=await readFile(new URL('../site/admin/admin-help.mjs',import.meta.url),'utf8');
+const adminJs=await readFile(new URL('../site/admin/admin.mjs',import.meta.url),'utf8');
 test('central is only rendered in authenticated dashboard, never login',()=>{
  const dashboard=html.indexOf('<section class="dashboard hidden" id="dashboard">');
  const help=html.indexOf('<section class="card admin-help" id="central-ajuda"');
  const dashboardEnd=html.indexOf('</section>\n</main>',help);
  assert.ok(dashboard>0&&help>dashboard&&dashboardEnd>help);
- assert.match(html,/<a class="admin-button" href="#central-ajuda">Central de Ajuda<\/a>/);
+ assert.match(html,/<button class="admin-button" type="button" id="adminHelpShortcut">Central de Ajuda<\/button>/);
  assert.match(html,/<input id="helpSearch" type="search"/);
  assert.match(html,/<button id="helpPrint"/);
  assert.match(html,/admin-help\.mjs\?v=1/);
@@ -48,4 +49,17 @@ test('print and accessible details are local and preserve originals',()=>{
  assert.match(js,/document\.createElement/);
  assert.match(js,/\.textContent=/);
  assert.ok(!js.includes('innerHTML'));
+});
+
+test('Help click stays inside dashboard and never pushes a fragment or signs out',()=>{
+ assert.match(js,/adminHelpShortcut/);
+ assert.match(js,/scrollIntoView/);
+ assert.doesNotMatch(html,/href="#central-ajuda"/);
+ assert.doesNotMatch(js,/history\.|location\.hash|signOut/);
+});
+test('successful Admin MFA clears challenge state before navigating to Help',()=>{
+ const ready=adminJs.slice(adminJs.indexOf('async function openDashboard'),adminJs.indexOf('async function resetAdminUi'));
+ assert.match(ready,/authStage\('dashboard'\);/);
+ assert.match(adminJs,/stage==='dashboard'\)&&history\.state\?\.pepdayAdminTotp/);
+ assert.match(adminJs,/currentAuthStage==='mfa-challenge'&&!event\.state\?\.pepdayAdminTotp/);
 });
