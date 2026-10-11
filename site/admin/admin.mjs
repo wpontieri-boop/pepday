@@ -89,7 +89,7 @@ function authStage(stage='login'){
   currentAuthStage=stage;
   if(stage==='mfa-challenge'&&!history.state?.pepdayAdminTotp){
     history.pushState({...history.state,pepdayAdminTotp:true},'',location.href);
-  }else if(stage==='login'&&history.state?.pepdayAdminTotp){
+  }else if((stage==='login'||stage==='dashboard')&&history.state?.pepdayAdminTotp){
     const {pepdayAdminTotp,...state}=history.state;
     history.replaceState(state,'',location.href);
   }
@@ -191,6 +191,8 @@ async function openDashboard(version=authAttemptVersion){
   adminContext=await adminContextForSession();
   if(!attemptIsCurrent(version))return;
   if(adminContext?.aal!=='aal2')throw new Error('MFA_REQUIRED');
+  // MFA is complete; do not interpret Help/hash/back navigation as abandoning the challenge.
+  authStage('dashboard');
   hide('authCard');
   hide('dashboard',false);
   authStatus('');

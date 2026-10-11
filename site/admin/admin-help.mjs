@@ -3,6 +3,8 @@ const root=document.getElementById('central-ajuda');
 const search=document.getElementById('helpSearch');
 const list=document.getElementById('helpList');
 const roleNode=document.getElementById('adminRole');
+// Avoid fragment/history navigation: it can trigger popstate while MFA finishes.
+document.getElementById('adminHelpShortcut')?.addEventListener('click',()=>root?.scrollIntoView({behavior:'smooth',block:'start'}));
 const count=document.getElementById('helpStatus');
 const clear=document.getElementById('helpClear');
 const printButton=document.getElementById('helpPrint');
