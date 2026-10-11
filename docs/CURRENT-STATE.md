@@ -2,6 +2,15 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — clareza de acesso ao fiscal P3 em TEST (Mac, Chrome)
+
+- **Evidência humana de problema NOVO, não PASS:** captura Mac Chrome de 11/10/2026 ~13h48 Brasília, rota `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`, mostrava apenas **“Operação não concluída. Nenhuma transferência foi realizada.”** e link discreto para entrar no Admin, sem iniciar a interface fiscal.
+- **Causa UX no código identificada:** em `site/admin/parceiros/fiscal/fiscal.mjs`, a inicialização via `auth.getUser()` / `get_admin_context` / `admin_partner_finance` encaminhava também erros de sessão ausente/2FA para a mensagem genérica reservada às operações financeiras. A captura não prova qual erro específico de sessão ocorreu, somente a falha de informação; sem uso de credenciais do usuário ou execução financeira.
+- **Correção exclusivamente frontend TEST:** função pura `access-message.mjs` converte ausência/expiração de sessão, MFA pendente, permissão negada, módulo indisponível e erro inesperado em orientações seguras, sem expor a mensagem privada de backend. `index.html` traz link acessível “Entrar no Admin (senha + 2FA)” e botão “Verificar acesso novamente”; `fiscal.css` estiliza as ações; cache-bust JS/CSS v2. Callback Auth subscrito uma vez, sem modificar autenticação global. Envio, armazenamento privado, step-up OWNER, perfis e banco não foram alterados.
+- **PASS técnico focado:** `node --test tests/partners-p3-fiscal-access.test.mjs tests/partners-p3-fiscal.test.mjs` **7/7 PASS**, verificação de sintaxe e `npm run build:test` PASS, arquivos de ambos aliases TEST presentes, `git diff --check` PASS. Não repetir antigo 487/487, 24 cenários sintéticos, PDF privado PASS, nem PASS HUMANO/NÃO REPETIR anteriores: fluxos não alterados.
+- **Segurança/ambientes:** exclusivamente TEST no Render `srv-date0i6k1f9s73ft9vo0` e Supabase TEST `fsbqpyyprtymwrmzsacp`; migration fiscal `20261009211431` **não reaplicada**, bucket/Edge intocados. Não houve transferência, cobrança, aprovação contábil ou teste com dados privados. PROD, `main` e V2.9 preservados.
+- **Próxima ação:** após deploy TEST LIVE e verificação dos arquivos, usuário poderá entrar no **Admin TEST já existente** e retornar à **tela fiscal nova**; reportar somente o que aparecer nela, sem refazer validações administrativas previamente aprovadas. Se for negado mesmo com sessão legítima, investigar código seguro da RPC sem coletar senhas/tokens. Registrar eventual PASS humano fiscal somente se confirmado.
+
 ## Checkpoint 11/10/2026 — P3 fiscal: migration original recuperada e versionada no Mac (TEST)
 
 - Continuidade oficial: GitHub `wpontieri-boop/pepday`, branch `v3.0-bloco-b`; leitura integral de AGENTS.md e CURRENT-STATE.md + operações P3 fiscal/P3 financeiro/especificação de parceiros; Mac `/Users/mdc/Projects/pepday` estava em `2b297dc` e **20 commits atrás**, com árvore limpa e 0 commits locais adiante. `git fetch` e `git merge --ff-only origin/v3.0-bloco-b` atualizaram com segurança para `cb3b264`, sem sobrescrever alterações. CenterPhone offline nesta sessão, GitHub permanece referência.

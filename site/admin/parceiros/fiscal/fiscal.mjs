@@ -1,18 +1,19 @@
 import {config} from '/config.js';
 import {isPartnerEnvironment} from '/src/partner-environment.mjs';
+import {fiscalAccessMessage} from './access-message.mjs';
 const $=id=>document.getElementById(id), hide=(id,yes=true)=>$(id).classList.toggle('hidden',yes);
 const allowed=config.environment==='test'&&isPartnerEnvironment(config,location);
 const client=allowed?globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:`pepday-${config.environment}-${config.projectRef}-admin-auth`}}):null;
 const TYPES={contract:'Contrato',fiscal:'Documento fiscal',receipt:'Recibo',payout_proof:'Comprovante de repasse'};
 const ST={pending:'Pendente',divergent:'Divergente',approved:'Aprovado'};
-let context=null,finance=null,details=null,pending=null,reauth=null,factor='',busy=false;
+let context=null,finance=null,details=null,pending=null,reauth=null,factor='',busy=false,authObserved=false;
 const status=(message,target='status')=>$(target).textContent=message;
 const message=e=>({PARTNER_FISCAL_PENDING:'Configuração fiscal não validada pela contabilidade.',PARTNER_DOCUMENT_PENDING:'Documento ou retenção ainda pendente.',PARTNER_STEPUP_INVALID:'A confirmação expirou ou já foi utilizada.',PARTNER_INVALID_DOCUMENT_SCOPE:'Tipo de documento incompatível com o lote.',PARTNER_INVALID_WITHHOLDING:'Confira as retenções e a base documentada.',PARTNER_RECENT_PASSWORD_TOTP_REQUIRED:'Faça novo login com senha e TOTP para continuar.'})[e?.message]||'Operação não concluída. Nenhuma transferência foi realizada.';
 const money=value=>value===null||value===undefined?'—':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(value)/100);
 const rpc=async(name,args={})=>{const res=await client.rpc(name,args);if(res.error)throw res.error;return res.data};
 function row(container,title,info){const a=document.createElement('article'),h=document.createElement('h3'),p=document.createElement('p');h.textContent=title;p.textContent=info;a.append(h,p);$(container).append(a);return a}
 function btn(text,handler){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',handler);return b}
-async function task(fn,target='status'){if(busy)return;busy=true;for(const b of document.querySelectorAll('button'))b.disabled=true;try{await fn()}catch(e){status(message(e),target);if(target!=='status')status(message(e),'status')}finally{busy=false;for(const b of document.querySelectorAll('button'))b.disabled=false;syncDocSelection()}}
+async function task(fn,target='status'){if(busy)return;busy=true;for(const b of document.querySelectorAll('button'))b.disabled=true;try{await fn()}catch(e){if(target==='accessStatus')status(fiscalAccessMessage(e),target);else status(message(e),target)}finally{busy=false;for(const b of document.querySelectorAll('button'))b.disabled=false;syncDocSelection()}}
 function clearAttempt(){pending=null;factor='';$('password').value='';$('totp').value='';if(reauth){const temp=reauth;reauth=null;temp.auth.signOut({scope:'local'}).catch(()=>{})}hide('totpForm');hide('passwordForm',false);status('','stepupStatus')}
 function reset(){clearAttempt();details=null;context=null;finance=null;hide('module');hide('access',false);if($('stepup').open)$('stepup').close();if($('batchDialog').open)$('batchDialog').close()}
 function retentionInputs(){
@@ -101,11 +102,13 @@ $('totpForm').addEventListener('submit',e=>{e.preventDefault();task(async()=>{
  },'stepupStatus')});
 $('cancelBatch').addEventListener('click',()=>$('batchDialog').close());$('cancelStepup').addEventListener('click',()=>{$('stepup').close();clearAttempt()});$('stepup').addEventListener('cancel',clearAttempt);
 $('documentType').addEventListener('change',syncDocSelection);$('documentPayout').addEventListener('change',syncDocSelection);
+$('retryAccess').addEventListener('click',init);
 $('partner').addEventListener('change',()=>task(async()=>{finance=null;await load()}));$('refresh').addEventListener('click',()=>task(async()=>{finance=null;await load()}));
 $('exit').addEventListener('click',()=>task(async()=>{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;reset();status('Sessão local encerrada.','accessStatus')}));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){$('password').value='';$('totp').value='';$('documentFile').value=''}});
 retentionInputs();resetDocType();
 async function init(){if(!allowed){status('Disponível somente em homologação TEST.','accessStatus');return}
- client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')reset()});
+ if(!authObserved){client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')reset()});authObserved=true}
+ status('Conferindo acesso…','accessStatus');
  await task(async()=>{const u=await client.auth.getUser();if(u.error||!u.data.user)throw Error('AUTH_REQUIRED');context=await rpc('get_admin_context');if(context.aal!=='aal2')throw Error('MFA_REQUIRED');await load();hide('access');hide('module',false)},'accessStatus')}
 init();
