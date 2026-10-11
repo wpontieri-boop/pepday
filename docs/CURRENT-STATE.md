@@ -2,6 +2,13 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — PASS HUMANO / NÃO REPETIR: acesso à tela Fiscal P3 TEST
+
+- **Ambiente:** TEST `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`; **evidência humana:** captura enviada pelo usuário no Mac Chrome em **11/10/2026 às 14:18:24 (horário de Brasília)**, após renovar a sessão no Admin TEST com senha e 2FA. Captura anterior do mesmo fluxo, às 14:15:40, mostrava papel **OWNER** no Admin de homologação.
+- **PASS HUMANO / NÃO REPETIR:** rota Fiscal e Documentos carregou efetivamente o conteúdo interno, com título `Fiscal e documentos · HOMOLOGAÇÃO`, seletor `Parceiro` iniciado em `Escolha um parceiro`, botão Atualizar, card Situação e aviso de repasses bloqueados. Nenhum erro de autorização após renovar a sessão. **Não repetir** o login/2FA, a entrada na rota Fiscal TEST nem testes antigos P1/P2/Admin/PDF privado apenas para validar esse ponto; essa etapa humana está fechada.
+- **Escopo do PASS estritamente limitado:** nenhum parceiro havia sido selecionado na captura. Não há validação humana de CPF/CNPJ, dados específicos do parceiro, edição fiscal, documento, retenção, arquivo ou repasse; não aprovar o restante do P3 por inferência. Sessões operacionais do P3 continuam com janela de 8h prevista pelo backend; renovar apenas se necessário por expiração real, não como reteste.
+- **Próxima ação curta:** na tela já aberta, **selecionar um parceiro existente** e conferir somente leitura inicial (tipo fiscal CPF/CNPJ, estado e bloqueios). Não carregar documentos reais, aprovar retenções, confirmar repasses ou liberar PROD; registrar resultado humano dessa próxima etapa com evidência.
+
 ## Checkpoint 11/10/2026 — segundo bloqueio humano da tela fiscal: classificação segura do 403 (somente TEST)
 
 - Captura humana Mac/Chrome de 11/10/2026, `/admin/parceiros/fiscal/`: versão TEST anterior exibiu `Acesso fiscal não autorizado nesta sessão. Confira sua permissão no Admin de homologação.` após tentar carregar o módulo. **Falha da interface registrada, NÃO PASS humano**; nenhuma escrita ou repasse foi realizado.
