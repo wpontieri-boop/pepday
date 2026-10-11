@@ -2,6 +2,28 @@
 Data: 11/10/2026 | Ambiente de planejamento: TEST | Status: DECISÃO DE PRODUTO / ESPECIFICAÇÃO — NÃO IMPLEMENTADO
 Repositório/branch: wpontieri-boop/pepday · v3.0-bloco-b
 
+## Simplificação solicitada pelo proprietário — 11/10/2026 (sujeita à contadora)
+
+**Intenção comercial:** PepDay não precisa ser um software emissor de nota fiscal, RPA ou de apuração tributária automática. O proprietário prefere que a **contabilidade execute os procedimentos fiscais** e que o PepDay produza **relatórios fiéis de comissões e pagamentos**. Não concluir que a contadora seja a emissora legal da NFS-e de parceiro CNPJ/MEI: em geral o documento de serviços é emitido pelo prestador (ou por procurador autorizado); a contadora pode auxiliar. A empresa pagadora mantém as responsabilidades legais aplicáveis mesmo quando a execução é terceirizada.
+
+**Fluxo proposto — NÃO IMPLEMENTADO/NÃO HOMOLOGADO:**
+1. Comissões elegíveis são apuradas pelo P3 e continuam sujeitas aos guardas de 30 dias, estornos, verificação do cliente, status do parceiro e bloqueios fiscais.
+2. Gerar **relatório pré-pagamento** acessível com permissão restrita à contadora/OWNER, cobrindo parceiro, competência, CPF/CNPJ conforme mínimo de acesso legal, comissão bruta, referência da origem e estado; sem dados pessoais do assinante.
+3. Contadora identifica se o recebedor CPF/CNPJ/MEI precisa de nota/recibo/RPA e tributos/retenções ou obrigações acessórias **antes da liberação**, sempre que aplicável; comunica resultado e valor líquido autorizado. **Não adotar modelo automático de pagar primeiro e regularizar tributos depois.**
+4. OWNER aprova e transfere manualmente apenas o valor líquido autorizado e conforme guardas fiscais; registra comprovante privado, referência bancária e data. PepDay não emite nota fiscal/RPA nem envia EFD-Reinf/eSocial.
+5. Emitir **relatório pós-pagamento** com identificador de parceiro, competência, bruto, retenções informadas pela contadora, líquido, data, referência e status para conciliação/escrituração. O serviço contábil prepara/comunica os documentos e guias sob sua responsabilidade; o prestador emite sua NFS-e quando exigível.
+
+**Portal do parceiro:** preservar intenção de link seguro para dados cadastrais e aceite contratual, evitando exigência de upload indiscriminado de quatro tipos de arquivo; solicitação de nota/documento específico somente quando aplicável segundo matriz formal. Este refinamento **não cancela automaticamente** o desejo anterior de autoatendimento: discutir com o proprietário depois do parecer quais arquivos o portal realmente deve receber.
+
+**Alcance atual:** a área fiscal P3 TEST e travas de aprovação existentes **não devem ser removidas, burladas ou relaxadas**. Exportação/relatório específico para contador, convite ao parceiro e integração com contabilidade são **propostas**, não declarar código ou publicação. P1/P2 PASS/NÃO REPETIR preservados, PROD intocado.
+
+**Pergunta prioritária à contadora (terça 13/10/2026):** "O PepDay pode entregar um relatório de comissões antes do pagamento e outro com pagamentos efetuados, deixando notas fiscais/RPA, retenções e obrigações acessórias com a contabilidade e com o parceiro quando ele for o emissor? Quais dados, documentos e aprovações são obrigatórios **antes** do PIX para cada perfil CPF, MEI e CNPJ? A contabilidade pode assumir operacionalmente a emissão de RPA/recibo e orientar o parceiro a emitir NFS-e, quando necessária?"
+
+**Referências oficiais para esse ajuste:**
+- Receita, responsabilidade da empresa ao pagar contribuinte individual: https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/tributos/contribuicoes-previdenciarias-pf
+- Portal NFS-e, prestador MEI a pessoa jurídica: https://www.gov.br/nfse/pt-br/copy_of_perguntas-frequentes/copy_of_faq-nfs-e
+- Receita, distribuição eSocial/EFD-Reinf conforme natureza do pagamento: https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/perguntas-frequentes/sped/efd-reinf/efdr/1-geral/1-17-as-informacoes-sobre
+
 ## Decisão do proprietário (11/10/2026)
 
 O **lojista ou afiliado que recebe comissões** deverá preencher pessoalmente as informações fiscais pertinentes, aceitar o contrato e enviar os documentos exigidos usando um **link individual seguro no celular**, sem receber senha ou autorização do Admin PepDay. O OWNER revisa, solicita correções e aprova apenas após conferir a documentação e as orientações contábeis/jurídicas. O sistema mantém a trava de comissões/repasses em caso de pendência.
