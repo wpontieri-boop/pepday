@@ -2,6 +2,16 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — observação humana fiscal P3 e correção final de checkbox (TEST)
+
+- **Evidência humana somente de exibição:** quatro capturas Mac Chrome enviadas pelo usuário em **11/10/2026 às 14:39:00, 14:39:07, 14:39:14 e 14:39:21 (BRT)**, na rota `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`, continuando o parceiro CNPJ já aprovado como PASS HUMANO de leitura (não repetir).
+- Os prints exibem quatro categorias distintas de retenção (`Contrato`, `Documento fiscal`, `Recibo`, `Comprovante de repasse`) com caixas desmarcadas e campos de fundamento legal, marco inicial e prazo **vazios**; campos contábil/contratual também vazios; `Situação fiscal` pendente. **Isso não constitui parecer fiscal aprovado**, nem comprova funcionamento de escrita, documento, upload ou repasse.
+- **PASS HUMANO / NÃO REPETIR estritamente da condição inicial VISUAL:** o seletor `Tipo do documento` mostrou `Escolha o tipo de documento` (nenhum tipo preenchido) e o botão `Registrar e enviar` estava desabilitado; nenhum arquivo foi escolhido. Card `Conferência fiscal por lote` sem lotes visíveis; aviso `Pendências bloqueiam liberação e repasse`. Não confundir o estado da interface com uma validação E2E de transferência/documento; manter PASS real anterior de Storage PDF sem repeti-lo.
+- **Novo defeito visual comprovado:** mesmo após o CSS anterior `fiscal.css?v=3`, os checkboxes de `Exigir documento fiscal` e de cada categoria de retenção continuam centralizados acima da legenda, não lado a lado; portanto NÃO declarar aquele alinhamento como PASS humano.
+- **Correção exclusivamente frontend TEST:** substituir dependência de `:has(> input[type=checkbox])` por estrutura HTML/DOM explícita `label.fiscal-checkbox-row > input + span` com CSS grid de duas colunas e cache-bust `fiscal.css?v=4`/`fiscal.mjs?v=4`. Preservados IDs, valores padrão, eventos e guardas de aprovação, segurança OWNER/TOTP, PDF privado, Supabase e repasses. Ajuste no cadastro fiscal, nas 4 retenções dinâmicas e em `Sem retenção` do modal de lote.
+- **PASS técnico focal antes do deploy:** sintaxe JS, `node --test tests/partners-p3-fiscal.test.mjs tests/partners-p3-fiscal-access.test.mjs` **10/10**, `npm run build:test`, `git diff --check`. **Chrome headless real** validou geometria DOM calculada para duas caixas em CSS grid: ambas à esquerda com legenda horizontal e alinhamento vertical exato em viewport **500px** (janela solicitada 390px, limitada pelo Chrome headless) e **1280px**. Não apresentar como teste humano ou prova de 390px.
+- **Próxima ação explícita:** registrar commit/push/fetch e conferir deploy TEST LIVE com hashes dos arquivos; depois, **não repetir** CNPJ/ADMIN/PDF, e só planejar validação CPF sintética isolada e descartável se houver autorização específica. Contabilidade/jurídico devem definir retenções e prazos; PROD/main/V2.9 intocados.
+
 ## Checkpoint 11/10/2026 — PASS HUMANO / NÃO REPETIR: leitura fiscal CNPJ com bloqueio TEST
 
 - **Evidência humana:** captura do usuário em **11/10/2026 às 14:23:20 (horário de Brasília)** no Mac/Chrome, `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`, já com sessão OWNER TEST validada anteriormente. Selecionado no dropdown **Parceiro Teste Mac**.

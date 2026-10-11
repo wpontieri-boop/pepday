@@ -20,7 +20,7 @@ function retentionInputs(){
  for(const [type,label] of Object.entries(TYPES)){
   const section=document.createElement('section');section.className='retention';
   const heading=document.createElement('strong');heading.textContent=label;section.append(heading);
-  const checkbox=document.createElement('label'),checked=document.createElement('input');checked.type='checkbox';checked.id='r_'+type+'_validated';checkbox.append(checked,document.createTextNode(' Parecer jurídico/contábil validado'));section.append(checkbox);
+  const checkbox=document.createElement('label'),checked=document.createElement('input'),caption=document.createElement('span');checkbox.className='fiscal-checkbox-row';checked.type='checkbox';checked.id='r_'+type+'_validated';caption.textContent='Parecer jurídico/contábil validado';checkbox.append(checked,caption);section.append(checkbox);
   for(const [field,title] of [['legal_basis','Fundamento legal documentado'],['start_event','Marco inicial da contagem'],['months','Prazo em meses (somente se validado)']]){
    const lab=document.createElement('label'),input=document.createElement('input');input.id='r_'+type+'_'+field;input.maxLength=field==='months'?4:160;input.autocomplete='off';input.placeholder=title;lab.append(document.createTextNode(title),input);section.append(lab)}
   $('retentionFields').append(section)

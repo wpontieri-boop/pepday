@@ -40,11 +40,17 @@ test('no legal retention defaults and database contract snapshot is non-migrator
  assert.match(sql,/NOT A MIGRATION/);
  assert.match(sql,/CREATE OR REPLACE FUNCTION public\.admin_partner_fiscal_action/);
 });
-test('fiscal TEST checkbox keeps control and label aligned, without modifying validation',async()=>{
+test('fiscal TEST checkbox has explicit label grid, avoiding unsupported implicit :has layouts',async()=>{
  const html=await file('site/admin/parceiros/fiscal/index.html');
  const css=await file('site/admin/parceiros/fiscal/fiscal.css');
- assert.match(html,/id="fiscalRequired" type="checkbox"/);
- assert.match(html,/fiscal\.css\?v=3/);
- assert.match(css,/\.retention label:has\(> input\[type=checkbox\]\)\{display:flex;align-items:center;justify-content:flex-start/);
+ const js=await file('site/admin/parceiros/fiscal/fiscal.mjs');
+ assert.match(html,/<label class="fiscal-checkbox-row"><input id="fiscalRequired" type="checkbox"><span>Exigir documento fiscal/);
+ assert.match(html,/<label class="fiscal-checkbox-row"><input type="checkbox" id="noWithholding"><span>Sem retenção/);
+ assert.match(html,/fiscal\.css\?v=4/);
+ assert.match(html,/fiscal\.mjs\?v=4/);
+ assert.match(js,/checkbox\.className='fiscal-checkbox-row'/);
+ assert.match(js,/caption\.textContent='Parecer jurídico\/contábil validado'/);
+ assert.match(css,/\.fiscal-checkbox-row\{display:grid!important;grid-template-columns:22px minmax\(0,1fr\)!important/);
+ assert.match(css,/\.fiscal-checkbox-row>input\[type=checkbox\]/);
  assert.match(css,/\.dash-head a\{display:inline-flex/);
 });
