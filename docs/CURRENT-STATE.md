@@ -2,6 +2,14 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — proposta de momento do convite WhatsApp (AGUARDANDO APROVAÇÃO)
+
+- **Pergunta do proprietário:** o convite de documentação deve ser enviado já no cadastro do lojista/afiliado pelo WhatsApp ou aguardar alguns dias?
+- **Recomendação de experiência, NÃO decisão final nem funcionalidade implementada:** envio **imediato, mas somente após ação explícita de `Enviar convite pelo WhatsApp` no Admin**, após cadastrar o contato e conversar com o parceiro. `Salvar rascunho` continua **sem disparo automático**, conforme P1 aprovado. Compartilhamento inicial pode ser via mensagem pré-preenchida e confirmação pelo operador; envio automático pela API WhatsApp requer integração, consentimento e revisão de templates/regras da plataforma.
+- O convite é privado, verificado pelo contato e distinto do código público do cartão; parceiro completa dados/aceite no celular, OWNER valida identidade/PIX/percentual e ativa somente segundo guardas P1. Até ativação, o link/código de indicação gerado no rascunho **não atribui novos clientes**. O portal privado e a inserção de dados pelo parceiro **ainda não foram implementados**; mudanças na edição financeira P1 exigem autorização e testes focados TEST.
+- **Lembretes sugeridos, ainda NÃO autorizados:** após 48h sem completar e outra tentativa em 5 dias, exclusivamente para o convite pendente e respeitando consentimento/opt-out e canal permitido; link expirado deve poder ser reemitido pelo Admin. Não adotar lembrete automático real sem aprovação do usuário. Documentos fiscais adicionais só quando contadora determinar, com conferência **antes do repasse** quando obrigatória; não esperar prazo fixo para cumprir obrigação fiscal.
+- **Próxima ação:** usuário confirmar fluxo do envio imediato sob clique, lembretes opcionais e separação entre cadastro, ativação e conferência antes do PIX. Manter todos PASS HUMANO/NÃO REPETIR, PROD/main/V2.9/P1/P2 preservados.
+
 ## Checkpoint 11/10/2026 — refinamento comercial P3: relatórios para contabilidade, sem emissão fiscal automática (PLANEJAMENTO)
 
 - **Solicitação do usuário:** simplificar obrigações documentais do PepDay. Software deverá controlar comissões e repasses e **gerar relatório pré-pagamento e pós-pagamento para a contadora**, sem se tornar emissor NFS-e/RPA ou apurar/recolher tributos automaticamente. Contadora executa a escrituração e orienta/operacionaliza os procedimentos compatíveis; nota de prestador CNPJ/MEI deve ser emitida por quem possua obrigação/poder de emissão (prestador ou procurador autorizado), não necessariamente pela contadora do PepDay.
