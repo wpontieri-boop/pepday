@@ -2,6 +2,16 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — PASS HUMANO / NÃO REPETIR: leitura fiscal CNPJ com bloqueio TEST
+
+- **Evidência humana:** captura do usuário em **11/10/2026 às 14:23:20 (horário de Brasília)** no Mac/Chrome, `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`, já com sessão OWNER TEST validada anteriormente. Selecionado no dropdown **Parceiro Teste Mac**.
+- **PASS HUMANO / NÃO REPETIR (somente leitura inicial CNPJ):** tela exibiu `Tipo cadastrado: CNPJ`, `Situação: Pendente`, `Conferência do parceiro: BLOQUEADA.`. O formulário `Cadastro fiscal e retenção` aparece para OWNER com situação inicial `Pendente`. **Não repetir** seleção/leitura CNPJ e bloqueio pendente sem mudança posterior no fluxo.
+- **Limites:** captura mostra classificação baseada no tipo cadastrado, NÃO uma validação pública externa do CNPJ. Não testa CPF, mudança de estado, retenções, documentos, comprovantes, uploads, autorizações ou repasses; não declarar PASS fiscal global. Nenhuma alteração de status/registro ou transferência foi realizada por este teste de leitura.
+- **Melhoria visual restrita a TEST:** checkbox `Exigir documento fiscal conforme parecer contábil` aparecia sozinho centralizado acima do texto na captura. Ajustado alinhamento horizontal com CSS flex em labels com checkbox; link de retorno ao Financeiro também estilizado, sem alteração de ações, permissões, validação, dados ou backend. Cache-bust de `fiscal.css?v=3`.
+- **PASS técnico focal:** `node --test tests/partners-p3-fiscal.test.mjs tests/partners-p3-fiscal-access.test.mjs` **10/10 PASS**, `npm run build:test` PASS e `git diff --check` PASS. Teste novo confirma presença e escopo do seletor CSS. Não repetir QA de login, PDF, P1/P2 ou seleção CNPJ.
+- **Inventário fiscal somente leitura do Supabase TEST (11/10/2026):** perfis dos parceiros agrupados por tipo fiscal gerado = **1 CNPJ, 0 CPF, 1 sem tipo informado**. Portanto **não existe parceiro CPF disponível para a conferência humana**; não atribuir CPF fictício a registro existente nem forçar teste de tela.
+- **Próxima ação curta:** confirmar publicação LIVE e hashes do ajuste visual, registrar deploy e sincronização; planejar teste isolado de CPF com fixture sintética descartável/rollback, apenas se autorizado e necessário, sem alterar cadastro existente. Manter demais validações fiscais contábeis/jurídicas pendentes e PROD bloqueado.
+
 ## Checkpoint 11/10/2026 — PASS HUMANO / NÃO REPETIR: acesso à tela Fiscal P3 TEST
 
 - **Ambiente:** TEST `https://homologacao.pepday.com.br/admin/parceiros/fiscal/`; **evidência humana:** captura enviada pelo usuário no Mac Chrome em **11/10/2026 às 14:18:24 (horário de Brasília)**, após renovar a sessão no Admin TEST com senha e 2FA. Captura anterior do mesmo fluxo, às 14:15:40, mostrava papel **OWNER** no Admin de homologação.

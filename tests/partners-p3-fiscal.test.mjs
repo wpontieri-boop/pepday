@@ -40,3 +40,11 @@ test('no legal retention defaults and database contract snapshot is non-migrator
  assert.match(sql,/NOT A MIGRATION/);
  assert.match(sql,/CREATE OR REPLACE FUNCTION public\.admin_partner_fiscal_action/);
 });
+test('fiscal TEST checkbox keeps control and label aligned, without modifying validation',async()=>{
+ const html=await file('site/admin/parceiros/fiscal/index.html');
+ const css=await file('site/admin/parceiros/fiscal/fiscal.css');
+ assert.match(html,/id="fiscalRequired" type="checkbox"/);
+ assert.match(html,/fiscal\.css\?v=3/);
+ assert.match(css,/\.retention label:has\(> input\[type=checkbox\]\)\{display:flex;align-items:center;justify-content:flex-start/);
+ assert.match(css,/\.dash-head a\{display:inline-flex/);
+});
