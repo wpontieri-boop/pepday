@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {runInNewContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {helpTopics,visibleTopics,normalized} from '../site/admin/admin-help-data.mjs';
 const html=await readFile(new URL('../site/admin/index.html',import.meta.url),'utf8');
@@ -14,7 +15,7 @@ test('central is only rendered in authenticated dashboard, never login',()=>{
  assert.match(html,/<button class="admin-button" type="button" id="adminHelpShortcut">Central de Ajuda<\/button>/);
  assert.match(html,/<input id="helpSearch" type="search"/);
  assert.match(html,/<button id="helpPrint"/);
- assert.match(html,/admin-help\.mjs\?v=1/);
+ assert.match(html,/admin-help\.mjs\?v=2/);
 });
 test('catalogue covers approved processes and clearly separates TEST/planned',()=>{
  for(const id of ['acesso','dashboard','cartao','promo','parceiros','financeiro-cadastro','comissoes','fiscal','contabilidade','convites','equipe','ajuda'])
@@ -62,4 +63,27 @@ test('successful Admin MFA clears challenge state before navigating to Help',()=
  assert.match(ready,/authStage\('dashboard'\);/);
  assert.match(adminJs,/stage==='dashboard'\)&&history\.state\?\.pepdayAdminTotp/);
  assert.match(adminJs,/currentAuthStage==='mfa-challenge'&&!event\.state\?\.pepdayAdminTotp/);
+});
+test('authenticated admin finishes MFA state and keeps session on Help/back navigation (simulated auth)',async()=>{
+ const auth=adminJs.slice(adminJs.indexOf('function authStage(stage='),adminJs.indexOf('async function adminContextForSession'));
+ const dashboard=adminJs.slice(adminJs.indexOf('async function openDashboard('),adminJs.indexOf('async function resetAdminUi'));
+ const history={state:{},changes:[],pushState(state){this.state=state;this.changes.push('push')},replaceState(state){this.state=state;this.changes.push('replace')}};
+ const mock={history,location:{href:'https://homologacao.pepday.com.br/admin/'},authAttemptVersion:1};
+ runInNewContext(`
+  let currentAuthStage='login',adminContext=null;
+  const hide=()=>{},authStatus=()=>{},attemptIsCurrent=()=>true,applyAdminPermissions=()=>{},loadMetrics=async()=>{};
+  async function adminContextForSession(){return {aal:'aal2'}}
+  ${auth}
+  ${dashboard}
+  globalThis.api={authStage,openDashboard,getStage:()=>currentAuthStage};
+ `,mock);
+ mock.api.authStage('mfa-challenge');
+ assert.equal(mock.api.getStage(),'mfa-challenge');
+ assert.equal(history.state.pepdayAdminTotp,true);
+ await mock.api.openDashboard();
+ assert.equal(mock.api.getStage(),'dashboard');
+ assert.equal(history.state.pepdayAdminTotp,undefined);
+ assert.deepEqual(history.changes,['push','replace']);
+ const shouldLogout=mock.api.getStage()==='mfa-challenge'&&!null?.pepdayAdminTotp;
+ assert.equal(shouldLogout,false,'Back/Help navigation after successful MFA must not trigger logout');
 });
