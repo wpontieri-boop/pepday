@@ -38,5 +38,11 @@ Cada computador mantém uma cópia local do projeto, e o GitHub é a fonte centr
 - Não alterar branch de produção, publicar ou fazer merge sem autorização explícita quando houver ambiente de produção separado.
 - Preservar versões estáveis e ambientes de teste já aprovados.
 
+## Padrão obrigatório de documentação do Admin (aprovado em 11/10/2026)
+- A Central de Ajuda integrada em `site/admin/index.html`, com conteúdo em `site/admin/admin-help-data.mjs`, é a referência visível para operadores no painel. Manter busca e impressão e indicar por tópico ambiente (PROD/TEST/planejado), papéis permitidos e data da revisão.
+- Ao mudar um fluxo administrativo, cupom, QR, parceiros, financeiro ou fiscal, atualizar no mesmo ciclo a Central de Ajuda, o manual operacional editável em Word e `docs/CURRENT-STATE.md`; o texto-fonte de continuidade operacional está em `docs/operations/ADMIN-HELP-OPERATIONS-20261011.md`. Não declarar funcionalidade planejada como publicada.
+- Nunca copiar `AGENTS.md`, `CURRENT-STATE.md`, SQL, credenciais, chaves, tickets, CPF/PIX ou dados reais de clientes para instruções de funcionários. O filtro de guias por papel é apenas UX; as permissões efetivas continuam obrigatórias no backend.
+- O Word é um artefato editável de treinamento; GitHub continua como fonte oficial de continuidade do desenvolvimento e do estado técnico. Manual e Central de Ajuda não substituem PASS técnico/humano, decisão da contadora, revisão jurídica ou autorização explícita de produção.
+
 ## Objetivo operacional
 Permitir que o usuário encerre o trabalho em um computador e continue no outro exatamente do mesmo ponto, mantendo GitHub e ambas as máquinas consistentes.
