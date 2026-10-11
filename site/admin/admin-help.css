@@ -1,0 +1,42 @@
+/* Central de Ajuda — escopo restrito ao dashboard Admin. */
+.admin-help{margin-top:24px;scroll-margin-top:100px}
+.help-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.admin-help h2{margin:4px 0 6px;font-size:24px}
+.help-description{margin:6px 0 18px;color:#a7c2d0;line-height:1.6}
+.help-tools{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.help-tools label{flex:1 1 250px;display:grid;gap:5px;font-weight:700;font-size:13px;color:#d9edf6}
+.help-tools input{font:inherit;min-height:44px;padding:12px 14px;background:#061521;border:1px solid #346379;border-radius:11px;color:#fff;width:100%}
+.help-tools button{min-height:44px;border:1px solid #2d657f;background:#113246;border-radius:11px;padding:10px 16px;color:#ecfcff;font-weight:800;cursor:pointer}
+.help-tools button:focus-visible,.help-tools input:focus-visible,.help-topic summary:focus-visible{outline:2px solid #40d9ff;outline-offset:2px}
+.help-status{color:#9dc3d5;font-size:12px;margin:8px 0 12px}
+.help-list{display:grid;gap:9px}
+.help-topic{border:1px solid #254d64;background:#091c2a;border-radius:12px;overflow:hidden}
+.help-topic summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;list-style:none}
+.help-topic summary::-webkit-details-marker{display:none}
+.help-topic summary:before{content:'+';border:1px solid #37758f;border-radius:5px;color:#35d8ff;width:21px;height:21px;display:inline-flex;justify-content:center;align-items:center;font-weight:900;flex-shrink:0}
+.help-topic[open] summary:before{content:'−'}
+.help-topic-title{margin-right:auto;color:#edfbff}
+.help-topic-meta{color:#8db1c3;font-size:11px;text-align:right;flex-basis:170px}
+.help-topic[open] summary{border-bottom:1px solid #22475c}
+.help-steps{margin:16px 16px 12px 33px;padding-left:12px;color:#d8e8f1;line-height:1.62}
+.help-steps li{padding-left:5px;margin-bottom:8px}
+.help-note{background:#0d2d3c;border-left:3px solid #35d8ff;padding:11px 13px;margin:12px 16px 17px;color:#c8e6f3;font-size:12px;line-height:1.55}
+.help-empty{color:#b4cfdb}
+@media(max-width:600px){.help-topic summary{flex-wrap:wrap}.help-topic-meta{flex:1 1 100%;text-align:left;margin-left:34px}.help-tools button{flex:1 1 130px}}
+@media print{
+ @page{size:A4;margin:17mm}
+ body{background:white!important;color:#111!important;font:10pt Arial,sans-serif}
+ body *{visibility:hidden!important}
+ #central-ajuda,#central-ajuda *{visibility:visible!important}
+ #central-ajuda{display:block!important;position:absolute;left:0;top:0;width:100%;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;background:white!important;color:black!important}
+ .help-tools,.help-description,.help-status,.help-print-hint{display:none!important}
+ .admin-help h2{color:black;font-size:19pt;margin:0 0 12px}
+ .help-list{display:block!important}
+ .help-topic{display:block!important;background:white!important;color:black!important;border:1px solid #bbb!important;margin:0 0 10px;break-inside:avoid-page}
+ .help-topic summary{color:black!important;padding:8px!important}
+ .help-topic summary:before{display:none!important}
+ .help-topic-title{color:black!important;font-size:11pt}
+ .help-topic-meta{color:#555!important}
+ .help-steps,.help-note{color:#222!important;font-size:9.4pt}
+ .help-note{background:#f5f5f5!important;color:#222!important;border-left:2px solid #666}
+}

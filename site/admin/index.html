@@ -7,6 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./admin.css?v=35">
+  <link rel="stylesheet" href="./admin-help.css?v=1">
   <title>PepDay Admin — Aquisição</title>
 </head>
 <body>
@@ -75,6 +76,7 @@
       <div class="head-actions">
         <div class="admin-session"><strong id="adminRole">—</strong><small id="adminEmail">—</small></div>
         <a id="partnersShortcut" class="admin-button hidden" href="/admin/parceiros/">Parceiros &amp; Afiliados</a>
+        <a class="admin-button" href="#central-ajuda">Central de Ajuda</a>
         <button class="ghost" id="refresh" type="button">Atualizar</button>
         <button class="ghost" id="logout" type="button">Sair</button>
       </div>
@@ -227,6 +229,20 @@
       <div id="auditList" class="audit-list"></div>
     </section>
 
+    <section class="card admin-help" id="central-ajuda" aria-labelledby="helpTitle">
+      <div class="eyebrow">APRENDER E CONSULTAR SEM SAIR DO PAINEL</div>
+      <h2 id="helpTitle">Central de Ajuda e Treinamento</h2>
+      <p class="help-description">Pesquise tarefas operacionais, confira o que está disponível e imprima um guia seguro para sua equipe. Apenas os guias compatíveis com seu perfil são exibidos.</p>
+      <div class="help-tools">
+        <label for="helpSearch">Buscar procedimento<input id="helpSearch" type="search" placeholder="Ex.: cupom, QR, parceiro, fiscal..." autocomplete="off"></label>
+        <button id="helpClear" type="button">Limpar busca</button>
+        <button id="helpPrint" type="button">Imprimir guias</button>
+      </div>
+      <p id="helpStatus" class="help-status" role="status"></p>
+      <div id="helpList" class="help-list"></div>
+      <p class="muted help-print-hint">Os guias descrevem apenas ações permitidas. Se o procedimento estiver marcado como “Planejado” ou “Somente homologação”, não o trate como disponível em PROD.</p>
+    </section>
+
     <section class="card note">
       <h2>O que estamos medindo</h2>
       <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
@@ -238,5 +254,6 @@
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
 <script type="module" src="./admin.mjs?v=37"></script>
+<script type="module" src="./admin-help.mjs?v=1"></script>
 </body>
 </html>
