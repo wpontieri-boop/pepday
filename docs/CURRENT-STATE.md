@@ -1,6 +1,17 @@
 # PepDay — Current State
 
-Atualização: 10/10/2026.
+Atualização: 11/10/2026.
+
+## Checkpoint 11/10/2026 — P3 fiscal: migration original recuperada e versionada no Mac (TEST)
+
+- Continuidade oficial: GitHub `wpontieri-boop/pepday`, branch `v3.0-bloco-b`; leitura integral de AGENTS.md e CURRENT-STATE.md + operações P3 fiscal/P3 financeiro/especificação de parceiros; Mac `/Users/mdc/Projects/pepday` estava em `2b297dc` e **20 commits atrás**, com árvore limpa e 0 commits locais adiante. `git fetch` e `git merge --ff-only origin/v3.0-bloco-b` atualizaram com segurança para `cb3b264`, sem sobrescrever alterações. CenterPhone offline nesta sessão, GitHub permanece referência.
+- **Achado decisivo:** `supabase_migrations.schema_migrations` no Supabase **TEST `fsbqpyyprtymwrmzsacp`** preserva integralmente o texto original da migration remota **`20261009211431 partners_p3_fiscal_test`**. Recuperados **36.076 bytes, 1 statement**, exatamente como aplicado; arquivo restaurado em `supabase/migrations/20261009211431_partners_p3_fiscal_test.sql`. **MD5 remoto=local `cc707dc687f2a73bbd2912a2224d58e6` (PASS).**
+- Conteúdo original: guarda de URL exata de TEST; cadastro fiscal derivado CPF/CNPJ; 3 tabelas fiscais, colunas/constraints de repasses e documentos; FK/índices, RLS/REVOKE; bucket `partner-documents-test`, política restritiva; funções fiscais, bloqueio de liberação/repasse, auditoria append-only, step-up OWNER e grants mínimos. O snapshot anterior de funções permanece **referência**, mas não é mais substituto necessário para a migration integral.
+- **Comparação real read-only com TEST:** 3 tabelas fiscais com RLS habilitado; bucket privado 5.242.880 bytes e MIME PDF/PNG/JPEG; policy `partner_documents_server_only` restritiva (`permissive=false`); trigger `partner_fiscal_event_immutable` ativo; funções públicas sensíveis sem EXECUTE para anon, `partner_document_complete` somente para service_role e RPCs administrativas para authenticated com guardas internos. Advisors de segurança sem ERROR; INFO/WARN de outras funções e proteção de senha registrados, não apresentados como aprovação global.
+- **PASS novo focado:** `node --test tests/partners-p3-fiscal-migration.test.mjs` 3/3 PASS; confere bytes/MD5, isolamento de TEST, RLS/storage, auditoria e gates fiscais. Não rodou regressões/PASS humanos já registrados, nem repetiu o upload do PDF sintético já aprovado. Nenhuma operação de escrita foi feita no Supabase (migration não reaplicada, Edge não redeployada), nenhum teste de transferência/cobrança real.
+- Antes de qualquer promoção: a migration original é **TEST-only** e usa URL/bucket TEST; não copiá-la cegamente para PROD. Requer plano separado, revisão jurídica/contábil CPF/CNPJ (documentos, retenções, prazos de guarda, fundamento legal), eventual conferência humana **apenas da tela fiscal nova**, autorização expressa e plano de rollback sem afetar P1/P2.
+- Estado Render previamente verificado: TEST commit `cb3b264`, deploy `dep-db4rnn6k1f9s73dppcog` LIVE; PROD continua commit `166de8f`, deploy `dep-db4gualg1s2s739d8sn0` LIVE, auto-deploy OFF; `main`/V2.9 preservados. Commit documental novo pode acionar rebuild automático **somente TEST** sem mudança de frontend.
+- **Próxima ação explícita:** encerrar commit/push/fetch e confirmar sincronização Mac↔GitHub; depois validação humana opcional **somente da interface fiscal TEST** e coleta de parecer contábil/jurídico CPF/CNPJ. PROD continua bloqueado até aprovação expressa.
 
 ## Checkpoint 10/10/2026 — recuperação fiscal P3 após perda do workspace Work (TEST)
 
