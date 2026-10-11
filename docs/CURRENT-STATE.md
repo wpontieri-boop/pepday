@@ -2,6 +2,14 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — BUG HUMANO aberto: atalho Central de Ajuda encerra a sessão (TEST, NÃO CORRIGIDO NO LIVE)
+
+- **Relato do usuário após login real recente com senha e 2FA:** ao clicar no novo botão `Central de Ajuda` no Admin TEST, a página retorna à autenticação, exigindo e-mail/senha. Isso é **falha nova do fluxo Ajuda**, não uma reprovação dos PASS HUMANO prévios de login/2FA ou fiscal. Não pedir para repetir os testes antigos. O próprio guia da Central pode ser acessado provisoriamente **rolando o dashboard**, sem clicar no atalho.
+- **Diagnóstico estático específico:** `openDashboard()` não muda `currentAuthStage` de `mfa-challenge` após validar AAL2; o novo `href="#central-ajuda"` altera histórico/fragmento, que pode disparar `popstate` interpretado como abandono do desafio e `endAdminAttempt()`/logout. Esta é **causa provável**, não prova de reprodução em browser real.
+- **Correção preparada em branch ISOLADA**, PR **DRAFT [#1](https://github.com/wpontieri-boop/pepday/pull/1)**, base `v3.0-bloco-b`: botão local sem fragmento/histórico, `authStage('dashboard')` só após AAL2 e remoção do marcador de desafio do histórico, testes focados novos. Simulação V8 das funções extraídas da versão anterior/nova demonstrou reprodução do estado antigo inseguro e transição correta com nova versão (PASS isolado). **NÃO há ainda PASS Node/regressão/browser, deploy TEST ou homologação humana da correção; código de TEST LIVE permanece o anterior.**
+- **Bloqueio técnico operacional:** Mac Remote Desktop Commander `MacBookPro` ficou offline antes do `git fetch` e execução final de Node/build/browser; não alterar cópia local sem verificar branch/tree/divergência quando voltar. GitHub é fonte central; branch principal de PROD/main/V2.9, Auth/2FA aprovado, P1/P2/P3 e pagamentos permanecem intocados.
+- **Próxima ação explícita:** quando o Mac estiver online, fazer `git fetch`, confirmar branch, alterações locais e origem, executar testes focados/regressão/build em branch isolada, revisar PR #1 e somente então integrar `v3.0-bloco-b` em TEST e validar Render LIVE e clique novo; documentar PASS técnico. Não repetir login/2FA humano já homologado.
+
 ## Checkpoint 11/10/2026 — Central de Ajuda operacional integrada ao Admin em TEST + Manual Word editável
 
 - **Aprovação expressa do usuário:** transformar a documentação administrativa em padrão do PepDay, disponível dentro do próprio painel, com busca, passos por função, permissões e impressão, além de manual operacional mestre em Word para treinar funcionários sem depender da memória dos chats. Padrão permanente incluído em `AGENTS.md`; instruções operacionais em [ADMIN-HELP-OPERATIONS-20261011.md](operations/ADMIN-HELP-OPERATIONS-20261011.md).
