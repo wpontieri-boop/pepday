@@ -1,6 +1,6 @@
 import {config} from '/config.js';
 import {isPartnerEnvironment} from '/src/partner-environment.mjs';
-import {fiscalAccessMessage} from './access-message.mjs';
+import {fiscalAccessMessage} from './access-message.mjs?v=2';
 const $=id=>document.getElementById(id), hide=(id,yes=true)=>$(id).classList.toggle('hidden',yes);
 const allowed=config.environment==='test'&&isPartnerEnvironment(config,location);
 const client=allowed?globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:`pepday-${config.environment}-${config.projectRef}-admin-auth`}}):null;
@@ -110,5 +110,5 @@ retentionInputs();resetDocType();
 async function init(){if(!allowed){status('Disponível somente em homologação TEST.','accessStatus');return}
  if(!authObserved){client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')reset()});authObserved=true}
  status('Conferindo acesso…','accessStatus');
- await task(async()=>{const u=await client.auth.getUser();if(u.error||!u.data.user)throw Error('AUTH_REQUIRED');context=await rpc('get_admin_context');if(context.aal!=='aal2')throw Error('MFA_REQUIRED');await load();hide('access');hide('module',false)},'accessStatus')}
+ await task(async()=>{let stage='session';try{const u=await client.auth.getUser();if(u.error||!u.data.user)throw Error('AUTH_REQUIRED');stage='admin';context=await rpc('get_admin_context');if(context.aal!=='aal2')throw Error('MFA_REQUIRED');stage='finance';await load();hide('access');hide('module',false)}catch(e){if(e&&typeof e==='object')e.accessStage=stage;throw e}},'accessStatus')}
 init();
