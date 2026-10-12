@@ -1,6 +1,15 @@
 # PepDay — Central de Ajuda e Manual Operacional Admin
 **Data:** 11/10/2026 · **Branch:** `v3.0-bloco-b` · **Escopo:** documentação e nova Central de Ajuda no **TEST**; nenhuma alteração permitida em PROD/main/V2.9.
 
+## Correção focada do atalho pós-2FA — 11/10/2026 (TEST LIVE)
+
+- Usuário relatou retorno indevido ao login ao clicar `Central de Ajuda` logo após o 2FA.
+- Corrigido no PR [#1](https://github.com/wpontieri-boop/pepday/pull/1), merge commit `e14de84560fe580f0f43d234fc46dbe7a805c0fb`: após AAL2, `authStage('dashboard')` limpa desafio de histórico; o botão Ajuda executa somente `scrollIntoView`, sem mudança de fragmento, histórico ou sessão. Cache-busting `admin.mjs?v=38` e `admin-help.mjs?v=2`.
+- Testes novos e focados Admin/Ajuda/roles **21/21 PASS**, incluindo validação dinâmica com estado MFA simulado, `node --check`, build TEST e `git diff --check`; suíte total paralela 502/503 com uma falha concorrente em replay B2.2-C **não alterado**; teste desse arquivo isolado 14/14 PASS. Não registrar suíte total como 100%. Chrome headless sintético não iniciou em 20s, portanto **browser não validado automaticamente**.
+- Deploy Render TEST **`dep-db625ic9v7es739ka55g` LIVE** e SHA-256 10/10 assets iguais ao build (index, admin.mjs, help.mjs, data.mjs e CSS nos aliases `/admin/` e `/site/admin/`). Produção `166de8f` intocada. Sem novas permissões nem supressão da validação 2FA.
+- **PASS HUMANO da correção ainda PENDENTE**: pedir somente a observação específica de um clique no botão Central de Ajuda após acesso Admin TEST; não repetir login/2FA fiscal ou demais PASS anteriores. Manual Word já descreve a Ajuda como seção interna, portanto texto não precisa mudar.
+- **Próxima ação:** registrar PASS HUMANO do clique novo se o proprietário confirmar, então retomar portal de parceiros/relatórios após parecer contábil.
+
 ## Decisão aprovada pelo proprietário
 A Central de Ajuda é o padrão de treinamento operacional do PepDay: navegação no próprio Admin autenticado, busca por assunto, guias específicos por perfil de acesso (OWNER/ADMIN/VIEWER) e impressão. O Word **PepDay_Manual_Operacional_Admin_2026-10-11.docx** serve como material editável de treinamento e checklist impresso; a continuidade técnica permanece no GitHub (`AGENTS.md` + `docs/CURRENT-STATE.md`).
 
