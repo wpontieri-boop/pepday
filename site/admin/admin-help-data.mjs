@@ -53,13 +53,13 @@ export const helpTopics=[
  'Retenções, guarda documental, aprovação fiscal e líquido dependem de parecer da contadora/jurídico.',
  'Enquanto houver pendências obrigatórias, o sistema bloqueia a liberação e confirmação do repasse.'
  ],note:'CPF sintético, CNPJ visual e QA do upload privado já têm evidências técnicas/humanas específicas no projeto. Não repetir PASS / NÃO REPETIR sem motivo.'},
- {id:'contabilidade',title:'Fechamento mensal e relatório para a contadora',category:'Financeiro',status:'Planejado — não publicado',roles:['OWNER'],steps:[
- 'Modelo aprovado: relatório PRÉ-pagamento com parceiro, competência, bruto e bloqueios.',
- 'A contadora deve orientar documentos, retenções e líquido antes do PIX quando aplicável.',
- 'Após liberação, o OWNER paga manualmente e registra referência/comprovante.',
- 'Modelo aprovado: relatório PÓS-pagamento com bruto, retenções informadas, líquido, data e status.',
- 'O dia de fechamento e o aviso cerca de dez dias antes continuam aguardando confirmação da contadora.'
- ],note:'Não existe ainda exportação específica de relatório contábil nem disparo de WhatsApp implementado. O software não emite NFS-e/RPA.'},
+ {id:'contabilidade',title:'Fechamento mensal e relatório para a contadora',category:'Financeiro',status:'Somente homologação — exportação preliminar TEST',roles:['OWNER'],steps:[
+ 'No Admin TEST, abra Parceiros > Comissões e repasses > Relatórios para a contadora.',
+ 'Clique Exportar conferência pré-pagamento para baixar CSV de comissões, estados, valores em centavos e datas disponíveis, sem autorização de PIX.',
+ 'Clique Exportar conciliação pós-pagamento para baixar somente os lotes com estado PAGO no P3, usando valores e datas disponíveis.',
+ 'Os campos de retenções e líquido conciliado permanecem VAZIOS até confirmação da contadora; nunca interprete vazio como zero.',
+ 'O fechamento, as retenções CPF/MEI/CNPJ e o aviso documental continuam aguardando parecer contábil.'
+ ],note:'CSV informativo exclusivo TEST, autorizado apenas ao OWNER. Não libera repasse, não envia WhatsApp, não inclui CPF/PIX nem emite NFS-e/RPA.'},
  {id:'convites',title:'Convite WhatsApp e documentação do parceiro',category:'Parceiros',status:'Planejado — não publicado',roles:['OWNER','ADMIN'],steps:[
  'Fluxo aprovado: ao cadastrar o parceiro, operador confirmará o botão Enviar convite pelo WhatsApp; salvar rascunho não envia mensagem.',
  'O convite será individual, temporário e verificado, diferente do link/QR público de indicação.',
