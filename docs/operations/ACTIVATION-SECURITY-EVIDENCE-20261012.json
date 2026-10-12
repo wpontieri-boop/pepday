@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-12",
+  "baseline": "60c9dd1dfe9c5c5cfcb93bccc3414f2a5bb3c057",
+  "branch": "v3.0-bloco-b",
+  "newTests": {
+    "pass": 19,
+    "fail": 0,
+    "skip": 0
+  },
+  "regression": {
+    "pass": 612,
+    "fail": 0,
+    "skip": 0
+  },
+  "clamav": {
+    "engine": "ClamAV 1.5.3",
+    "cleanSynthetic": true,
+    "eicarDetected": true,
+    "embeddedEicarDetected": true,
+    "officialDefinitionsReady": false,
+    "missingDefinitionsBlocked": true,
+    "scope": "local_engine_qa_custom_test_signature",
+    "hostedWorker": false,
+    "realCollection": false
+  },
+  "recovery": {
+    "scope": "local_postgresql_storage_synthetic",
+    "postgresVersion": "PostgreSQL 17.5 on aarch64-unknown-linux-gnu, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5), 32-bit",
+    "structuresEqual": true,
+    "rows": 2,
+    "objectsRestored": 2,
+    "hashesEqual": true,
+    "aclEqual": true,
+    "rlsCrossOwnerDenied": true,
+    "anonymousDenied": true,
+    "writeDenied": true,
+    "encrypted": true,
+    "tamperingDenied": true,
+    "productionDenied": true,
+    "remoteSupabaseBackup": false,
+    "durableSchedule": false
+  },
+  "browser": {
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        1280,
+        900
+      ]
+    ],
+    "documents": 9,
+    "hashChecks": true,
+    "acceptanceDisabled": true,
+    "negativeOriginProjectHash": true,
+    "realBackendWrites": 0,
+    "humanPass": false
+  },
+  "supabaseTest": {
+    "ref": "fsbqpyyprtymwrmzsacp",
+    "plan": "free",
+    "postgres": "17.6",
+    "users": 17,
+    "partners": 2,
+    "invites": 0,
+    "objects": 0,
+    "migrations": 51,
+    "privateAclViolations": 0,
+    "privateBuckets": 2,
+    "mode": "disabled",
+    "real_send": false,
+    "real_collection": false,
+    "central_enabled": false,
+    "advisors": {
+      "ERROR": 0,
+      "INFO_rls_no_policy": 54,
+      "WARN_anon_definer": 1,
+      "WARN_authenticated_definer": 60,
+      "WARN_leaked_password": 1
+    },
+    "remoteWrites": 0
+  },
+  "google": {
+    "currentPublicFingerprints": [
+      "c4344465108883b7",
+      "c7c28ff21ddb0313"
+    ],
+    "historicalPreCorrectionFingerprint": "dfe1c9cd6c2f71d6",
+    "cloudInspection": "blocked_site_unavailable",
+    "restrictionsVerifiedNow": false,
+    "rotationPerformed": false,
+    "valuesOmitted": true
+  },
+  "existingTestDeploy": {
+    "id": "dep-db6i0crncjis73c3blb0",
+    "commit": "cd901a6b1694ca3cf2890a06ca053045f20bf6ad",
+    "state": "live"
+  },
+  "productionBaseline": {
+    "id": "dep-db4gualg1s2s739d8sn0",
+    "commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+    "state": "live"
+  },
+  "mainBaseline": "25f1d48d34b395be285d35391b6a5b7ebe6d848c",
+  "blockers": [
+    "official ClamAV database refresh blocked (FreshClam initgroups; official download HTTP403)",
+    "no dedicated hosted persistent scanner runtime verified (PepDay Render services static only)",
+    "remote TEST pg_dump/service credential and isolated durable recovery target/key custody unavailable",
+    "Google Cloud account inspection unavailable",
+    "fiscal definitions accountant",
+    "WhatsApp number/Meta account/IDs/templates/OTP",
+    "supplier processing/transfer terms and operational rights channel proof before real data"
+  ],
+  "artifacts": {
+    "security-focal-20261012.log": {
+      "sha256": "2e7f1c392fcf9f24a0f28bfe05e77166a8a8df3df2e0058526ec56c6fd7f5483",
+      "rawLocalIgnored": true
+    },
+    "security-final-regression-20261012.log": {
+      "sha256": "5bf0c352e1067c9886202fd1d2a5fd0fb6e1f90b9cedf1fde1d96d98604789a1",
+      "rawLocalIgnored": true
+    },
+    "security-recovery-20261012.json": {
+      "sha256": "80a19cf3a2bc0dbdd115cfb83e4e67de7f863f5eb9643e3bb324a1d209cb70be",
+      "rawLocalIgnored": true
+    },
+    "clamav-engine-qa-20261012.json": {
+      "sha256": "9e05f44479c683ed56b9c5694e9094ecb80c05d6e2acffe01360e56767b1de55",
+      "rawLocalIgnored": true
+    },
+    "legal-ui.json": {
+      "sha256": "8c56f87cc92c41c3f9087023d516b3083d0ad530b9d6fbf5224289ce116b6e24",
+      "rawLocalIgnored": true
+    }
+  },
+  "stageCompletion": "verified_before_commit"
+}

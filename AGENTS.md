@@ -60,3 +60,10 @@ Permitir que o usuário encerre o trabalho em um computador e continue no outro 
 
 ## Decisão do proprietário 12/10/2026
 Revisão jurídica interna aprovada comercialmente; não haverá contratação de advogado externo. Não pedir aprovação externa com base em recomendação histórica. Consultar docs/operations/PARTNER-INTERNAL-LEGAL-REVIEW-20261012.md e PARTNER-INTERNAL-SECURITY-20261012.md. Não inventar parecer profissional nem habilitar dados/contratos reais sem requisitos efetivos. Contadora e Meta são dependências externas previstas; controles operacionais internos ainda sem evidência não podem ser chamados PASS. Preservar PROD/P1/P2/P3/Auth e PASS HUMANO.
+
+## Preparação operacional de segurança 12/10/2026
+- Consultar docs/operations/ACTIVATION-SECURITY-PREPARATION-20261012.md e seu JSON de evidência antes de habilitar documentos reais. Fontes em scripts/security são server-side de ensaio TEST, fora do build público; não expor a classe filesystem como endpoint.
+- ClamAV engine/EICAR com base QA e provas mock NÃO são assinaturas oficiais operacionais. Worker persistente/Storage e atualização oficial continuam bloqueados; portal mantém somente PNG sintético exato. Definição vencida, scanner indisponível ou prova de hash/ACL inválida nega promoção.
+- Recuperação PostgreSQL/PGlite + arquivos sintéticos LOCAL não fecha dump/restore remoto, agenda durável, retenção de backup ou custódia de chave. Não copiar dados reais para scratch nem restaurar sobre TEST/PROD em uso. Não reutilizar a Central IA/WP Imports para essa função sem escopo próprio.
+- Console Google Cloud indisponível na sessão de preparação. Inventário por fingerprint não prova restrições ou revogação. Não alterar chave PROD por inferência; registros históricos de push/restrições permanecem válidos no seu escopo.
+- Cleanup do worker somente pode remover raiz privada criada por ele; não adotar diretório existente/compartilhado. Políticas de privacidade novas são QA, não autorização baseada em flags fornecidas por cliente nem exclusão real.
