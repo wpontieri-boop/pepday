@@ -1,4 +1,4 @@
-import {helpVersion,helpTopics,visibleTopics} from './admin-help-data.mjs?v=2';
+import {helpVersion,helpTopics,visibleTopics} from './admin-help-data.mjs?v=3';
 const root=document.getElementById('central-ajuda');
 const search=document.getElementById('helpSearch');
 const list=document.getElementById('helpList');

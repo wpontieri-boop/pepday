@@ -1,4 +1,8 @@
 # PepDay — Central de Ajuda e Manual Operacional Admin
+
+## Atualização vigente de 11/10/2026
+
+Portal privado e convites **SOMENTE SINTÉTICOS TEST**, WhatsApp sem envio e relatórios evoluídos implementados nesta etapa. Detalhes e limites em [PARTNER-PORTAL-TEST-20261011.md](PARTNER-PORTAL-TEST-20261011.md); registros abaixo são históricos. Coleta real, OTP externo, aceite definitivo e mensagens reais continuam bloqueados. Ajuda separada: PASS HUMANO / NÃO REPETIR por confirmação expressa do proprietário em TEST em 11/10/2026. Word v1.3 no mesmo Drive ID oficial, 6 páginas verificadas.
 **Data:** 11/10/2026 · **Branch:** `v3.0-bloco-b` · **Escopo:** documentação e nova Central de Ajuda no **TEST**; nenhuma alteração permitida em PROD/main/V2.9.
 
 ## Atualização de conteúdo após exportações contábeis — somente TEST

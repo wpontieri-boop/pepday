@@ -46,3 +46,9 @@ Cada computador mantém uma cópia local do projeto, e o GitHub é a fonte centr
 
 ## Objetivo operacional
 Permitir que o usuário encerre o trabalho em um computador e continue no outro exatamente do mesmo ponto, mantendo GitHub e ambas as máquinas consistentes.
+
+## Portal de parceiros TEST
+- Portal e convites atuais são demonstração sintética: manter validações QA no servidor, sem contato/CPF/PIX/documento real, aceite definitivo, ativação ou repasse. Não remover esses bloqueios por mudança de interface.
+- Nunca persistir token bruto/OTP/sessão do parceiro, mensagens com link privado ou credenciais em logs, eventos, Storage público ou Git. Sessão parceira é independente do Admin/cliente.
+- WhatsApp atual só prepara texto/fila simulada; não abrir wa.me, conectar provedor ou agendar disparos reais sem autorização específica. Competência fiscal não é o mês da data fonte do CSV.
+- Migrations portal remotas 20261012015115 e 20261012020920 já aplicadas TEST; não reaplicar pelos nomes locais. Helper partner-portal-storage-qa foi aposentado410; não redeployar fonte histórica de QA.

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#07131f"><title>PepDay · Portal privado TEST</title><link rel="icon" href="/icon.svg"><link rel="stylesheet" href="./portal.css?v=1"></head>
+<body><header><img src="/icon.svg" alt=""><b>PEPDAY · Parceiros</b><span>HOMOLOGAÇÃO</span></header><main>
+<section class="card"><h1>Portal privado do parceiro</h1><p class="notice">Somente demonstração técnica. Não informe dados pessoais reais. Nenhuma parceria, contrato ou pagamento é ativado aqui.</p><p id="status" role="status" aria-live="polite"></p></section>
+<section class="card" id="access"><h2>Verificar o convite</h2><p>O link privado não basta para entrar. Nesta demonstração, o OWNER fornece o código sintético de verificação; não há envio por e-mail ou WhatsApp.</p><button id="challenge">Solicitar código de teste</button>
+<form id="otpForm" class="hidden"><label>Código de teste<input id="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label><button>Verificar código</button></form><p id="challengeRef"></p></section>
+<section id="workspace" class="hidden"><div class="card"><h2 id="publicName"></h2><p id="state"></p><button id="refresh">Atualizar</button><button id="logout">Sair do portal</button><button id="optOut">Cancelar contatos deste convite</button></div>
+<section class="card"><h2>Rascunho cadastral sintético</h2><p>Os campos abaixo recebem apenas exemplos QA. A revisão não altera cadastro, PIX ou comissão P1/P2.</p><form id="draftForm" autocomplete="off">
+<label>Perfil<select id="kind" required><option value="CPF">Pessoa física · CPF</option><option value="MEI">MEI</option><option value="CNPJ">Pessoa jurídica · CNPJ</option></select></label>
+<label>Nome sintético<input id="legalName" value="QA Pessoa Teste" pattern="QA [A-Za-z0-9 -]{2,60}" maxlength="63" required></label>
+<label>Identificação inválida de teste<input id="document" value="00000000000" readonly></label>
+<label>E-mail sintético<input id="email" value="qa@example.invalid" type="email" pattern="[a-zA-Z0-9._+-]+@example\.invalid" required></label>
+<label>Referência de pagamento demonstrativa<input id="pixKey" value="QA-ONLY-NOT-A-PIX" readonly></label>
+<button id="save" type="submit">Salvar rascunho</button><button id="submit" type="button">Solicitar revisão do OWNER</button></form><p id="correction"></p></section>
+<section class="card"><h2>Contrato versionado</h2><p id="contractVersion"></p><pre id="contractBody"></pre><button id="contractSeen">Registrar leitura da minuta técnica</button><button disabled>Aceite definitivo bloqueado · jurídico pendente</button></section>
+<section class="card"><h2>Documentos protegidos</h2><p>Coleta real bloqueada. Somente a imagem demonstrativa fornecida pelo sistema pode ser anexada. Nenhum documento é exigido por hipótese fiscal.</p><button id="upload">Anexar amostra sintética</button><div id="documents"></div></section></section>
+</main><script type="module" src="./portal.mjs?v=1"></script></body></html>

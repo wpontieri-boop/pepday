@@ -1,4 +1,4 @@
-import {createAccountantCsv} from './accountant-reports.mjs?v=1';
+import {createAccountantCsv} from './accountant-reports.mjs?v=2';
 import {config} from '/config.js';
 import {isPartnerEnvironment} from '/src/partner-environment.mjs';
 const $=id=>document.getElementById(id),hide=(id,on=true)=>$(id).classList.toggle('hidden',on);
@@ -38,9 +38,11 @@ $('actionForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{i
 $('passwordForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(reauth)await reauth.auth.signOut({scope:'local'});reauth=globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'pepday-finance-stepup-memory'}});try{const result=await reauth.auth.signInWithPassword({email:context.email,password:$('password').value});if(result.error||result.data.user?.email?.toLowerCase()!==context.email.toLowerCase())throw Error('REAUTH_FAILED');const factors=await reauth.auth.mfa.listFactors();if(factors.error)throw factors.error;factor=factors.data.totp.find(f=>f.status==='verified')?.id||'';if(!factor)throw Error('MFA_REQUIRED');hide('passwordForm');hide('totpForm',false);$('stepupStatus').textContent='Informe um novo código do autenticador.'}finally{$('password').value=''}},'stepupStatus')});
 $('totpForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{try{if(!pending||!reauth||!factor)throw Error('PARTNER_STEPUP_INVALID');const verified=await reauth.auth.mfa.challengeAndVerify({factorId:factor,code:$('totp').value});if(verified.error)throw verified.error;const promoted=await client.auth.setSession({access_token:verified.data.access_token,refresh_token:verified.data.refresh_token});if(promoted.error)throw promoted.error;reauth=null;const {partner_id,...payload}=pending;const ticket=await rpc('admin_prepare_partner_finance',{p_partner:partner_id,p_payload:payload});const result=await rpc('admin_partner_finance_action',{p_partner:partner_id,p_payload:payload,p_ticket:ticket});$('stepup').close();clearAttempt();if(payload.action==='recipient'){$('recipientName').textContent=result.payee_name;$('recipientPix').value=result.pix_key;$('recipientDialog').showModal();return}await load();$('status').textContent='Registro concluído. Nenhuma transferência foi executada.'}finally{$('totp').value=''}},'stepupStatus')});
 for(const [button,dialog] of [['cancelAction','actionDialog'],['cancelStepup','stepup']]){$(button).addEventListener('click',()=>{$(dialog).close();clearAttempt()});$(dialog).addEventListener('cancel',clearAttempt)}
-function exportAccountantReport(kind){
+async function exportAccountantReport(kind){
  if(!allowed||context?.access_level!=='owner'||!data?.can_manage)throw new Error('ACCOUNTANT_REPORT_UNAUTHORIZED');
- const {csv,count,filename}=createAccountantCsv(kind,{dataset:data,role:context.access_level,partnerId:$('partner').value||''});
+ const month=$('reportMonth').value||'';
+ const reportData=await rpc('admin_partner_accountant_report',{p_partner:$('partner').value||null,p_month:month||null});
+ const {csv,count,filename}=createAccountantCsv(kind,{dataset:reportData,role:context.access_level,partnerId:$('partner').value||'',month});
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  try{
   const a=document.createElement('a');
@@ -50,6 +52,7 @@ function exportAccountantReport(kind){
 }
 $('reportPre').addEventListener('click',()=>run(async()=>exportAccountantReport('pre'),'reportsStatus'));
 $('reportPost').addEventListener('click',()=>run(async()=>exportAccountantReport('post'),'reportsStatus'));
+$('reportAdjustments').addEventListener('click',()=>run(async()=>exportAccountantReport('adjustments'),'reportsStatus'));
 $('refresh').addEventListener('click',()=>run(load));$('partner').addEventListener('change',()=>run(async()=>{offset=0;await load()}));$('previous').addEventListener('click',()=>run(async()=>{offset=Math.max(0,offset-100);await ledger()}));$('next').addEventListener('click',()=>run(async()=>{offset+=100;await ledger()}));
 $('exit').addEventListener('click',()=>run(async()=>{const result=await client.auth.signOut({scope:'local'});if(result.error)throw result.error;reset();$('accessStatus').textContent='Sessão encerrada.'}));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){$('password').value='';$('totp').value='';$('recipientName').textContent='';$('recipientPix').value='';if($('recipientDialog').open)$('recipientDialog').close()}});

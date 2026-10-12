@@ -17,7 +17,7 @@ test('Central de Ajuda has a separate hidden view, not a long dashboard footer',
  assert.match(html,/id="adminHelpBack">← Voltar ao painel<\/button>/);
  assert.match(html,/<input id="helpSearch" type="search"/);
  assert.match(html,/<button id="helpPrint"/);
- assert.match(html,/admin-help\.mjs\?v=4/);
+ assert.match(html,/admin-help\.mjs\?v=5/);
  assert.match(html,/admin\.mjs\?v=39/);
  assert.match(html,/admin-help\.css\?v=2/);
 });
@@ -25,7 +25,7 @@ test('catalogue covers approved processes and clearly separates TEST/planned',()
  for(const id of ['acesso','dashboard','cartao','promo','parceiros','financeiro-cadastro','comissoes','fiscal','contabilidade','convites','equipe','ajuda'])
   assert.ok(helpTopics.find(t=>t.id===id),'missing '+id);
  assert.ok(helpTopics.find(t=>t.id==='comissoes').status.includes('TEST'));
- assert.ok(helpTopics.find(t=>t.id==='convites').status.includes('não publicado'));
+ assert.ok(helpTopics.find(t=>t.id==='convites').status.includes('envio real não publicado'));
  assert.ok(helpTopics.find(t=>t.id==='contabilidade').status.includes('TEST'));
  assert.ok(helpTopics.find(t=>t.id==='parceiros').steps.some(s=>s.includes('RASCUNHO')));
  assert.ok(helpTopics.find(t=>t.id==='cartao').note.includes('ainda'));

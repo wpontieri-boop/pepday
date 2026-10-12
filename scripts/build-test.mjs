@@ -8,4 +8,5 @@ if(path.dirname(out)!==root||path.basename(out)!=='preview')throw new Error('Inv
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
 for(const name of ['index.html','app.js','style.css','account.css','manifest.json','icon.svg','sw.js','config.js','termos.html','privacidade.html','src','vendor','site','cartao'])await cp(path.join(root,name),path.join(out,name),{recursive:true});
 await cp(path.join(root,'site/admin'),path.join(out,'admin'),{recursive:true});
+await cp(path.join(root,'site/parceiros'),path.join(out,'parceiros'),{recursive:true});
 console.log('PepDay TEST build ready: preview');

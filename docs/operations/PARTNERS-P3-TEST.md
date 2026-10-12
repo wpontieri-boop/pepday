@@ -1,5 +1,9 @@
 # P3 financeiro de parceiros — exclusivamente TEST
 
+## Atualização vigente de 11/10/2026
+
+Portal privado e convites **SOMENTE SINTÉTICOS TEST**, WhatsApp sem envio e relatórios evoluídos implementados nesta etapa. Detalhes e limites em [PARTNER-PORTAL-TEST-20261011.md](PARTNER-PORTAL-TEST-20261011.md); registros abaixo são históricos. Coleta real, OTP externo, aceite definitivo e mensagens reais continuam bloqueados. Ajuda separada: PASS HUMANO / NÃO REPETIR por confirmação expressa do proprietário em TEST em 11/10/2026. Word v1.3 no mesmo Drive ID oficial, 6 páginas verificadas.
+
 ## Exportações contábeis informativas (autorizadas 11/10/2026, TEST)
 
 **Publicação TEST:** PR #3, commit `9dd31e1`, deploy Render `dep-db62r5h5efls73b6o6jg` LIVE; 12/12 SHA-256/HTTP200 iguais ao build, regressão completa 513/513 PASS e 8/8 CSV focal; **homologação humana da função nova PENDENTE**. Produção continua no commit `166de8f` sem alteração.

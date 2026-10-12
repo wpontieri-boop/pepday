@@ -19,7 +19,7 @@ export const helpTopics=[
  'Para indicar uma loja específica, use /cartao/?ref=slug do parceiro já ATIVO ou o código de indicação público.',
  'Um parceiro em rascunho pode ter um código reservado, mas ele ainda não atribui clientes.',
  'Consulte indicadores de origem no Admin; cliques e intenções não equivalem a comissões pagas.'
- ],note:'Não confunda QR de cliente com convite PRIVADO para cadastro documental do parceiro. O convite ainda está planejado.'},
+ ],note:'Não confunda QR de cliente com convite PRIVADO para cadastro documental do parceiro. O portal TEST aceita somente dados sintéticos; coleta real ainda bloqueada.'},
  {id:'promo',title:'Criar códigos PRO de cortesia',category:'Promoções',status:'Disponível — conforme permissão',roles:['OWNER'],steps:[
  'Entre em “Códigos PRO de cortesia” no Admin.',
  'Escolha a duração aprovada: 30, 60 ou 90 dias.',
@@ -32,7 +32,7 @@ export const helpTopics=[
  'Clique Salvar cadastro para criar um RASCUNHO. Esse ato não envia convite e não ativa o código.',
  'O OWNER completa e confere dados legais, destinatário/PIX e percentual individual antes de ativar.',
  'Depois da ativação, compartilhe o código/link de indicação público do parceiro.'
- ],note:'O novo convite privado por WhatsApp, preenchimento pelo próprio parceiro e lembretes D+2/D+5 estão APROVADOS COMO PRODUTO, mas AINDA NÃO IMPLEMENTADOS.'},
+ ],note:'Em TEST, o OWNER dispõe de portal e convites sintéticos; WhatsApp é simulado e coleta real continua bloqueada. P1/P2 e ativação não mudaram.'},
  {id:'financeiro-cadastro',title:'Configuração financeira de parceiros',category:'Parceiros',status:'Disponível — conforme permissão',roles:['OWNER'],steps:[
  'Na ficha do parceiro, abra Configuração financeira · OWNER.',
  'Confira nome/razão social, CPF/CNPJ, titular, tipo/chave PIX e percentual individual acordado.',
@@ -57,15 +57,17 @@ export const helpTopics=[
  'No Admin TEST, abra Parceiros > Comissões e repasses > Relatórios para a contadora.',
  'Clique Exportar conferência pré-pagamento para baixar CSV de comissões, estados, valores em centavos e datas disponíveis, sem autorização de PIX.',
  'Clique Exportar conciliação pós-pagamento para baixar somente os lotes com estado PAGO no P3, usando valores e datas disponíveis.',
- 'Os campos de retenções e líquido conciliado permanecem VAZIOS até confirmação da contadora; nunca interprete vazio como zero.',
- 'O fechamento, as retenções CPF/MEI/CNPJ e o aviso documental continuam aguardando parecer contábil.'
+ 'Filtre parceiro e mês da data fonte (não define competência fiscal). Retenções/líquido só aparecem quando já aprovados no P3; ausência fica VAZIA, nunca zero presumido.',
+ 'Exportar histórico de ajustes inclui eventos e diferenças do ledger. Fechamento, competência, retenções CPF/MEI/CNPJ e aviso documental aguardam contadora em 13/10.'
  ],note:'CSV informativo exclusivo TEST, autorizado apenas ao OWNER. Não libera repasse, não envia WhatsApp, não inclui CPF/PIX nem emite NFS-e/RPA.'},
- {id:'convites',title:'Convite WhatsApp e documentação do parceiro',category:'Parceiros',status:'Planejado — não publicado',roles:['OWNER','ADMIN'],steps:[
- 'Fluxo aprovado: ao cadastrar o parceiro, operador confirmará o botão Enviar convite pelo WhatsApp; salvar rascunho não envia mensagem.',
- 'O convite será individual, temporário e verificado, diferente do link/QR público de indicação.',
- 'O parceiro completará dados e aceite; lembretes condicionais serão D+2 e D+5 para quem continuar pendente.',
- 'Documentos cadastrais tendem a ser coletados uma vez. Notas ou comprovantes fiscais podem ser exigidos por competência, conforme a contadora.'
- ],note:'Portal, envio pelo WhatsApp e lembretes não foram implementados. Não envie documentos sensíveis pelo WhatsApp como substituto do portal.'},
+ {id:'convites',title:'Portal privado e convite WhatsApp sintético',category:'Parceiros',status:'Somente TEST sintético — envio real não publicado',roles:['OWNER','ADMIN'],steps:[
+ 'Somente OWNER opera Admin > Parceiros > Portal e convites sintéticos · OWNER TEST. ADMIN acompanha este guia, mas não recebe acesso ao portal de revisão.',
+ 'Escolha rascunho QA e contato @example.invalid, confira opt-in e emita convite. Reemissão revoga convite e sessões anteriores; salvar P1 nunca envia mensagem.',
+ 'O parceiro solicita código QA; o OWNER obtém o código de teste na lista de convites. Não há entrega externa de OTP nem comprovação real de identidade nesta fase.',
+ 'Parceiro salva rascunho sintético CPF/MEI/CNPJ e solicita revisão. OWNER pede correção ou conclui revisão técnica sem ativar parceria, alterar comissão ou liberar repasse.',
+ 'Enviar convite pelo WhatsApp prepara texto; conferir e confirmar registra apenas simulação. D+2/D+5 preparam fila simulada idempotente, sem cron ou disparo real.',
+ 'Minuta tem versão e hash, mas aceite definitivo está bloqueado. Documentos aceitam somente amostra fornecida pelo sistema; coleta real depende de jurídico e segurança.'
+ ],note:'Não enviar mensagens ou documentos reais. Tokens são temporários e limpos ao ocultar a página. Opt-out, revogação, expiração e conclusão interrompem a sequência. Não confundir código público de indicação com convite privado.'},
  {id:'equipe',title:'Equipe, funções e auditoria',category:'Segurança',status:'Disponível — conforme permissão',roles:['OWNER'],steps:[
  'No Admin, acesse Equipe administrativa para consultar OWNER, ADMIN e VIEWER.',
  'Atribua o menor nível de acesso necessário às responsabilidades de cada pessoa.',

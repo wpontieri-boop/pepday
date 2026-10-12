@@ -74,3 +74,8 @@ enabled = true
 verify_jwt = false
 # TEST exato + sandbox; token PostgreSQL curto, hash e uso único. Sem cobrança/transferência.
 entrypoint = "./functions/partner-finance-worker/index.mjs"
+
+# Custom invite + OTP/session authentication enforced in the TEST-only handler.
+[functions.partner-portal]
+verify_jwt = false
+entrypoint = "./functions/partner-portal/index.mjs"
