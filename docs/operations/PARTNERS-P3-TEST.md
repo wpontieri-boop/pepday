@@ -2,6 +2,9 @@
 
 ## Exportações contábeis informativas (autorizadas 11/10/2026, TEST)
 
+**Publicação TEST:** PR #3, commit `9dd31e1`, deploy Render `dep-db62r5h5efls73b6o6jg` LIVE; 12/12 SHA-256/HTTP200 iguais ao build, regressão completa 513/513 PASS e 8/8 CSV focal; **homologação humana da função nova PENDENTE**. Produção continua no commit `166de8f` sem alteração.
+
+
 Somente o OWNER com sessão administrativa válida e `admin_partner_finance` autorizada pode exportar **CSV pré-conferência** de comissões/estados/valores originais em centavos e **CSV pós-conciliação** apenas de lotes `paid`, pela tela `/admin/parceiros/financeiro/`. Export local puro `accountant-reports.mjs`, filtragem por parceiro, prevenção de fórmula em Excel, sem dados de clientes/CPF/PIX e sem novas permissões SQL. **Não são NFS-e, RPA, ordem de pagamento ou relatório fiscal definitivo**; retenções, líquido, competência e calendário seguem **pendentes de contadora**. Testes específicos em `tests/accountant-reports.test.mjs`. Envio automático, portal e lembretes WhatsApp ainda NÃO foram implementados/publicados. Próxima ação: teste/Render TEST e depois implementação segura do portal separado, preservar todos os PASS anteriores.
 
 ## Escopo e ambiente — 09/10/2026

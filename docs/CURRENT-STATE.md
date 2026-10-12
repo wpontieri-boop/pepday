@@ -2,6 +2,14 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — LIVE TEST confirmado: relatórios contábeis CSV preliminares (PASS TÉCNICO; HUMANO PENDENTE)
+
+- **PR #3 integrado** na branch `v3.0-bloco-b`, commit técnico `9dd31e113ccf360c1c3e23cca018922f54f3a43d`. Render TEST service `srv-date0i6k1f9s73ft9vo0`, deploy `dep-db62r5h5efls73b6o6jg` **LIVE** em 12/10/2026 00:45:35 UTC. Verificação do Mac apontou **12/12 ativos HTTP 200 + SHA-256 iguais ao build**, URLs TEST `/admin/` e `/site/admin/` (HTML do Admin, scripts Ajuda, módulo de relatórios e página/script Financeiro P3). HTML LIVE tem controles de relatórios e versão cache `finance.mjs?v=2`.
+- **QA final PASS:** `npm test` **513/513 PASS**, testes focados dos relatórios **8/8 PASS** incluindo centavos PostgreSQL como string, fórmula CSV e papéis; `npm run build:test`, sintaxe JS, `git diff --check` PASS. Nenhuma alteração em auth Admin, SQL/RPC, P1/P2/P3 guardas ou cobrança.
+- **PROD preservado:** Render `srv-davto4tg1s2s73brihf0` LIVE deploy `dep-db4gualg1s2s739d8sn0` / commit `166de8f`; não disparar publicação PROD sem autorização.
+- **Documentação:** Word de treinamento **v1.2** atualizado no mesmo Google Drive ID `1PYLoYSgRIs-b19i0Bz4HSPIqtnNK-wYm`, renderizado visualmente em 6 páginas A4; guia contabilidade no Admin TEST atualizado e reflete limitação fiscal. **PASS HUMANO** de novos CSV ainda não realizado: não pedir refazer login/2FA ou P3 previamente homologado.
+- **Próxima ação explícita:** avançar portal privado de parceiro e textos/lógica D+2/D+5 do WhatsApp em branch isolada, **sem envio real** e sem implantar coleta de CPF/PIX/contrato sem autenticação forte, segurança e política jurídica. Após parecer da contadora em 13/10, fechar matrizes e calendário, testes específicos, pedir autorização antes de PROD.
+
 ## Checkpoint 11/10/2026 — Relatórios de conferência para contadora em TEST (implementação técnica, parecer fiscal pendente)
 
 - **Autorização do proprietário:** seguir em TEST com relatórios de comissões e pagamentos enquanto contadora define retenções, documentos obrigatórios e calendário após reunião de 13/10. **Não interpretar desenvolvimento como autorização de PROD, envio ao contador automático ou liberação de repasses.**
