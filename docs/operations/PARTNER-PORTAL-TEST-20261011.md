@@ -1,4 +1,7 @@
 # PepDay Portal de parceiros e preparação WhatsApp TEST
+
+**Atualização de continuidade 12/10/2026:** a persistência sintética e o monitor OWNER foram desenvolvidos e instalados exclusivamente TEST; gateway publicado permanece HTTP503 desativado. Consulte PARTNER-WHATSAPP-PERSISTENCE-TEST-20261012.md e o checkpoint superior do CURRENT-STATE. Texto histórico abaixo não autoriza envio real, coleta, aceite definitivo ou PROD.
+
 Atualização: 11/10/2026 (Brasília; execução em 12/10 UTC). Fonte: wpontieri-boop/pepday, v3.0-bloco-b.
 
 ## Recuperação e escopo

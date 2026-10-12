@@ -1,4 +1,7 @@
 # PepDay + Central IA — WhatsApp oficial com UM número, roteamento SEM resposta a parceiros
+
+**Atualização de continuidade 12/10/2026:** a persistência sintética e o monitor OWNER foram desenvolvidos e instalados exclusivamente TEST; gateway publicado permanece HTTP503 desativado. Consulte PARTNER-WHATSAPP-PERSISTENCE-TEST-20261012.md e o checkpoint superior do CURRENT-STATE. Texto histórico abaixo não autoriza envio real, coleta, aceite definitivo ou PROD.
+
 Data: 12/10/2026. Decisão de produto aprovada verbalmente pelo proprietário. **ESPECIFICAÇÃO OPERACIONAL; SEM ENVIO/ATIVAÇÃO REAL.**
 
 **Progresso técnico OFFLINE em 12/10:** roteador e webhook HTTP test-only implementados em `supabase/functions/meta-whatsapp-gateway/{gateway-core,http-core,index}.mjs`, com testes em `tests/meta-whatsapp-{gateway,http}.test.mjs`. Sem deploy de Edge, conta Meta, número, segredo, persistência de opt-out/status ou callback real da Central IA. O endpoint começa 503/disabled e não tem saída à Graph API ou LLM. Consulte [PARTNER-OFFLINE-WHATSAPP-CHECKPOINT-20261012.md](PARTNER-OFFLINE-WHATSAPP-CHECKPOINT-20261012.md); o código ainda NÃO está funcionando no WhatsApp real, não foi ativado em TEST LIVE.

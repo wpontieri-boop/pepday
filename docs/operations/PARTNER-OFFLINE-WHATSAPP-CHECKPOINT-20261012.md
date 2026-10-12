@@ -1,4 +1,7 @@
 # PepDay TEST — preparação técnica sem número Meta nem contadora
+
+**Atualização de continuidade 12/10/2026:** a persistência sintética e o monitor OWNER foram desenvolvidos e instalados exclusivamente TEST; gateway publicado permanece HTTP503 desativado. Consulte PARTNER-WHATSAPP-PERSISTENCE-TEST-20261012.md e o checkpoint superior do CURRENT-STATE. Texto histórico abaixo não autoriza envio real, coleta, aceite definitivo ou PROD.
+
 Data: 12/10/2026 · branch v3.0-bloco-b · escopo exclusivamente local + GitHub, nenhum provider habilitado.
 
 ## Objetivo e status real

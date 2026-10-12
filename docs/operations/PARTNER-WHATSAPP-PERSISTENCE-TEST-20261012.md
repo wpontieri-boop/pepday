@@ -38,3 +38,6 @@ E. Homologação humana apenas monitor/novas telas quando solicitada, sem repeti
 F. Autorização futura PROD; não publicar main/V2.9, não enviar WhatsApp, não coletar dados reais.
 
 Próxima ação: receber número/IDs públicos da conta Meta autorizada e parecer escrito da contadora/jurídico; preparar mapeamento/OTP/dispatcher real em nova etapa TEST apenas após requisitos e autorização específicos. Até lá preservar todas as flags OFF. A Central IA continua projeto separado; só contrato técnico inerte, nenhum banco/cliente/segredo compartilhado.
+
+## Publicação e fechamento
+Frontend TEST LIVE a63eea42613976be1ecfd7449d995d22eb7b63ce / Render dep-db6h89m7bikc73c13qr0, 12/10/2026 17:09:01 UTC (14:09 Brasília). 30/30 arquivos HTTP200/SHA256 iguais ao build após normalizar somente CRLF/LF; monitor e browser publicados 390x844/1280x900 PASS com backend interceptado/zero writes reais. Evidências test-output/whatsapp-live-integrity.json, whatsapp-monitor-live-browser.log, portal-ui-live.json. PROD reconfirmado 166de8f / dep-db4gualg1s2s739d8sn0 sem novo deploy. Commit documental final [skip render] mantém deploy técnico. HEAD=origin/0/0/árvore limpa devem ser conferidos após push/fetch.
