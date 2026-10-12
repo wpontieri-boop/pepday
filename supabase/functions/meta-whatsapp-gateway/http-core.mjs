@@ -17,7 +17,7 @@ function safeTokenMatch(actual,expected){
 }
 export function metaHttpHandler({mode='disabled',appSecret='',verifyToken='',phoneNumberId='',wabaId='',ownerWaId='',partnerWaIds=new Set(),
  onOptOut=async()=>{},onStatus=async()=>{},onOwner=async()=>{},eventIsNew=async()=>true,
- centralEnabled=false,ownerStepUp=false}={}){
+ centralEnabled=false,ownerStepUp=false,processWebhook=classifyMetaWebhook}={}){
  return async request=>{
   // This endpoint is NOT an onboarding activation switch. Mode is test-only
   // and cannot be changed with a request body, header or query parameter.
@@ -38,7 +38,7 @@ export function metaHttpHandler({mode='disabled',appSecret='',verifyToken='',pho
   const signature=request.headers.get('x-hub-signature-256');
   try{
    const rawBody=await smallRaw(request);
-   await classifyMetaWebhook({rawBody,signature,appSecret,phoneNumberId,wabaId,ownerWaId,partnerWaIds,
+   await processWebhook({rawBody,signature,appSecret,phoneNumberId,wabaId,ownerWaId,partnerWaIds,
     centralEnabled,ownerStepUp,onOptOut,onStatus,onOwner,eventIsNew});
    return jsonOk();
   }catch{return denied()}

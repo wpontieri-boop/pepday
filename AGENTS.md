@@ -52,3 +52,8 @@ Permitir que o usuário encerre o trabalho em um computador e continue no outro 
 - Nunca persistir token bruto/OTP/sessão do parceiro, mensagens com link privado ou credenciais em logs, eventos, Storage público ou Git. Sessão parceira é independente do Admin/cliente.
 - WhatsApp atual só prepara texto/fila simulada; não abrir wa.me, conectar provedor ou agendar disparos reais sem autorização específica. Competência fiscal não é o mês da data fonte do CSV.
 - Migrations portal remotas 20261012015115 e 20261012020920 já aplicadas TEST; não reaplicar pelos nomes locais. Helper partner-portal-storage-qa foi aposentado410; não redeployar fonte histórica de QA.
+
+## WhatsApp persistente TEST
+- Migration 20261012163141 já aplicada somente TEST; schema partner_whatsapp privado e flags reais CHECK false. Não reaplicar.
+- Gateway persistente não responde parceiros, não chama IA, não encaminha à Central. Mapa de contatos vazio, default HTTP503. Somente hashes/eventos mínimos e contatos QA; nunca armazenar body, telefone, token ou OTP.
+- Preservar MD5 da migration e guardas OWNER/AAL2 existentes. Revisar docs/operations/PARTNER-WHATSAPP-PERSISTENCE-TEST-20261012.md antes de qualquer ativação.

@@ -1,6 +1,6 @@
 // Conteúdo operacional não sensível: os dados ficam no painel autenticado.
 // Atualizar junto às telas e docs/CURRENT-STATE.md; nunca publicar segredos ou dados de clientes.
-export const helpVersion='2026-10-11';
+export const helpVersion='2026-10-12';
 export const helpTopics=[
  {id:'acesso',title:'Entrar no painel com segurança',category:'Admin',status:'Disponível',roles:['OWNER','ADMIN','VIEWER'],steps:[
  'Acesse /admin/ no ambiente correto (PROD ou homologação).',
@@ -66,6 +66,7 @@ export const helpTopics=[
  'O parceiro solicita código QA; o OWNER obtém o código de teste na lista de convites. Não há entrega externa de OTP nem comprovação real de identidade nesta fase.',
  'Parceiro salva rascunho sintético CPF/MEI/CNPJ e solicita revisão. OWNER pede correção ou conclui revisão técnica sem ativar parceria, alterar comissão ou liberar repasse.',
  'Enviar convite pelo WhatsApp prepara texto; conferir e confirmar registra apenas simulação. D+2/D+5 preparam fila simulada idempotente, sem cron ou disparo real.',
+ 'No portal OWNER TEST, Consultar estados de mensagens exibe a fila, falhas e histórico técnico da infraestrutura sintética. Modo disabled é o padrão; estado simulado não comprova entrega Meta. A consulta não envia mensagens.',
  'Minuta tem versão e hash, mas aceite definitivo está bloqueado. Documentos aceitam somente amostra fornecida pelo sistema; coleta real depende de jurídico e segurança.'
  ],note:'Não enviar mensagens ou documentos reais. Tokens são temporários e limpos ao ocultar a página. Opt-out, revogação, expiração e conclusão interrompem a sequência. Não confundir código público de indicação com convite privado.'},
  {id:'equipe',title:'Equipe, funções e auditoria',category:'Segurança',status:'Disponível — conforme permissão',roles:['OWNER'],steps:[

@@ -1,4 +1,5 @@
 import {config} from '/config.js';
+import {installWhatsAppMonitor} from './whatsapp-monitor.mjs';
 import {makeManualInviteDraft,eligibleReminder} from '/src/partner-onboarding-policy.mjs';
 const $=id=>document.getElementById(id),hide=(id,on=true)=>$(id).classList.toggle('hidden',on);
 const allowed=config.environment==='test'&&config.projectRef==='fsbqpyyprtymwrmzsacp'&&location.origin==='https://homologacao.pepday.com.br';
@@ -47,5 +48,8 @@ $('cancelMessage').addEventListener('click',()=>{clearLink()});
 $('refresh').addEventListener('click',()=>task(load));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearLink();$('status').textContent='Dados temporários limpos. Reemita convite se precisar de um novo link.'}});
 addEventListener('pagehide',()=>{clearLink();$('status').textContent=''});
-async function init(){if(allowed)client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){epoch++;clearLink();invites=[];$('invites').replaceChildren();hide('module');hide('access',false);$('accessStatus').textContent='Sessão encerrada.'}});if(!allowed){$('accessStatus').textContent='Disponível exclusivamente em TEST.';return}await task(async()=>{const u=await client.auth.getUser();if(u.error||!u.data.user)throw Error('AUTH');const c=await rpc('get_admin_context');if(c.access_level!=='owner'||c.aal!=='aal2')throw Error('OWNER');await load();hide('access');hide('module',false)});if(!$('access').classList.contains('hidden'))$('accessStatus').textContent='Sessão OWNER TEST válida com senha e 2FA necessária.'}
+async function init(){if(allowed)client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){epoch++;clearLink();clearMonitor();invites=[];$('invites').replaceChildren();hide('module');hide('access',false);$('accessStatus').textContent='Sessão encerrada.'}});if(!allowed){$('accessStatus').textContent='Disponível exclusivamente em TEST.';return}await task(async()=>{const u=await client.auth.getUser();if(u.error||!u.data.user)throw Error('AUTH');const c=await rpc('get_admin_context');if(c.access_level!=='owner'||c.aal!=='aal2')throw Error('OWNER');await load();hide('access');hide('module',false)});if(!$('access').classList.contains('hidden'))$('accessStatus').textContent='Sessão OWNER TEST válida com senha e 2FA necessária.'}
+const clearMonitor=installWhatsAppMonitor({rpc,run:task,canRead:()=>allowed&&!$('module').classList.contains('hidden')});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)clearMonitor()});
+addEventListener('pagehide',clearMonitor);
 init();

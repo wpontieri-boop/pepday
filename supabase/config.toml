@@ -79,3 +79,8 @@ entrypoint = "./functions/partner-finance-worker/index.mjs"
 [functions.partner-portal]
 verify_jwt = false
 entrypoint = "./functions/partner-portal/index.mjs"
+
+# TEST-only HMAC gateway with atomic synthetic persistence; default HTTP503, no real send/IA.
+[functions.meta-whatsapp-gateway]
+verify_jwt = false
+entrypoint = "./functions/meta-whatsapp-gateway/index.mjs"

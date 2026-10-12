@@ -14,6 +14,7 @@ async function surface(viewport,role='owner'){
  if(name==='admin_partner_finance_ledger')return {data:[]};
  if(name==='admin_partner_accountant_report'){apiCalls.push('report_read');assert.equal(args.p_month,'2026-10');return {data:{can_manage:true,partners:[{id,public_name:'QA Portal'}],commissions:[{id:batch,partner_id:id,state:'pending',earned_cents:100,source_date:'2026-10-10T12:00:00Z',history_complete:true,gross_cents:1000,refunded_cents:0}],payouts:[{id:batch,partner_id:id,state:'paid',total_cents:100,paid_at:'2026-10-10T12:00:00Z',fiscal_state:'pending'}],adjustments:[{commission_id:batch,partner_id:id,kind:'adjusted',amount_cents:-10,created_at:'2026-10-10T12:00:00Z'}]}}}
 
+ if(name==='admin_partner_whatsapp_test'){assert.equal(role,'owner');assert.deepEqual(args.p_request,{action:'list'});return {data:{mode:'disabled',real_send:false,central_enabled:false,outbox:[{kind:'d2',state:'failed',updated_at:'2026-10-12T12:00:00Z'}],events:[{kind:'status',created_at:'2026-10-12T12:00:00Z'}]}}}
  assert.equal(name,'admin_partner_portal');const r=args.p_request;apiCalls.push(r.action);
  if(r.action==='list')return {data:{invites:inviteRows}};
  if(r.action==='issue'){inviteRows=[{id:batch,partner_id:id,public_name:'QA Portal',expires_at:new Date(Date.now()+7*86400000).toISOString(),opt_in:r.opt_in,contact_confirmed:r.contact_confirmed,messages:[],events:[],documents:[],submission:{state:'draft',version:0,data:{}}}];return {data:{id:batch,link:origin+'/parceiros/convite/#invite='+token}}}
@@ -72,6 +73,7 @@ for(const viewport of [{width:390,height:844},{width:1280,height:900}]){
  assert.deepEqual(t.errors,[]);assert.deepEqual(t.blocked,[]);evidence.push({surface:'partner',viewport,published,actions:t.apiCalls,errors:t.errors});
  await t.context.close();
  const a=await surface(viewport),page=a.page;await page.goto(origin+'/admin/parceiros/portal/');await page.locator('#module:not(.hidden)').waitFor();
+ await page.locator('#waRefresh').click();await page.waitForFunction(()=>document.querySelector('#waStatus').textContent.includes('desativado'));assert.match(await page.locator('#waRows').innerText(),/d2 · failed/);
  await page.selectOption('#partner',id);await page.check('#optIn');await page.check('#confirmed');await page.locator('#issueForm button').click();await page.locator('#issued:not(.hidden)').waitFor();
  await page.getByRole('button',{name:'Enviar convite pelo WhatsApp',exact:true}).click();await page.locator('#messageDialog[open]').waitFor();
  assert.equal(await page.locator('#confirmSimulation').isDisabled(),true);assert.match(await page.locator('#message').inputValue(),/#invite=/);
