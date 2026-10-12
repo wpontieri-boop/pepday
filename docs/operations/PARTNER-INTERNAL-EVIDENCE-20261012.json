@@ -37,5 +37,32 @@
     "no full DB and Storage restore proof",
     "Google key restrictions not proven",
     "identity and Meta channel not live"
-  ]
+  ],
+  "testDeploy": {
+    "commit": "cd901a6b1694ca3cf2890a06ca053045f20bf6ad",
+    "id": "dep-db6i0crncjis73c3blb0",
+    "state": "live",
+    "finishedAt": "2026-10-12T18:00:51Z"
+  },
+  "liveAssetIntegrity": {
+    "passed": 38,
+    "total": 38,
+    "status": 200,
+    "hash": "SHA256",
+    "newlineNormalization": "LF/CRLF"
+  },
+  "productionPreserved": {
+    "commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+    "deploy": "dep-db4gualg1s2s739d8sn0"
+  },
+  "gateway": {
+    "GET": 503,
+    "POST": 503
+  },
+  "liveBrowser": {
+    "legal": true,
+    "portal": true,
+    "backend": "intercepted",
+    "humanPass": false
+  }
 }

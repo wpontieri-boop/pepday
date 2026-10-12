@@ -30,3 +30,8 @@ Estes são controles de ativação, não contratação obrigatória de advogado/
 
 ## Próxima ação
 Receber definições fiscais e configurar o número único/conta/templates Meta. Antes de permitir dados reais, executar os controles 1–5 em TEST com evidências. Não remover bloqueios por pressão de “somente duas dependências”, não inventar conformidade absoluta. As duas dependências externas previstas são contadora e Meta; os controles internos de ativação não estão falsamente marcados PASS.
+
+## Fechamento publicado
+TEST LIVE cd901a6b1694ca3cf2890a06ca053045f20bf6ad / dep-db6i0crncjis73c3blb0, 12/10/2026 18:00:51 UTC (15:00:51 Brasília). Integridade 38/38 arquivos HTTP200 e SHA256 (LF/CRLF normalizados). Browser publicado nas duas dimensões: nove documentos, hash, aceite desabilitado, origem/projeto/hash incorretos bloqueados; portal/monitor/CSV e ADMIN/VIEWER negados com backend interceptado. Evidências locais test-output/internal-live-integrity.json, internal-legal-live-browser.log, internal-portal-live-browser.log, legal-ui-live.json, portal-ui-live.json. A primeira consulta durante build recebeu 404 e não foi marcada PASS; verificações acima ocorreram após LIVE.
+
+Buckets partner-documents-test e partner-portal-synthetic-test privados, limite 5MiB, zero objetos; portal aceita apenas PNG sintético exato. Dados permanecem 17 users/2 partners, zero novos invites/contacts/outbox/receipts. Gateway GET/POST503 disabled reais confirmados; nenhum envio/IA/encaminhamento. PROD LIVE 166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6 / dep-db4gualg1s2s739d8sn0 permaneceu idêntica. Branch main/V2.9 não recebeu push. Fechamento somente documental [skip render], HEAD=origin/0/0/árvore limpa após fetch.
