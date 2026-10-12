@@ -133,7 +133,31 @@
     "legal-ui.json": {
       "sha256": "8c56f87cc92c41c3f9087023d516b3083d0ad530b9d6fbf5224289ce116b6e24",
       "rawLocalIgnored": true
+    },
+    "security-build-integrity-20261012.json": {
+      "sha256": "dec6e3c913ff6021a0c843fb1806e3d851a00fb8508432ed86f362951583609e",
+      "rawLocalIgnored": true
     }
   },
-  "stageCompletion": "verified_before_commit"
+  "stageCompletion": "verified_and_published",
+  "implementationCommit": "562590fdb5c35464c4a92319d4878e2cecd9cb26",
+  "sync": {
+    "method": "github_connector_fast_forward_expected_sha",
+    "blobsMatchLocal": 14,
+    "treeMatchLocal": true,
+    "HEAD_equals_origin": true,
+    "ahead": 0,
+    "behind": 0,
+    "clean": true,
+    "MacReconfirmed": false,
+    "checkedAt": "2026-10-12T23:28:56.179546+00:00"
+  },
+  "buildIntegrity": {
+    "files": 106,
+    "unchanged": 106,
+    "byteSHA256Equal": true,
+    "baseline": "60c9dd1"
+  },
+  "deploymentMutation": false,
+  "humanRetestRequested": false
 }
