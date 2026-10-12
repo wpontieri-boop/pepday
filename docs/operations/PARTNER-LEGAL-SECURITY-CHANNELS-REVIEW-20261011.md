@@ -1,5 +1,7 @@
 # PepDay — Revisão jurídica técnica, segurança e canais externos (pré-ativação)
 Data de referência: 11/10/2026 (Brasil). Ambiente: TEST. Fonte oficial de continuidade: AGENTS.md + docs/CURRENT-STATE.md.
+
+**ATUALIZAÇÃO OBRIGATÓRIA 12/10/2026 — CANAL REVISTO PELO PROPRIETÁRIO:** a recomendação histórica de OTP Brevo/e-mail nesta revisão foi **substituída** pela decisão de manter **WhatsApp Meta como canal único de mensagens de parceiros (convite, OTP autorizado, D+2 e D+5)**; Brevo continua apenas nos fluxos PepDay preexistentes, sem integração obrigatória ao portal. Mesmo número Meta compartilhado com a futura Central IA (Ju ↔ proprietário), porém inbound de parceiros/lojistas deve receber **ZERO respostas / ZERO IA / ZERO encaminhamento ao proprietário**; opt-out silencioso obrigatório. Ver o checkpoint superior CURRENT-STATE.md e [WHATSAPP-SINGLE-NUMBER-SILENT-PARTNERS-20261012.md](WHATSAPP-SINGLE-NUMBER-SILENT-PARTNERS-20261012.md). Esta alteração é de **decisão/arquitetura**, não implica canal real integrado, legal aprovado ou novo deploy. Texto da seção Brevo abaixo preservado apenas como alternativa histórica, NÃO executar sem nova autorização.
 **Natureza:** análise informativa, minuta e especificação técnica. Não é parecer jurídico de advogado habilitado, aprovação de conformidade regulatória, validação independente de segurança ou autorização para contratos/contatos reais.
 
 ## 1. Evidências técnicas e limitações efetivamente encontradas
