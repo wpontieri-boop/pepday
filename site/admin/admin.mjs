@@ -197,10 +197,14 @@ async function openDashboard(version=authAttemptVersion){
   hide('dashboard',false);
   authStatus('');
   applyAdminPermissions();
+  // Expor somente após confirmar AAL2; a Central separada não reautentica.
+  document.documentElement.dataset.pepdayAdminAuthenticated='true';
   await loadMetrics();
 }
 
 async function resetAdminUi(message='Entre com sua senha para acessar o painel.'){
+  delete document.documentElement.dataset.pepdayAdminAuthenticated;
+  hide('adminHelpView');
   adminContext=null;
   activeMfaFactorId='';
   bootstrapEmail='';

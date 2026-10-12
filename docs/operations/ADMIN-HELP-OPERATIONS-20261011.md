@@ -1,6 +1,12 @@
 # PepDay — Central de Ajuda e Manual Operacional Admin
 **Data:** 11/10/2026 · **Branch:** `v3.0-bloco-b` · **Escopo:** documentação e nova Central de Ajuda no **TEST**; nenhuma alteração permitida em PROD/main/V2.9.
 
+## Nova visualização exclusiva, autorizada e tecnicamente validada — 11/10/2026
+
+O proprietário autorizou separar a Central de Ajuda do longo rodapé do Dashboard. Em TEST, a implementação `#adminHelpView` dentro do `/admin/` abre com `?view=ajuda` somente após autenticação administrativa AAL2 e perfil OWNER/ADMIN/VIEWER; botão `← Voltar ao painel`, busca, impressão e 12 guias mantidos. O JavaScript de Ajuda não executa login, `signOut` ou RPC novo. URL externa ou `?view=ajuda` **não autoriza** o conteúdo se a sessão não estiver autenticada.
+
+PASS técnico: 22/22 regressão focada Admin/Ajuda/equipe, 505/505 suíte total, build TEST e revisão diffs. Manual Word revisado para v1.1, com explicação da nova visualização. **NÃO classificar PASS HUMANO/PROD sem verificação adicional.** Próxima ação: publicar TEST, conferir artefatos e solicitação de observação exclusiva do layout novo, não do fluxo 2FA já aprovado.
+
 ## PASS HUMANO / NÃO REPETIR da navegação atual — 11/10/2026 (TEST)
 
 O proprietário confirmou espontaneamente: “agora deu certo, tá abrindo aqui”, após clicar no botão `Central de Ajuda` já corrigido. Também descreveu corretamente que o botão mantém o painel na mesma página e rola até a ajuda no rodapé. Isso fecha **somente a validação humana do clique sem novo login/saída**, em homologação no deploy `dep-db625ic9v7es739ka55g` / commit `e14de84`. **NÃO REPETIR** sem mudança que afete esse fluxo; não inferir aprovação humana de impressão, busca e outras telas.

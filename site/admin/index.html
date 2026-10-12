@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="../../icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./admin.css?v=35">
-  <link rel="stylesheet" href="./admin-help.css?v=1">
+  <link rel="stylesheet" href="./admin-help.css?v=2">
   <title>PepDay Admin — Aquisição</title>
 </head>
 <body>
@@ -229,6 +229,20 @@
       <div id="auditList" class="audit-list"></div>
     </section>
 
+    <section class="card note">
+      <h2>O que estamos medindo</h2>
+      <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
+      <p>Ainda não contamos scans anônimos do QR antes da criação da conta. Por isso este painel não chama esse número de “scans”.</p>
+      <p>As taxas acompanham as mesmas contas ou benefícios iniciados no período até agora. Sem base, aparece “—”. As conversões podem ocorrer antes do fim dos 30 dias; uma base recente ainda está amadurecendo.</p>
+      <p id="generatedAt" class="muted"></p>
+    </section>
+  </section>
+
+  <section class="admin-help-view hidden" id="adminHelpView" aria-label="Central de Ajuda e Treinamento">
+    <div class="help-page-head">
+      <button type="button" class="admin-button" id="adminHelpBack">← Voltar ao painel</button>
+      <div><div class="eyebrow">CENTRAL DE TREINAMENTO</div><h1>Ajuda do PepDay</h1><p>Consulte os procedimentos sem sair da sua sessão administrativa.</p></div>
+    </div>
     <section class="card admin-help" id="central-ajuda" aria-labelledby="helpTitle">
       <div class="eyebrow">APRENDER E CONSULTAR SEM SAIR DO PAINEL</div>
       <h2 id="helpTitle">Central de Ajuda e Treinamento</h2>
@@ -242,18 +256,10 @@
       <div id="helpList" class="help-list"></div>
       <p class="muted help-print-hint">Os guias descrevem apenas ações permitidas. Se o procedimento estiver marcado como “Planejado” ou “Somente homologação”, não o trate como disponível em PROD.</p>
     </section>
-
-    <section class="card note">
-      <h2>O que estamos medindo</h2>
-      <p><b>Cartão / QR</b> significa conta criada que preservou a atribuição first-touch <code>card / qr / cartao-v1</code>.</p>
-      <p>Ainda não contamos scans anônimos do QR antes da criação da conta. Por isso este painel não chama esse número de “scans”.</p>
-      <p>As taxas acompanham as mesmas contas ou benefícios iniciados no período até agora. Sem base, aparece “—”. As conversões podem ocorrer antes do fim dos 30 dias; uma base recente ainda está amadurecendo.</p>
-      <p id="generatedAt" class="muted"></p>
-    </section>
   </section>
 </main>
 <script src="../../vendor/supabase-2.116.0.js"></script>
-<script type="module" src="./admin.mjs?v=38"></script>
-<script type="module" src="./admin-help.mjs?v=2"></script>
+<script type="module" src="./admin.mjs?v=39"></script>
+<script type="module" src="./admin-help.mjs?v=3"></script>
 </body>
 </html>

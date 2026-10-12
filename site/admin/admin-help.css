@@ -1,5 +1,11 @@
-/* Central de Ajuda — escopo restrito ao dashboard Admin. */
-.admin-help{margin-top:24px;scroll-margin-top:100px}
+/* Central de Ajuda — visualização própria do Admin autenticado. */
+.help-page-head{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap}
+.help-page-head h1{margin:7px 0;font-size:30px}
+.help-page-head p{margin:0;color:#a7c2d0}
+.help-page-head .admin-button{flex:0 0 auto}
+.admin-help-view{min-height:65vh}
+@media(max-width:600px){.help-page-head{align-items:stretch}.help-page-head .admin-button{width:100%}.help-page-head h1{font-size:27px}}
+.admin-help{margin-top:0;scroll-margin-top:100px}
 .help-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
 .admin-help h2{margin:4px 0 6px;font-size:24px}
 .help-description{margin:6px 0 18px;color:#a7c2d0;line-height:1.6}
@@ -27,7 +33,9 @@
  @page{size:A4;margin:17mm}
  body{background:white!important;color:#111!important;font:10pt Arial,sans-serif}
  body *{visibility:hidden!important}
+ #adminHelpView{display:block!important;visibility:visible!important}
  #central-ajuda,#central-ajuda *{visibility:visible!important}
+ .help-page-head{display:none!important}
  #central-ajuda{display:block!important;position:absolute;left:0;top:0;width:100%;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;background:white!important;color:black!important}
  .help-tools,.help-description,.help-status,.help-print-hint{display:none!important}
  .admin-help h2{color:black;font-size:19pt;margin:0 0 12px}

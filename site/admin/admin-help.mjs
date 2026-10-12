@@ -3,8 +3,39 @@ const root=document.getElementById('central-ajuda');
 const search=document.getElementById('helpSearch');
 const list=document.getElementById('helpList');
 const roleNode=document.getElementById('adminRole');
-// Avoid fragment/history navigation: it can trigger popstate while MFA finishes.
-document.getElementById('adminHelpShortcut')?.addEventListener('click',()=>root?.scrollIntoView({behavior:'smooth',block:'start'}));
+const page=document.getElementById('adminHelpView');
+const dashboard=document.getElementById('dashboard');
+const authenticated=()=>document.documentElement.dataset.pepdayAdminAuthenticated==='true';
+const helpRequested=()=>new URL(location.href).searchParams.get('view')==='ajuda';
+function syncHelpView(){
+ const allowed=authenticated()&&!!role();
+ const show=allowed&&helpRequested();
+ page?.classList.toggle('hidden',!show);
+ if(allowed)dashboard?.classList.toggle('hidden',show);
+ // Never reveal Help merely because an unauthenticated URL requests it.
+ if(show)render();
+}
+function moveToHelp(){
+ if(!authenticated()||!role())return;
+ const url=new URL(location.href);
+ url.searchParams.set('view','ajuda');
+ history.pushState({...history.state,pepdayHelpView:true},'',url);
+ syncHelpView();
+ window.scrollTo(0,0);
+}
+function moveToDashboard(){
+ if(!authenticated())return;
+ if(history.state?.pepdayHelpView){history.back();return;}
+ const url=new URL(location.href);
+ url.searchParams.delete('view');
+ history.replaceState({...history.state,pepdayHelpView:false},'',url);
+ syncHelpView();
+ window.scrollTo(0,0);
+}
+document.getElementById('adminHelpShortcut')?.addEventListener('click',moveToHelp);
+document.getElementById('adminHelpBack')?.addEventListener('click',moveToDashboard);
+window.addEventListener('popstate',syncHelpView);
+new MutationObserver(syncHelpView).observe(document.documentElement,{attributes:true,attributeFilter:['data-pepday-admin-authenticated']});
 const count=document.getElementById('helpStatus');
 const clear=document.getElementById('helpClear');
 const printButton=document.getElementById('helpPrint');
@@ -43,7 +74,7 @@ function render(){
 }
 search?.addEventListener('input',render);
 clear?.addEventListener('click',()=>{search.value='';render();search.focus();});
-new MutationObserver(render).observe(roleNode,{childList:true,characterData:true,subtree:true});
+new MutationObserver(()=>{render();syncHelpView()}).observe(roleNode,{childList:true,characterData:true,subtree:true});
 printButton?.addEventListener('click',()=>{
  if(!role())return;
  const value=search?.value||'';
@@ -55,3 +86,4 @@ printButton?.addEventListener('click',()=>{
 });
 window.addEventListener('afterprint',()=>{restore?.();restore=null;});
 render();
+syncHelpView();
