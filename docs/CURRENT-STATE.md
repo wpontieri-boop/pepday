@@ -1,6 +1,14 @@
 # PepDay — Current State
 
-Atualização: 11/10/2026.
+Atualização: 12/10/2026.
+
+## Checkpoint 12/10/2026 — DECISÃO COMERCIAL: WhatsApp transacional somente, SEM IA/CHATBOT (APROVAÇÃO DE ESCOPO, NÃO LIVE)
+
+- **Decisão explícita do proprietário em 12/10/2026:** o WhatsApp dos parceiros PepDay será **somente canal de envio automatizado de mensagens fixas**, com link privado para o portal e instruções curtas. **NÃO** construir chatbot, atendimento conversacional, IA, consumo de tokens LLM, respostas generativas, funis de diálogo ou atendimento direto pelo número transacional. Parceiro faz todo o cadastro/documentos/contrato no portal seguro. Dúvidas e suporte humano/IA, se implantados no futuro, ficarão na **Central IA — WP GROUP / atendimento central separado**, que atualmente é planejamento, não integração ativa.
+- **Fluxo desejado:** após decisão/ação autorizada para convidar o parceiro e consentimento de canal documentado, API entrega automaticamente modelo aprovado com link e passos; nenhum envio disparado apenas por salvar rascunho P1/P2. Se cadastro não foi concluído e ainda houver consentimento/contato válido/link vigente, disparos idempotentes D+2 e D+5. Parar em conclusão, revogação, opt-out, expiração e falhas de canal. Nenhum CPF, PIX ou arquivo em mensagens. OTP separado de mensagem de convite, **somente quando necessário para verificar acesso ao contato**; manter bloqueios de segurança e revisão OWNER; autorização/entrega OTP real pela Meta ainda pendente. Não remover controles de sessão/OTP só porque o canal será de mão única.
+- **Canal preferido:** Meta WhatsApp Cloud API oficial, templates categorizados/aprovados, opt-in e webhooks de status/erros. **Sem Brevo obrigatório no funil de parceiros**; preservar integralmente e-mails existentes de autenticação/recuperação e outras funções PepDay. Não contratar agente de IA para essa função. Mensagens Meta podem ter custo por mensagem/modelo, mesmo sem tokens de IA. Números/titularidade/conta Meta ainda não confirmados; **NENHUM WhatsApp real habilitado**, nem mudança em PROD.
+- **Limites preservados:** arquitetura QA do portal e das regras WhatsApp já aprovadas tecnicamente em TEST com simulação; atual simulação exige confirmação humana. A automatização real é decisão de produto, **não implementação entregue nem autorização de envio**. Não alterar P1/P2/P3, main, V2.9 ou fluxos PASS HUMANO/NÃO REPETIR. Parecer fiscal de 13/10 e revisão jurídica/segurança para coleta real continuam pendentes.
+- **Próxima ação explícita:** no próximo Work, adaptar apenas o módulo de mensagens transacionais WhatsApp com templates estáticos, disparo de convite autorizado e lembretes idempotentes, sem chatbot/LLM, usando mocks e flags de envio REAL OFF em TEST; preservar integrações Brevo existentes e registrar a mudança nos guias/manual quando houver implementação de painel.
 
 ## Checkpoint 11/10/2026 — REVISÃO JURÍDICA TÉCNICA / SEGURANÇA / CANAIS (MINUTA, NÃO APROVAÇÃO JURÍDICA)
 
