@@ -1,6 +1,10 @@
 # PepDay — Central de Ajuda e Manual Operacional Admin
 **Data:** 11/10/2026 · **Branch:** `v3.0-bloco-b` · **Escopo:** documentação e nova Central de Ajuda no **TEST**; nenhuma alteração permitida em PROD/main/V2.9.
 
+## Atualização de conteúdo após exportações contábeis — somente TEST
+
+O guia `contabilidade` agora distingue relatórios CSV de **conferência** disponíveis no financeiro de parceiros (somente OWNER em TEST) de cálculo de retenções, documento fiscal, valor líquido e calendário **ainda não aprovados pela contadora**. O guia de WhatsApp continua **planejado**, sem clique funcional/envio autorizado até existência de link seguro/OTP. Manual Word operacional atualizado para **v1.2** no Drive e documentação técnica no `CURRENT-STATE.md`. Não alterar permissões/grants ou os PASS/NÃO REPETIR anteriores.
+
 ## Nova visualização exclusiva, autorizada e tecnicamente validada — 11/10/2026
 
 O proprietário autorizou separar a Central de Ajuda do longo rodapé do Dashboard. Em TEST, a implementação `#adminHelpView` dentro do `/admin/` abre com `?view=ajuda` somente após autenticação administrativa AAL2 e perfil OWNER/ADMIN/VIEWER; botão `← Voltar ao painel`, busca, impressão e 12 guias mantidos. O JavaScript de Ajuda não executa login, `signOut` ou RPC novo. URL externa ou `?view=ajuda` **não autoriza** o conteúdo se a sessão não estiver autenticada.

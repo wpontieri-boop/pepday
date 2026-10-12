@@ -1,3 +1,4 @@
+import {createAccountantCsv} from './accountant-reports.mjs?v=1';
 import {config} from '/config.js';
 import {isPartnerEnvironment} from '/src/partner-environment.mjs';
 const $=id=>document.getElementById(id),hide=(id,on=true)=>$(id).classList.toggle('hidden',on);
@@ -20,6 +21,7 @@ async function ledger(){const entries=await rpc('admin_partner_finance_ledger',{
 async function load(){
  data=await rpc('admin_partner_finance',{p_partner:null});const selected=$('partner').value;
  $('partner').replaceChildren(new Option('Todos os parceiros',''));for(const p of data.partners)$('partner').append(new Option(p.public_name,p.id));$('partner').value=selected;
+ hide('reportsPanel',!(data.can_manage&&context?.access_level==='owner'));
  const partners=data.partners.filter(p=>!selected||p.id===selected);$('summary').replaceChildren();for(const [field,label] of [['pending_cents','Pendente'],['released_cents','Liberado'],['paid_cents','Pago'],['debt_cents','Débito após estorno']]){const box=document.createElement('div'),b=document.createElement('b');box.textContent=label;b.textContent=money(partners.reduce((sum,p)=>sum+Number(p[field]),0));box.append(b);$('summary').append(box)}
  const revenue=(data.revenue||[]).filter(r=>!selected||r.partner_id===selected); $('revenue').textContent=revenue.length?'Receita bruta confirmada '+money(revenue.reduce((s,r)=>s+Number(r.gross_cents||0),0))+' · reembolsos '+money(revenue.reduce((s,r)=>s+Number(r.refunded_cents||0),0))+' · retida '+money(revenue.reduce((s,r)=>s+Number(r.retained_cents||0),0))+' · '+revenue.reduce((s,r)=>s+Number(r.payments),0)+' cobranças, incluindo renovações · '+revenue.reduce((s,r)=>s+Number(r.unproven),0)+' valores em revisão':'Sem pagamentos atribuídos confirmados.';
  const partnerName=id=>data.partners.find(p=>p.id===id)?.public_name||'Parceiro';$('reserve').replaceChildren();if(data.can_manage&&selected)$('reserve').append(action('Reservar saldo liberado',()=>openAction({action:'reserve',partner_id:selected,request_id:crypto.randomUUID()},'Reservar lote','Reserva apenas o saldo liberado e não transfere dinheiro.')));
@@ -36,6 +38,18 @@ $('actionForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{i
 $('passwordForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(reauth)await reauth.auth.signOut({scope:'local'});reauth=globalThis.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'pepday-finance-stepup-memory'}});try{const result=await reauth.auth.signInWithPassword({email:context.email,password:$('password').value});if(result.error||result.data.user?.email?.toLowerCase()!==context.email.toLowerCase())throw Error('REAUTH_FAILED');const factors=await reauth.auth.mfa.listFactors();if(factors.error)throw factors.error;factor=factors.data.totp.find(f=>f.status==='verified')?.id||'';if(!factor)throw Error('MFA_REQUIRED');hide('passwordForm');hide('totpForm',false);$('stepupStatus').textContent='Informe um novo código do autenticador.'}finally{$('password').value=''}},'stepupStatus')});
 $('totpForm').addEventListener('submit',e=>{e.preventDefault();run(async()=>{try{if(!pending||!reauth||!factor)throw Error('PARTNER_STEPUP_INVALID');const verified=await reauth.auth.mfa.challengeAndVerify({factorId:factor,code:$('totp').value});if(verified.error)throw verified.error;const promoted=await client.auth.setSession({access_token:verified.data.access_token,refresh_token:verified.data.refresh_token});if(promoted.error)throw promoted.error;reauth=null;const {partner_id,...payload}=pending;const ticket=await rpc('admin_prepare_partner_finance',{p_partner:partner_id,p_payload:payload});const result=await rpc('admin_partner_finance_action',{p_partner:partner_id,p_payload:payload,p_ticket:ticket});$('stepup').close();clearAttempt();if(payload.action==='recipient'){$('recipientName').textContent=result.payee_name;$('recipientPix').value=result.pix_key;$('recipientDialog').showModal();return}await load();$('status').textContent='Registro concluído. Nenhuma transferência foi executada.'}finally{$('totp').value=''}},'stepupStatus')});
 for(const [button,dialog] of [['cancelAction','actionDialog'],['cancelStepup','stepup']]){$(button).addEventListener('click',()=>{$(dialog).close();clearAttempt()});$(dialog).addEventListener('cancel',clearAttempt)}
+function exportAccountantReport(kind){
+ if(!allowed||context?.access_level!=='owner'||!data?.can_manage)throw new Error('ACCOUNTANT_REPORT_UNAUTHORIZED');
+ const {csv,count,filename}=createAccountantCsv(kind,{dataset:data,role:context.access_level,partnerId:$('partner').value||''});
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ try{
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.style.display='none';document.body.append(a);a.click();a.remove();
+  $('reportsStatus').textContent=count+' registro(s) exportado(s) localmente, para conferência contábil. Não autoriza repasse.';
+ }finally{setTimeout(()=>URL.revokeObjectURL(url),1200)}
+}
+$('reportPre').addEventListener('click',()=>run(async()=>exportAccountantReport('pre'),'reportsStatus'));
+$('reportPost').addEventListener('click',()=>run(async()=>exportAccountantReport('post'),'reportsStatus'));
 $('refresh').addEventListener('click',()=>run(load));$('partner').addEventListener('change',()=>run(async()=>{offset=0;await load()}));$('previous').addEventListener('click',()=>run(async()=>{offset=Math.max(0,offset-100);await ledger()}));$('next').addEventListener('click',()=>run(async()=>{offset+=100;await ledger()}));
 $('exit').addEventListener('click',()=>run(async()=>{const result=await client.auth.signOut({scope:'local'});if(result.error)throw result.error;reset();$('accessStatus').textContent='Sessão encerrada.'}));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){$('password').value='';$('totp').value='';$('recipientName').textContent='';$('recipientPix').value='';if($('recipientDialog').open)$('recipientDialog').close()}});

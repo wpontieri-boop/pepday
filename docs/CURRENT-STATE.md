@@ -2,6 +2,14 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — Relatórios de conferência para contadora em TEST (implementação técnica, parecer fiscal pendente)
+
+- **Autorização do proprietário:** seguir em TEST com relatórios de comissões e pagamentos enquanto contadora define retenções, documentos obrigatórios e calendário após reunião de 13/10. **Não interpretar desenvolvimento como autorização de PROD, envio ao contador automático ou liberação de repasses.**
+- **Implementação em branch** `feat/test-accountant-report-draft-20261011`: `site/admin/parceiros/financeiro/accountant-reports.mjs` é módulo puro CSV local (UTF-8 BOM, colunas separadas por `;`, escaping Excel anti-fórmula); em `/admin/parceiros/financeiro/` somente OWNER autenticado com AAL2 e `data.can_manage` tem dois controles de exportação. `pre` exporta comissões/estados/centavos/datas disponíveis, identificador e **nome PÚBLICO do parceiro**, SEM CPF, dados de cliente, PIX ou autorização de pagamento; `post` exporta somente lotes P3 com estado `paid`. Geração ocorre no navegador a partir da RPC de leitura `admin_partner_finance`; não cria RPC, transferência, emissão fiscal ou escrita no backend. Campo de retenções/líquido fica **vazio/pendente**, jamais zero automático.
+- **Central de Ajuda/Word sincronizados:** tópico `contabilidade` descreve exportação apenas TEST e ressalta que resultado não autoriza PIX; manual Word atualizado v1.2 no mesmo arquivo do Drive, ID não secreto `1PYLoYSgRIs-b19i0Bz4HSPIqtnNK-wYm`. Não foram adicionados documentos reais, cartões ou credenciais.
+- **PASS técnico preliminar:** 8/8 testes específicos CSV + proteção OWNER, números como strings de PostgreSQL, formula injection, filtro por parceiro; suite total anterior à última proteção de string `512/512 PASS`, e build/diff foram conferidos; obter rerun final da branch antes de integrar/deploy. **Não há ainda aprovação humana do novo botão**, nem parecer contábil.
+- **Próxima ação explícita:** concluir QA final, publicar apenas TEST, conferir LIVE e arquivos; depois avançar com portal individual privado/convites WhatsApp D+2/D+5 somente após isolamento OTP, contrato versionado e consentimento. Contadora deve definir fiscalidade antes de ativar cobranças ou notificações condicionadas a documentos.
+
 ## Checkpoint 11/10/2026 — APROVADO: executar Ajuda separada + fases Parceiro/WhatsApp/Relatórios SOMENTE TEST
 
 - **Autorização expressa do proprietário em 11/10/2026:** “Ju, acho que você pode fazer sim” para tornar a Central de Ajuda uma visualização própria; em seguida forneceu sequência **contabilidade (13/10), portal privado, WhatsApp convites/lembretes, relatórios, homologação final** e afirmou que podemos fazer tudo deixando **as regras dependentes da contadora para depois do parecer**. Autorização de desenvolvimento TEST **não autoriza PROD, envio de mensagens reais, coleta real, ativação de parceiros ou repasses**.
