@@ -2,6 +2,13 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — TEST LIVE: política técnica de convites e lembretes (NÃO HÁ PORTAL/ENVIO)
+
+- **PR #4 merged** (https://github.com/wpontieri-boop/pepday/pull/4) para `v3.0-bloco-b` com commit `1def6a241777f22f015ab58801778d090d9cea36`. Render TEST `srv-date0i6k1f9s73ft9vo0`, deploy `dep-db62vkfavr4c73fkq3h0` **LIVE** em 12/10/2026 00:54:54 UTC. Arquivos TEST `/src/partner-onboarding-policy.mjs`, `/admin/index.html`, `/admin/parceiros/financeiro/accountant-reports.mjs` HTTP 200, SHA-256 iguais ao build. **Módulo da política estático/não utilizado por tela**, sem ativação real ou mensagens.
+- **PASS TÉCNICO:** regras puras D+2/D+5, consentimento/opt-out, link exato, expiração/revogação e clique explícito **10/10**, suíte global **523/523 PASS**, build TEST, `git diff --check` PASS. Sem migration/backend novo, RLS, Auth/OTP de parceiro, storage, portal, envio WhatsApp ou documentos; sem dados reais TEST/PROD escritos.
+- **PROD preservado** Render deploy `dep-db4gualg1s2s739d8sn0`, commit `166de8f`. P1/P2/Admin/2FA/Finance P3/fiscal PASS e NÃO REPETIR anteriores preservados. Política técnica aprovada por testes não equivale a PASS humano nem finalização dos cinco itens.
+- **Próxima ação curta:** desenvolver em branch TEST **convites com token hash/expiração + OTP/contato verificado + portal privado de autoatendimento em staging separado do P1**, fechar versão jurídica do contrato e tipos documentais por contadora, conectar botão WhatsApp explícito e lembretes idempotentes **sem envio automático antes de integrar canal aprovado**. Depois homologar apenas novas funções e exigir autorização PROD.
+
 ## Checkpoint 11/10/2026 — Parceiros: fundação técnica de convites WhatsApp e janelas D+2/D+5 (SEM ENVIO/PORTAL)
 
 - **Autorização de desenvolvimento TEST:** proprietário aprovou executar portal privado do parceiro + convites WhatsApp + lembretes D+2/D+5 + relatórios de comissões, deixando documentos/tributos/competência e calendário sujeitos à contadora de 13/10. Relatórios contábeis de conferência **já LIVE TEST** no checkpoint anterior; PROD/main/V2.9 intocados.
