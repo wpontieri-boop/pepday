@@ -2,6 +2,13 @@
 
 Atualização: 11/10/2026.
 
+## Checkpoint 11/10/2026 — PASS HUMANO / NÃO REPETIR: Central de Ajuda abre sem encerrar sessão (TEST)
+
+- **Confirmação humana espontânea do proprietário no próprio Admin TEST:** “Ju, agora deu certo, tá abrindo aqui, tá?” e “Ele tá abrindo na mesma página, no final da página, é isso mesmo que você queria?”. Isso confirma que **o botão Central de Ajuda corrigido abriu o conteúdo na mesma página e manteve o painel acessível**, sem o retorno anterior à tela de autenticação relatado antes da correção. Ambiente **homologacao.pepday.com.br/admin/**, 11/10/2026, correção publicada no deploy `dep-db625ic9v7es739ka55g` (commit `e14de84`); **PASS HUMANO / NÃO REPETIR** exclusivamente desse clique e fluxo de navegação pós-login.
+- **Escopo exato:** **não** inferir PASS de impressão, busca, todas as categorias, novo portal separado, reinício do Mac ou qualquer fluxo financeiro/fiscal. Não solicitar novo teste humano desse mesmo clique sem mudança posterior que afete a navegação.
+- **Feedback de UX seguinte, ainda sem autorização de implementação:** o proprietário observou que a central longa colocada no rodapé torna o painel principal extenso e perguntou se não seria melhor abrir **uma página própria**. Recomendação apresentada: separar a Central de Ajuda em rota autenticada específica dentro de `/admin/` (por exemplo `/admin/ajuda/`), preservando os **12 guias, busca, impressão, filtros de papel, sessão AAL2 e o botão “Voltar ao painel”**, sem redundar login nem mexer nos fluxos aprovados. **É proposta de navegação, NÃO código implementado, NÃO TEST PASS, NÃO decisão expressamente aprovada ainda.**
+- **Estado e próxima ação explícita:** correção da navegação atual está encerrada PASS HUMANO/NÃO REPETIR; aguardar autorização do usuário para mover a Central para uma página própria em TEST. Se aprovada, executar testes **somente da nova navegação**, atualizar guia/Word (apenas instrução que mudar) e registrar evidências; não repetir 2FA/P1/P2/P3. PROD/main/V2.9 preservados.
+
 ## Checkpoint 11/10/2026 — Correção navegação Central de Ajuda pós-2FA, TEST LIVE (PASS TÉCNICO; HUMANO PENDENTE)
 
 - **Sintoma relatado pelo usuário:** após login normal do Admin TEST com senha + TOTP, clicar no novo atalho `Central de Ajuda` retornava à tela de autenticação. Não invalidar PASS HUMANO existente de login/2FA, painel, PDF, CNPJ nem repetir esses fluxos.

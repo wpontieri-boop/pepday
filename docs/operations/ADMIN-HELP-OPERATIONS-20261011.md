@@ -1,6 +1,14 @@
 # PepDay — Central de Ajuda e Manual Operacional Admin
 **Data:** 11/10/2026 · **Branch:** `v3.0-bloco-b` · **Escopo:** documentação e nova Central de Ajuda no **TEST**; nenhuma alteração permitida em PROD/main/V2.9.
 
+## PASS HUMANO / NÃO REPETIR da navegação atual — 11/10/2026 (TEST)
+
+O proprietário confirmou espontaneamente: “agora deu certo, tá abrindo aqui”, após clicar no botão `Central de Ajuda` já corrigido. Também descreveu corretamente que o botão mantém o painel na mesma página e rola até a ajuda no rodapé. Isso fecha **somente a validação humana do clique sem novo login/saída**, em homologação no deploy `dep-db625ic9v7es739ka55g` / commit `e14de84`. **NÃO REPETIR** sem mudança que afete esse fluxo; não inferir aprovação humana de impressão, busca e outras telas.
+
+### Possível evolução de layout, ainda aguardando autorização
+
+O proprietário questionou se uma seção longa no rodapé pode prejudicar o painel e sugeriu central separada. Recomendação técnica: rota exclusiva, protegida e acessível pelo Admin, por exemplo `/admin/ajuda/`, preservando 12 guias, busca, impressão, filtros OWNER/ADMIN/VIEWER, sessão/admin ACL, botão **Voltar ao painel** e sem pedir outra senha/2FA em navegação normal. **Não implementada**: aguardar aprovação para mudar UX e então homologar somente o novo fluxo. Nenhuma mudança deve alcançar PROD/main/V2.9.
+
 ## Correção focada do atalho pós-2FA — 11/10/2026 (TEST LIVE)
 
 - Usuário relatou retorno indevido ao login ao clicar `Central de Ajuda` logo após o 2FA.
