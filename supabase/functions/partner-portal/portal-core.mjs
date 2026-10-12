@@ -1,5 +1,6 @@
 // TEST-only portal transport. Custom invite+OTP/session auth is enforced by SQL.
 // No SMTP, WhatsApp, Auth user creation, payment provider or personal file upload.
+import {scanSyntheticBytes} from './quarantine-core.mjs';
 export const PORTAL_URL='https://fsbqpyyprtymwrmzsacp.supabase.co';
 export const PORTAL_ORIGIN='https://homologacao.pepday.com.br';
 export const SAMPLE='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4XcAAAAASUVORK5CYII=';
@@ -29,8 +30,8 @@ export function portalHandler({url,secret,fetcher=fetch}){
  if(!['challenge','verify','view','save','submit','logout','opt_out','contract_seen','accept_contract','upload_sample','download_sample'].includes(action))return fail(400);
  if(['challenge','verify'].includes(action)){
  if(!validToken(data.invite)||action==='verify'&&(!validId(data.challenge)||!/^[0-9]{6}$/.test(data.code||'')))return fail();
- // Trusted gateway connection IP only; never accept an ip_hash/client IP in the JSON.
- data.ip_hash=await hash(new TextEncoder().encode('partner-portal-test:'+ (request.headers.get('x-forwarded-for')?.split(',')[0].trim()||'unknown')));
+ // Never trust caller-supplied forwarding headers. SQL also enforces global and invite-bound quotas.
+ data.ip_hash=await hash(new TextEncoder().encode('partner-portal-test-invite:'+data.invite));
  }else if(!validToken(data.session))return fail();
  const serverHeaders={apikey:secret,Authorization:'Bearer '+secret,'Content-Type':'application/json'};
  const rpc=async payload=>{
@@ -41,7 +42,7 @@ export function portalHandler({url,secret,fetcher=fetch}){
  // Entire body must be the known 68-byte QA image; no arbitrary base64/file allowed.
  if(data.sample!==SAMPLE)return fail(400);
  const bytes=Uint8Array.from(atob(SAMPLE),c=>c.charCodeAt(0));
- if(bytes.length!==68||await hash(bytes)!==SAMPLE_SHA)return fail();
+ if(bytes.length!==68||await hash(bytes)!==SAMPLE_SHA||(await scanSyntheticBytes(bytes)).status!=='clean')return fail();
  const grant=await rpc({action:'doc_prepare',session:data.session,sha256:SAMPLE_SHA,size:68,mime:'image/png'});
  if(!validId(grant.id)||!new RegExp('^[0-9a-f-]{36}/'+grant.id+'$','i').test(grant.path)||!validToken(grant.upload_token))return fail();
  const endpoint=url+'/storage/v1/object/'+BUCKET+'/'+grant.path;

@@ -57,3 +57,6 @@ Permitir que o usuário encerre o trabalho em um computador e continue no outro 
 - Migration 20261012163141 já aplicada somente TEST; schema partner_whatsapp privado e flags reais CHECK false. Não reaplicar.
 - Gateway persistente não responde parceiros, não chama IA, não encaminha à Central. Mapa de contatos vazio, default HTTP503. Somente hashes/eventos mínimos e contatos QA; nunca armazenar body, telefone, token ou OTP.
 - Preservar MD5 da migration e guardas OWNER/AAL2 existentes. Revisar docs/operations/PARTNER-WHATSAPP-PERSISTENCE-TEST-20261012.md antes de qualquer ativação.
+
+## Decisão do proprietário 12/10/2026
+Revisão jurídica interna aprovada comercialmente; não haverá contratação de advogado externo. Não pedir aprovação externa com base em recomendação histórica. Consultar docs/operations/PARTNER-INTERNAL-LEGAL-REVIEW-20261012.md e PARTNER-INTERNAL-SECURITY-20261012.md. Não inventar parecer profissional nem habilitar dados/contratos reais sem requisitos efetivos. Contadora e Meta são dependências externas previstas; controles operacionais internos ainda sem evidência não podem ser chamados PASS. Preservar PROD/P1/P2/P3/Auth e PASS HUMANO.

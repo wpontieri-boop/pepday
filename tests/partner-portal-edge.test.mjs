@@ -22,7 +22,7 @@ test('malformed token, excessive body and unknown actions never reach SQL',async
  assert.ok((await h(req(data))).status>=400);
  }assert.equal(calls,0);
 });
-test('challenge derives transport IP hash and does not echo OTP, body IP or PII',async()=>{
+test('challenge derives invite-bound quota hash and does not echo OTP, body IP or PII',async()=>{
  let payload;const h=portalHandler({url:PORTAL_URL,secret:'server-fixture',fetcher:async(url,o)=>{payload=JSON.parse(o.body).p_request;return response({ok:true,challenge:id,mode:'synthetic_only'})}});
  const r=await h(req({action:'challenge',invite:token,ip_hash:'attacker'}));const body=await r.json();
  assert.match(payload.ip_hash,/^[a-f0-9]{64}$/);assert.notEqual(payload.ip_hash,'attacker');assert.equal(body.code,undefined);assert.equal(body.session,undefined);assert.equal(r.headers.get('cache-control'),'no-store');

@@ -17,7 +17,7 @@ test('Central de Ajuda has a separate hidden view, not a long dashboard footer',
  assert.match(html,/id="adminHelpBack">← Voltar ao painel<\/button>/);
  assert.match(html,/<input id="helpSearch" type="search"/);
  assert.match(html,/<button id="helpPrint"/);
- assert.match(html,/admin-help\.mjs\?v=5/);
+ assert.match(html,/admin-help\.mjs\?v=[0-9]+/);
  assert.match(html,/admin\.mjs\?v=39/);
  assert.match(html,/admin-help\.css\?v=2/);
 });

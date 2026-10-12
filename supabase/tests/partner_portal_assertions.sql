@@ -109,7 +109,7 @@ begin
  for n in 1..20 loop perform partner_portal.rate(repeat('d',64));end loop;
  if partner_portal.rate(repeat('d',64)) then raise exception 'QA IP rate';end if;
  perform public.partner_portal_exchange(jsonb_build_object('action','opt_out','session',session2));
- begin perform public.partner_portal_exchange(jsonb_build_object('action','view','session',session2));raise exception 'QA optout session';exception when insufficient_privilege then null;end;
+ if (public.partner_portal_exchange(jsonb_build_object('action','view','session',session2))->>'ok')<>'true' then raise exception 'QA optout must preserve portal access';end if;
  -- RLS + grants every table; no JWT partner => Admin RPC denied.
  if has_function_privilege('anon','public.partner_portal_exchange(jsonb)','execute') or has_function_privilege('authenticated','public.partner_portal_exchange(jsonb)','execute') then raise exception 'QA exchange grant';end if;
  if exists(select 1 from pg_class t join pg_namespace s on s.oid=t.relnamespace where s.nspname='partner_portal' and t.relkind='r' and not t.relrowsecurity) then raise exception 'QA RLS';end if;

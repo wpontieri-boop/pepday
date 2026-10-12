@@ -50,7 +50,7 @@ export const helpTopics=[
  'Em homologação, entre em Parceiros > Comissões e repasses > Fiscal e documentos.',
  'Selecione o parceiro e confira se CPF/CNPJ, situação e bloqueios estão corretos.',
  'Só envie documento quando tipo, arquivo e campos exigidos estiverem completos.',
- 'Retenções, guarda documental, aprovação fiscal e líquido dependem de parecer da contadora/jurídico.',
+ 'Retenções, guarda documental, aprovação fiscal e líquido dependem das definições da contadora. A revisão jurídica interna foi aprovada pelo proprietário.',
  'Enquanto houver pendências obrigatórias, o sistema bloqueia a liberação e confirmação do repasse.'
  ],note:'CPF sintético, CNPJ visual e QA do upload privado já têm evidências técnicas/humanas específicas no projeto. Não repetir PASS / NÃO REPETIR sem motivo.'},
  {id:'contabilidade',title:'Fechamento mensal e relatório para a contadora',category:'Financeiro',status:'Somente homologação — exportação preliminar TEST',roles:['OWNER'],steps:[
@@ -67,8 +67,8 @@ export const helpTopics=[
  'Parceiro salva rascunho sintético CPF/MEI/CNPJ e solicita revisão. OWNER pede correção ou conclui revisão técnica sem ativar parceria, alterar comissão ou liberar repasse.',
  'Enviar convite pelo WhatsApp prepara texto; conferir e confirmar registra apenas simulação. D+2/D+5 preparam fila simulada idempotente, sem cron ou disparo real.',
  'No portal OWNER TEST, Consultar estados de mensagens exibe a fila, falhas e histórico técnico da infraestrutura sintética. Modo disabled é o padrão; estado simulado não comprova entrega Meta. A consulta não envia mensagens.',
- 'Minuta tem versão e hash, mas aceite definitivo está bloqueado. Documentos aceitam somente amostra fornecida pelo sistema; coleta real depende de jurídico e segurança.'
- ],note:'Não enviar mensagens ou documentos reais. Tokens são temporários e limpos ao ocultar a página. Opt-out, revogação, expiração e conclusão interrompem a sequência. Não confundir código público de indicação com convite privado.'},
+ 'Abra Documentos da parceria para consultar os nove instrumentos da revisão interna aprovada em 12/10/2026. Integridade SHA256 conferida; aceite real continua bloqueado. Upload aceita somente amostra sintética conhecida, sem autorização para documentos pessoais.'
+ ],note:'Não enviar mensagens ou documentos reais. Tokens são temporários e limpos ao ocultar a página. Opt-out cancela mensagens e lembretes, preservando acesso ao próprio portal. Revogação e expiração continuam bloqueando sessões. Não confundir código público de indicação com convite privado.'},
  {id:'equipe',title:'Equipe, funções e auditoria',category:'Segurança',status:'Disponível — conforme permissão',roles:['OWNER'],steps:[
  'No Admin, acesse Equipe administrativa para consultar OWNER, ADMIN e VIEWER.',
  'Atribua o menor nível de acesso necessário às responsabilidades de cada pessoa.',

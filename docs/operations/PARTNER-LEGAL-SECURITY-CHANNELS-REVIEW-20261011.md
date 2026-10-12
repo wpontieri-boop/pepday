@@ -1,3 +1,5 @@
+> Atualização 12/10/2026: revisão interna concluída e aprovada comercialmente pelo proprietário, sem contratação de advogado externo. A recomendação histórica de revisão externa abaixo foi substituída por esta decisão. Obrigações legais e guardas reais permanecem. Ver PARTNER-INTERNAL-LEGAL-REVIEW-20261012.md e PARTNER-INTERNAL-SECURITY-20261012.md.
+
 # PepDay — Revisão jurídica técnica, segurança e canais externos (pré-ativação)
 Data de referência: 11/10/2026 (Brasil). Ambiente: TEST. Fonte oficial de continuidade: AGENTS.md + docs/CURRENT-STATE.md.
 

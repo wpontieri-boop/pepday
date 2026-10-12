@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-12",
+  "environment": "TEST",
+  "branch": "v3.0-bloco-b",
+  "globalTests": {
+    "passed": 593,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sql": [
+    "PASS_INTERNAL_SECURITY_ROLLBACK",
+    "PASS final TEST portal and report rollback",
+    "PASS_WHATSAPP_PERSISTENCE_ROLLBACK"
+  ],
+  "browserViewports": [
+    "390x844",
+    "1280x900"
+  ],
+  "humanPass": false,
+  "realSend": false,
+  "realCollection": false,
+  "ownerInternalCommercialApproval": true,
+  "professionalOpinion": false,
+  "migration": "20261012174732",
+  "migrationMD5": "f544224c08d92ec73c6d3517843345a9",
+  "manualDriveID": "1PYLoYSgRIs-b19i0Bz4HSPIqtnNK-wYm",
+  "manualVersion": "1.5",
+  "manualPages": 6,
+  "files": {
+    "src/partner-legal-bundle.mjs": "137bd3c3d196257e8df9b11ae973e52e75c5860454b5ea5f4d07dfa50fe9bd1a",
+    "src/partner-recovery-test.mjs": "a0bf97db34ab684cd169fdb0ffbd56a7a673c02b445fc242533390213a859246",
+    "supabase/functions/partner-portal/quarantine-core.mjs": "fd9ae3608ee9358aca24a73e71f79c2486af7906346bbc4ed939abd86f9043e0",
+    "supabase/migrations/20261012174732_partner_internal_security_test.sql": "f4b93f629c233516e96ca01610b41dd6cc8d6b1c6c7cce3e0d42e4154d2962f8"
+  },
+  "limitations": [
+    "no arbitrary-file antivirus operational evidence",
+    "no full DB and Storage restore proof",
+    "Google key restrictions not proven",
+    "identity and Meta channel not live"
+  ]
+}
