@@ -1,4 +1,4 @@
-# PepDay — pacote ISOLADO de descoberta para AdSense — AINDA NÃO PUBLICAR
+# PepDay — pacote ISOLADO de descoberta para AdSense — PROD LIVE, Ads OFF
 Data 15/10/2026. Preparação exclusivamente Git, sem alteração de Render PROD e sem AdSense real.
 
 ## Base e objetivo
@@ -35,3 +35,13 @@ O proprietário autorizou expressamente a publicação **exclusivamente do commi
 Esta execução conferiu HEAD=origin da release/0/0 e reexecutou builds isolados baseline/candidato:94→98arquivos, exatamente seis diferenças públicas e10/10testes focaisPASS. O navegador autorizado abriu a tela **Sign In to Render** no serviço; publicação interrompida antes de qualquer submissão, conforme instrução expressa. Não houve login, busca de credenciais ou tentativa de contornar autenticação. O conector não oferece deploy por SHA, portanto não foi usado para disparar o deploy. PROD permanece LIVE166de8f/dep-db4gualg1s2s739d8sn0, autoDeployOFF. Rollback desnecessário, pois nenhuma alteração aconteceu.
 
 A atualização de documentação nesta branch não muda o commit autorizado. **Não usar Deploy latest commit**, nem mesmo desta branch após o encerramento. Próximo passo: sessão autenticada Render → Deploy a specific commit **fc12b0a6271882097671373c6bd5ea8587f87f81** → LIVE/SHA → HTTP/hashes/rotas e AdsOFF. Só depois avisar proprietário para solicitar revisão Google. Evidências de build e estado público em `ADSENSE-PUBLISH-BLOCKED-EVIDENCE-20261015.json`. Não declarar domínio pronto para nova revisão enquanto esse deploy não ocorrer e for verificado.
+
+## Encerramento 15/10/2026 — PROD LIVE no SHA exato autorizado
+
+Autenticação segura concluída pelo proprietário, inclusive confirmação Google no aparelho. Pelo formulário **Manual Deploy → Deploy a specific commit**, preenchida a SHA inteira fc12b0a6271882097671373c6bd5ea8587f87f81, confirmada a única correspondência e seu href, selecionada e acionado Deploy commit. Nenhuma credencial ou sessão foi copiada/registrada.
+
+Render confirmou **dep-db8kv459fdbs739o8jr0 LIVE**, fim22:11:42UTC/19:11:42Brasília, SHA exata fc12b0a, trigger manual via Dashboard. Rótulo da configuração/log ainda cita v3.0-bloco-b; a seleção e o commit checkout são fc12b0a, não a ponta de TEST. Auto-deployOFF e build:public/publish public mantidos; rollback166de8f/dep-db4gualg1s2s739d8sn0 preservado.
+
+**98/98 arquivos HTTP200/hash correspondente ao build candidato**, zero diferenças fora dos seis caminhos aprovados e92assets originais idênticos à base. Todas9rotas solicitadas HTTP200/hash certo, incluindo Admin/app/cartão/ads.txt. Config e ads.txt preservados,AdsOFF. Browser desktop técnico validou conteúdo/canonical/semnoindex/links do guia e landing, alias/tutorialPular→calculadora, cálculo sintético10/2/1⇒20UI/0,2mL/5mg/mL/10porções; ad slot oculto/0scriptsGoogleAds. Sem login no PepDay, teste de cobrança ou escrita administrativa; sem novo PASS humano/mobile. Evidências em `ADSENSE-PROD-LIVE-EVIDENCE-20261015.json` e `ADSENSE-PROD-LIVE-20261015.jpg`.
+
+**Resultado:** pacote tecnicamente pronto para o proprietário solicitar revisão no AdSense. Não houve solicitação, acesso Search Console, confirmação de indexação ou promessa de aprovação. Ads ficam OFF até nova etapa específica. Atualização somente documental `[skip render]` nesta branch; não redeployar o commit de documentação nem usar a ponta de TEST.

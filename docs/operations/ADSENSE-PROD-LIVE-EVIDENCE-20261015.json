@@ -1,0 +1,829 @@
+{
+  "date": "2026-10-15",
+  "authorized_commit": "fc12b0a6271882097671373c6bd5ea8587f87f81",
+  "service_id": "srv-davto4tg1s2s73brihf0",
+  "deploy_id": "dep-db8kv459fdbs739o8jr0",
+  "deploy_status": "live",
+  "finished_utc": "2026-10-15T22:11:42.283857Z",
+  "previous_deploy": "dep-db4gualg1s2s739d8sn0",
+  "previous_commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+  "candidate_file_count": 98,
+  "matching_count": 98,
+  "failed": [],
+  "expected_public_changes": [
+    "app/app.js",
+    "calculadora/index.html",
+    "guia-calculadora/index.html",
+    "index.html",
+    "robots.txt",
+    "sitemap.xml"
+  ],
+  "actual_public_changes": [
+    "app/app.js",
+    "calculadora/index.html",
+    "guia-calculadora/index.html",
+    "index.html",
+    "robots.txt",
+    "sitemap.xml"
+  ],
+  "outside_scope_changes": [],
+  "baseline_file_count": 94,
+  "ads_disabled": true,
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "url": "https://pepday.com.br/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/app/",
+      "status": 200,
+      "url": "https://pepday.com.br/app/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/calculadora/",
+      "status": 200,
+      "url": "https://pepday.com.br/calculadora/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/guia-calculadora/",
+      "status": 200,
+      "url": "https://pepday.com.br/guia-calculadora/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/admin/",
+      "status": 200,
+      "url": "https://pepday.com.br/admin/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/cartao/",
+      "status": 200,
+      "url": "https://pepday.com.br/cartao/",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "url": "https://pepday.com.br/robots.txt",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "url": "https://pepday.com.br/sitemap.xml",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    },
+    {
+      "path": "/ads.txt",
+      "status": 200,
+      "url": "https://pepday.com.br/ads.txt",
+      "matches_approved_build": true,
+      "x_robots_tag": null
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "admin/admin.css",
+      "status": 200,
+      "sha256": "0c1b0dc21c5f00f3b77b1abb83b80ae9d6cde370eabf73762182fea6ef32e189",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/admin.mjs",
+      "status": 200,
+      "sha256": "a75eec6076a5027983231221c4996e32997ba77a15fa7cc93c7642380d1b629a",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/index.html",
+      "status": 200,
+      "sha256": "222029f9ea3ccd973f45d55f71cf5a59fb3c9884b22f17e67081218dc60850a5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/parceiros/index.html",
+      "status": 200,
+      "sha256": "d51e89e2a19b535bfd3718b5b60fc881526cea8ce179318c2d769f3be827cbb3",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/parceiros/partners.css",
+      "status": 200,
+      "sha256": "bd6a73c7a097dd854c76c684c2c718cf393e2e48ce678d231fc9d395166c00e5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/parceiros/partners.mjs",
+      "status": 200,
+      "sha256": "6874c2bddfddc1bfbe53e9b3494a93c872712059fcf4d8e2f64e31c28c7fd215",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "admin/parceiros/validation.mjs",
+      "status": 200,
+      "sha256": "59bd59f5281d63f84145d11b5314a2f2061b0f98eb5c9f82bb0dd3a6ab7a0d4f",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "ads.txt",
+      "status": 200,
+      "sha256": "23d47a23702a18605351c33de429d954dfd607780f0bffab314880fcb9b14ec7",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/account.css",
+      "status": 200,
+      "sha256": "6b521809c3d98bb042b070e67dd875d1fe5eec2cdb7d377d8300d5af55afd634",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/app.js",
+      "status": 200,
+      "sha256": "cd3dde220dbfe5d522b9438440346f39bc10c4f5d29ebb859ea6ff70b9e4d2c8",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": false
+    },
+    {
+      "path": "app/cartao/index.html",
+      "status": 200,
+      "sha256": "a36bc123b5abba568bc600d0f54043582b7e77c931cb8d357943d558c877c708",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/config.js",
+      "status": 200,
+      "sha256": "f9b1a9c5e4aea03c7101c97a30170fb05a60f764c00858a912f33cec4bd10c10",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/icon.svg",
+      "status": 200,
+      "sha256": "8f1d7c769c5cf05194216947638416501bd5b4195a03e4f0528b13cb97579775",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/index.html",
+      "status": 200,
+      "sha256": "af87f712dc14bd9f3049e73da1ff33200038d9128d1d83c27a82974d0bfc7e85",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/manifest.json",
+      "status": 200,
+      "sha256": "1b7113ccfca9259f59bc8ab526b9e0593cb4eeb454e61f5b10736beefacdf4e2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/privacidade.html",
+      "status": 200,
+      "sha256": "c78aab25d2e5d101c6c622cd84fd52bff9f4a05f406f86472e365e6e3a0091c2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/access-control.mjs",
+      "status": 200,
+      "sha256": "931246334a21a31fac011f225a28b322a8aba00e15b552e389813732d987baf5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/account-ui.mjs",
+      "status": 200,
+      "sha256": "c0ec0d1d308044259709d93cea7da3891841b70ba0c3ddff76e9e8b197533a38",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/account.mjs",
+      "status": 200,
+      "sha256": "9257238b292472e2759b8a6f5900d5948c889ed577ae27d26b97a7075c6000c2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/acquisition.mjs",
+      "status": 200,
+      "sha256": "aaa8645cbc50116d3b91eb94b5b2ba9dfc7e98e915e89b0f886bf49f0962ca65",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/ad-policy.mjs",
+      "status": 200,
+      "sha256": "c038582f9078111c27273038fdc87bdd278136b7cb92b00750d4598049f60625",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/ads.mjs",
+      "status": 200,
+      "sha256": "a1cc68e07d0d04c4e96a1fdb77903335f95fc6f6c8380d82d5c5c43ed10c6c87",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/cloud.mjs",
+      "status": 200,
+      "sha256": "e43f85992e1515233d96fdb914185387dc1fd331949e6e3b85a7bbccdd7b4507",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/entitlement.mjs",
+      "status": 200,
+      "sha256": "0cd452e32bd94e5124c6e459c4213e1d78a33557b7016e7b98d66728988b24cf",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/firebase-messaging-sw.js",
+      "status": 200,
+      "sha256": "119d43337398b6ed079b2c9ed2062b27a52972eeced73789b8cbf8b6c8c99699",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/firebase-messaging-sw.production.js",
+      "status": 200,
+      "sha256": "119d43337398b6ed079b2c9ed2062b27a52972eeced73789b8cbf8b6c8c99699",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/firebase-public-config.mjs",
+      "status": 200,
+      "sha256": "c8b30ca403bddacea66052c6560af3559adf7c4fed1129188b632f601768702e",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/firebase-public-config.production.mjs",
+      "status": 200,
+      "sha256": "c8b30ca403bddacea66052c6560af3559adf7c4fed1129188b632f601768702e",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/import-completion.mjs",
+      "status": 200,
+      "sha256": "9e86dbcdd91de97794c4feb53d7b0be0ff67b7abdc5a57d3f65cba2a46e11a5c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/legacy-import.mjs",
+      "status": 200,
+      "sha256": "7d3d848223b63b1566a6e08dcf2d5a9b03f73eafafea2c71ccadf9a7cad1f93c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/local-data-migration.mjs",
+      "status": 200,
+      "sha256": "ab60874e9326330c1190f511814591843fbd03dcab664303fcce42531d72a899",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/local-db.mjs",
+      "status": 200,
+      "sha256": "c0884a1787a35a7ea0cef4212f3ea37281e9badf6a69cd1154357911a22a69b5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/partner-environment.mjs",
+      "status": 200,
+      "sha256": "23a97a968526cc37883e1c1ebad999d2fc1b3456ff2adbd4d87827d756862d56",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/partner-lock.mjs",
+      "status": 200,
+      "sha256": "dfc7f8aa0a42d992441bce836404774569a09612d98b72447177ad5326c08182",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/partner-public.mjs",
+      "status": 200,
+      "sha256": "4f2aec5038be75600af733ece6ad3acac36c8ebc6d7b5aed9be8103056818227",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/partner-referral.mjs",
+      "status": 200,
+      "sha256": "c7414fdc65e5ea0ef94f331babc1b53732b27bd61c3c291ee2f7c34cb72fd54a",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/pepday-repository.mjs",
+      "status": 200,
+      "sha256": "3ab4b4414d9082649d1507796a9165f783a05aa878df389663f043a01bc5f7d6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/pro-gate.mjs",
+      "status": 200,
+      "sha256": "d1fde8e1a591838a98dad43bda05d6df997fa9c037d697ae4ba8077f64ebe4c8",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/push.mjs",
+      "status": 200,
+      "sha256": "dfa3c188ec15237c04d340e3984b0ab3e02f80cc90df11d0f093d48fd5589a57",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/pwa-install.mjs",
+      "status": 200,
+      "sha256": "050e4e611a3f983aaf595d78fb87de1e67779e592c3831b91be4872f13bef15b",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/remote-snapshot.mjs",
+      "status": 200,
+      "sha256": "eb5410834c02519141365b6be282465c28d902e0e4778ab404064aa99123554f",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/sync-api.mjs",
+      "status": 200,
+      "sha256": "702d5145a440644d98d8b0144ff487b61e564b9aedae9d98c1f3bbb000e176f6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/sync-engine.mjs",
+      "status": 200,
+      "sha256": "9302cf64feb4f7ee8412e87dadc33684a20db2f2682009e73b1e3a1a7268dee1",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/sync-outbox.mjs",
+      "status": 200,
+      "sha256": "090fa2cefbcdba39a6a88c81cfd54ad51e64997fd7c5e77a3f8735f9dca9b6c6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/sync-status.mjs",
+      "status": 200,
+      "sha256": "70593ca3b4365a59316033a4a90cbd7e5910944ea40e50a1400310f85110149b",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/src/tab-coordinator.mjs",
+      "status": 200,
+      "sha256": "bb4449bbfb7fe1d5a3d3c6eaf3d7519f08ae95e31cdfd9ae47f4d5b279c549f2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/style.css",
+      "status": 200,
+      "sha256": "c4e8d83f74b2869c5af35be5ac127fb2ee285065e92cca32732e07f86347d205",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/sw.js",
+      "status": 200,
+      "sha256": "ec1934471b3bec26def3d23bb2e7135c0cadcf2aa62a41799c5f1388232a2a98",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/termos.html",
+      "status": 200,
+      "sha256": "a38ca2eb07287f0ba8c509da8d6eff8b1b0dc7f075cc491991265f0f8288e34c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/vendor/LICENSE-supabase",
+      "status": 200,
+      "sha256": "334dd6820e2eaeab2064e7c59001b810566728a28a41a7c1dbf69bbee17d0936",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/vendor/SOURCE.json",
+      "status": 200,
+      "sha256": "62db37081ab6411521eb766cf805c189e47b21d70674198c4d85a90b24f2ffd0",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "app/vendor/supabase-2.116.0.js",
+      "status": 200,
+      "sha256": "84ee9bf45695c1dd3ba1595b6bcfb0f09672434631351ffc8ebe9140545d5ff6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "assets/calculator-u100-real.png",
+      "status": 200,
+      "sha256": "39db8bdaeab8639845e91dd6ccec0fc36e5fa427fa187fdbeb76b423b4d633f8",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "assets/home-real.png",
+      "status": 200,
+      "sha256": "63468b993fa3cb85ca6323138481592efb9977d622aca475d16b6fad9702cbc2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "calculadora/index.html",
+      "status": 200,
+      "sha256": "8187c85162d835cca5a2b0e31147c78c4f4dd84605b9a1cbf924f5fda17b39e5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": null
+    },
+    {
+      "path": "cartao/index.html",
+      "status": 200,
+      "sha256": "514bd42916aafa65d90cc44cd3590a2b8feaa94641d6b66a3767a1cd0e1d4f98",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "config.js",
+      "status": 200,
+      "sha256": "f9b1a9c5e4aea03c7101c97a30170fb05a60f764c00858a912f33cec4bd10c10",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "guia-calculadora/index.html",
+      "status": 200,
+      "sha256": "3d99038428ae4c600a2b95a80189c17a5df39fd591fe5fbd89a9c98045b17d60",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": null
+    },
+    {
+      "path": "icon.svg",
+      "status": 200,
+      "sha256": "8f1d7c769c5cf05194216947638416501bd5b4195a03e4f0528b13cb97579775",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "sha256": "3ec44fa226de911615556678339963a4d6aa8585791986453620e7d8e0811b8a",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": false
+    },
+    {
+      "path": "privacidade.html",
+      "status": 200,
+      "sha256": "c78aab25d2e5d101c6c622cd84fd52bff9f4a05f406f86472e365e6e3a0091c2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "robots.txt",
+      "status": 200,
+      "sha256": "c1edf9638482038392dcd0dd43b2c5bfa4fa22e5feff1510ffc13f1bb77d1e4a",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": null
+    },
+    {
+      "path": "site.css",
+      "status": 200,
+      "sha256": "8e6cc7bfc7b862c6e58318cd9b38e45ce07cfddcd75f074e586b1db98c847e50",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "sitemap.xml",
+      "status": 200,
+      "sha256": "d43233a627ad31bcead58020eb4e53e21907f3946511403168fe939e118b7f5e",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": null
+    },
+    {
+      "path": "src/access-control.mjs",
+      "status": 200,
+      "sha256": "931246334a21a31fac011f225a28b322a8aba00e15b552e389813732d987baf5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/account-ui.mjs",
+      "status": 200,
+      "sha256": "c0ec0d1d308044259709d93cea7da3891841b70ba0c3ddff76e9e8b197533a38",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/account.mjs",
+      "status": 200,
+      "sha256": "9257238b292472e2759b8a6f5900d5948c889ed577ae27d26b97a7075c6000c2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/acquisition.mjs",
+      "status": 200,
+      "sha256": "aaa8645cbc50116d3b91eb94b5b2ba9dfc7e98e915e89b0f886bf49f0962ca65",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/ad-policy.mjs",
+      "status": 200,
+      "sha256": "c038582f9078111c27273038fdc87bdd278136b7cb92b00750d4598049f60625",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/ads.mjs",
+      "status": 200,
+      "sha256": "a1cc68e07d0d04c4e96a1fdb77903335f95fc6f6c8380d82d5c5c43ed10c6c87",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/cloud.mjs",
+      "status": 200,
+      "sha256": "e43f85992e1515233d96fdb914185387dc1fd331949e6e3b85a7bbccdd7b4507",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/entitlement.mjs",
+      "status": 200,
+      "sha256": "0cd452e32bd94e5124c6e459c4213e1d78a33557b7016e7b98d66728988b24cf",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/firebase-messaging-sw.js",
+      "status": 200,
+      "sha256": "119d43337398b6ed079b2c9ed2062b27a52972eeced73789b8cbf8b6c8c99699",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/firebase-messaging-sw.production.js",
+      "status": 200,
+      "sha256": "119d43337398b6ed079b2c9ed2062b27a52972eeced73789b8cbf8b6c8c99699",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/firebase-public-config.mjs",
+      "status": 200,
+      "sha256": "c8b30ca403bddacea66052c6560af3559adf7c4fed1129188b632f601768702e",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/firebase-public-config.production.mjs",
+      "status": 200,
+      "sha256": "c8b30ca403bddacea66052c6560af3559adf7c4fed1129188b632f601768702e",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/import-completion.mjs",
+      "status": 200,
+      "sha256": "9e86dbcdd91de97794c4feb53d7b0be0ff67b7abdc5a57d3f65cba2a46e11a5c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/legacy-import.mjs",
+      "status": 200,
+      "sha256": "7d3d848223b63b1566a6e08dcf2d5a9b03f73eafafea2c71ccadf9a7cad1f93c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/local-data-migration.mjs",
+      "status": 200,
+      "sha256": "ab60874e9326330c1190f511814591843fbd03dcab664303fcce42531d72a899",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/local-db.mjs",
+      "status": 200,
+      "sha256": "c0884a1787a35a7ea0cef4212f3ea37281e9badf6a69cd1154357911a22a69b5",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/partner-environment.mjs",
+      "status": 200,
+      "sha256": "23a97a968526cc37883e1c1ebad999d2fc1b3456ff2adbd4d87827d756862d56",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/partner-lock.mjs",
+      "status": 200,
+      "sha256": "dfc7f8aa0a42d992441bce836404774569a09612d98b72447177ad5326c08182",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/partner-public.mjs",
+      "status": 200,
+      "sha256": "4f2aec5038be75600af733ece6ad3acac36c8ebc6d7b5aed9be8103056818227",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/partner-referral.mjs",
+      "status": 200,
+      "sha256": "c7414fdc65e5ea0ef94f331babc1b53732b27bd61c3c291ee2f7c34cb72fd54a",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/pepday-repository.mjs",
+      "status": 200,
+      "sha256": "3ab4b4414d9082649d1507796a9165f783a05aa878df389663f043a01bc5f7d6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/pro-gate.mjs",
+      "status": 200,
+      "sha256": "d1fde8e1a591838a98dad43bda05d6df997fa9c037d697ae4ba8077f64ebe4c8",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/push.mjs",
+      "status": 200,
+      "sha256": "dfa3c188ec15237c04d340e3984b0ab3e02f80cc90df11d0f093d48fd5589a57",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/pwa-install.mjs",
+      "status": 200,
+      "sha256": "050e4e611a3f983aaf595d78fb87de1e67779e592c3831b91be4872f13bef15b",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/remote-snapshot.mjs",
+      "status": 200,
+      "sha256": "eb5410834c02519141365b6be282465c28d902e0e4778ab404064aa99123554f",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/sync-api.mjs",
+      "status": 200,
+      "sha256": "702d5145a440644d98d8b0144ff487b61e564b9aedae9d98c1f3bbb000e176f6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/sync-engine.mjs",
+      "status": 200,
+      "sha256": "9302cf64feb4f7ee8412e87dadc33684a20db2f2682009e73b1e3a1a7268dee1",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/sync-outbox.mjs",
+      "status": 200,
+      "sha256": "090fa2cefbcdba39a6a88c81cfd54ad51e64997fd7c5e77a3f8735f9dca9b6c6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/sync-status.mjs",
+      "status": 200,
+      "sha256": "70593ca3b4365a59316033a4a90cbd7e5910944ea40e50a1400310f85110149b",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "src/tab-coordinator.mjs",
+      "status": 200,
+      "sha256": "bb4449bbfb7fe1d5a3d3c6eaf3d7519f08ae95e31cdfd9ae47f4d5b279c549f2",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "termos.html",
+      "status": 200,
+      "sha256": "a38ca2eb07287f0ba8c509da8d6eff8b1b0dc7f075cc491991265f0f8288e34c",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "vendor/LICENSE-supabase",
+      "status": 200,
+      "sha256": "334dd6820e2eaeab2064e7c59001b810566728a28a41a7c1dbf69bbee17d0936",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "vendor/SOURCE.json",
+      "status": 200,
+      "sha256": "62db37081ab6411521eb766cf805c189e47b21d70674198c4d85a90b24f2ffd0",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "vendor/supabase-2.116.0.js",
+      "status": 200,
+      "sha256": "84ee9bf45695c1dd3ba1595b6bcfb0f09672434631351ffc8ebe9140545d5ff6",
+      "matches_approved_build": true,
+      "unchanged_from_baseline": true
+    }
+  ],
+  "google_review_requested": false,
+  "search_console_indexing_verified": false,
+  "rollback_needed": false,
+  "auto_deploy": "off",
+  "configured_branch_label": "v3.0-bloco-b (unchanged; explicit SHA deployed, not branch head)",
+  "git_code_base": "release/adsense-discovery-20261015",
+  "focused_tests": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0
+  },
+  "browser": {
+    "type": "cloud Chromium desktop technical QA, not human or physical mobile QA",
+    "guide_readable": true,
+    "guide_canonical": "https://pepday.com.br/guia-calculadora/",
+    "guide_noindex": false,
+    "guide_overflow": false,
+    "landing_cta": "/calculadora/",
+    "landing_guide_link": "/guia-calculadora/",
+    "landing_canonical": "https://pepday.com.br/",
+    "landing_overflow": false,
+    "calculator_canonical": "https://pepday.com.br/calculadora/",
+    "calculator_noindex": false,
+    "calculator_entry_marker": "calculator",
+    "tutorial_skip_returns_calculator": true,
+    "fixture_inputs": {
+      "vialMg": 10,
+      "waterMl": 2,
+      "quantityMg": 1
+    },
+    "fixture_result": {
+      "ui": 20,
+      "ml": 0.2,
+      "concentrationMgMl": 5,
+      "theoreticalPortions": 10
+    },
+    "ad_slot_hidden": true,
+    "google_ad_scripts_in_dom": 0,
+    "calculator_overflow": false,
+    "signed_in_to_pepday": false,
+    "financial_or_account_writes": false
+  },
+  "protected_existing_artifacts_unchanged": 92,
+  "screenshot": "ADSENSE-PROD-LIVE-20261015.jpg"
+}
