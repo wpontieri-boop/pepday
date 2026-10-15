@@ -2,6 +2,13 @@
 
 Atualização: 15/10/2026.
 
+## Checkpoint 15/10/2026 — PASS HUMANO / NÃO REPETIR: páginas públicas novas em PROD
+- **Data:** 15/10/2026 (Brasília). **Ambiente:** PROD `https://pepday.com.br/`, deploy Render LIVE `dep-db8kv459fdbs739o8jr0`, commit de aplicação `fc12b0a6271882097671373c6bd5ea8587f87f81`.
+- **Escopo solicitado ao proprietário:** inspeção visual real de (1) `https://pepday.com.br/calculadora/` — entrada FREE e retorno após tutorial, se apresentado; (2) `https://pepday.com.br/guia-calculadora/` — título, legibilidade e retorno à calculadora; (3) `https://pepday.com.br/` — landing preservada e links da calculadora/guia. Após esse roteiro, o proprietário respondeu **“Deu tudo certo”**, sem ressalvas. Registrar como **PASS HUMANO VISUAL / NÃO REPETIR** para as três páginas novas no conjunto, na versão publicada; confirmação geral, não prova individual adicional de cada clique, nem de uso no celular físico específico.
+- A verificação humana NÃO inclui reteste de matemática, dose/segurança, Ads reais, faturamento, Auth, Admin, PRO, rotinas, push, PWA instalado ou cartão/QR. Esses fluxos preservam os PASS/NÃO REPETIR anteriores, sem ampliação inferida. PASS técnico anterior de98/98 arquivos e12/12 URLs registrado separadamente.
+- AdSense segue **em análise** conforme mensagem do proprietário (horário exibido15/10/2026 11:57, fuso não confirmado); Google ainda não aprovou o domínio. Publicidade real permanece OFF; nenhum novo deploy, revisão ou alteração de código foi feito nesta confirmação.
+- **Próxima ação curta:** aguardar mudança de status no AdSense; quando houver aprovação/reprovação, solicitar print e registrar o resultado. Não repetir a conferência visual das três páginas, exceto se uma alteração futura afetar diretamente esses fluxos.
+
 ## Checkpoint 15/10/2026 — AdSense exibe ANÁLISE EM ANDAMENTO (pedido com horário anterior ao deploy)
 - **Evidência humana informada pelo proprietário**: no Google AdSense, para `pepday.com.br`, a interface exibe: “Vamos fazer algumas verificações no seu site. Esse processo costuma levar alguns dias, mas pode demorar de 2 a 4 semanas.” e **“Data/horário do pedido: 15 out. 2026 11:57”**. Informação fornecida pelo proprietário; não houve consulta autenticada ao AdSense ou verificação do fuso da interface.
 - **Status prudente: ANÁLISE / REVISÃO PENDENTE**, sem aprovação e sem nova reprovação. O horário exibido **11:57** antecede o deploy LIVE documentado **19:11:42 Brasília** do mesmo dia **se ambos estiverem no mesmo fuso**. A timezone do horário do Google não foi identificada: portanto, **não declarar que esse pedido ocorreu após a publicação nem que se trata de uma nova solicitação**. Pode refletir revisão já pendente e não prova que o Google analisou a versão atualizada.
