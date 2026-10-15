@@ -28,3 +28,10 @@ Data 15/10/2026. Preparação exclusivamente Git, sem alteração de Render PROD
 2. Conferir preview/bundle byte-a-byte, rollback e Render service alvo exato; o deploy deve ser explicitamente de commit desta branch isolada, NÃO a ponta de `v3.0-bloco-b`.
 3. Publicar com reversibilidade, validar HTTP, hashes, rotas, navegação, tutorial e ausência de mudanças em Admin/mercado pago/Auth/QR/PROD sensível. Confirmar `ads.txt` inalterado.
 4. Inspecionar no Search Console e registrar o resultado, enviar sitemap se propriedade confirmada. Revisão AdSense somente com autorização EXPRESSA, após evidências.
+
+## Atualização 15/10/2026 — autorização recebida, publicação bloqueada por login
+O proprietário autorizou expressamente a publicação **exclusivamente do commit fc12b0a6271882097671373c6bd5ea8587f87f81** no serviço PROD indicado, Ads OFF, sem revisão AdSense. A regra antiga de aguardar autorização foi atendida; continua obrigatório o deploy por SHA e a allowlist de seis arquivos.
+
+Esta execução conferiu HEAD=origin da release/0/0 e reexecutou builds isolados baseline/candidato:94→98arquivos, exatamente seis diferenças públicas e10/10testes focaisPASS. O navegador autorizado abriu a tela **Sign In to Render** no serviço; publicação interrompida antes de qualquer submissão, conforme instrução expressa. Não houve login, busca de credenciais ou tentativa de contornar autenticação. O conector não oferece deploy por SHA, portanto não foi usado para disparar o deploy. PROD permanece LIVE166de8f/dep-db4gualg1s2s739d8sn0, autoDeployOFF. Rollback desnecessário, pois nenhuma alteração aconteceu.
+
+A atualização de documentação nesta branch não muda o commit autorizado. **Não usar Deploy latest commit**, nem mesmo desta branch após o encerramento. Próximo passo: sessão autenticada Render → Deploy a specific commit **fc12b0a6271882097671373c6bd5ea8587f87f81** → LIVE/SHA → HTTP/hashes/rotas e AdsOFF. Só depois avisar proprietário para solicitar revisão Google. Evidências de build e estado público em `ADSENSE-PUBLISH-BLOCKED-EVIDENCE-20261015.json`. Não declarar domínio pronto para nova revisão enquanto esse deploy não ocorrer e for verificado.

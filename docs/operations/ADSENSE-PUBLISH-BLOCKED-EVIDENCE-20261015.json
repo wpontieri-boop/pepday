@@ -1,0 +1,122 @@
+{
+  "date": "2026-10-15",
+  "authorized_commit": "fc12b0a6271882097671373c6bd5ea8587f87f81",
+  "baseline_commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+  "baseline_files": 94,
+  "candidate_files": 98,
+  "changed_public_paths": [
+    "app/app.js",
+    "calculadora/index.html",
+    "guia-calculadora/index.html",
+    "index.html",
+    "robots.txt",
+    "sitemap.xml"
+  ],
+  "outside_allowlist_changes": [],
+  "focused_tests": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0
+  },
+  "deployment": {
+    "status": "blocked_before_submission",
+    "reason": "Render dashboard shows Sign In to Render, no authenticated browser session",
+    "service_id": "srv-davto4tg1s2s73brihf0",
+    "still_live_deploy": "dep-db4gualg1s2s739d8sn0",
+    "still_live_commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+    "auto_deploy": "off",
+    "submitted": false,
+    "rollback_needed": false
+  },
+  "adsense_review_requested": false,
+  "public_http": [
+    {
+      "path": "/",
+      "status": 200,
+      "url": "https://pepday.com.br/",
+      "sha256": "3c9ae74e292eeb0a5d70c221f202369665fd9adc1940e0b8cba814a87e30af88",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/app/",
+      "status": 200,
+      "url": "https://pepday.com.br/app/",
+      "sha256": "af87f712dc14bd9f3049e73da1ff33200038d9128d1d83c27a82974d0bfc7e85",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/calculadora/",
+      "status": 404
+    },
+    {
+      "path": "/guia-calculadora/",
+      "status": 404
+    },
+    {
+      "path": "/robots.txt",
+      "status": 404
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 404
+    },
+    {
+      "path": "/ads.txt",
+      "status": 200,
+      "url": "https://pepday.com.br/ads.txt",
+      "sha256": "23d47a23702a18605351c33de429d954dfd607780f0bffab314880fcb9b14ec7",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/admin/",
+      "status": 200,
+      "url": "https://pepday.com.br/admin/",
+      "sha256": "222029f9ea3ccd973f45d55f71cf5a59fb3c9884b22f17e67081218dc60850a5",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/cartao/",
+      "status": 200,
+      "url": "https://pepday.com.br/cartao/",
+      "sha256": "514bd42916aafa65d90cc44cd3590a2b8feaa94641d6b66a3767a1cd0e1d4f98",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/termos.html",
+      "status": 200,
+      "url": "https://pepday.com.br/termos.html",
+      "sha256": "a38ca2eb07287f0ba8c509da8d6eff8b1b0dc7f075cc491991265f0f8288e34c",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/privacidade.html",
+      "status": 200,
+      "url": "https://pepday.com.br/privacidade.html",
+      "sha256": "c78aab25d2e5d101c6c622cd84fd52bff9f4a05f406f86472e365e6e3a0091c2",
+      "matches_previous_approved_build": true,
+      "ads_disabled": null
+    },
+    {
+      "path": "/app/config.js",
+      "status": 200,
+      "url": "https://pepday.com.br/app/config.js",
+      "sha256": "f9b1a9c5e4aea03c7101c97a30170fb05a60f764c00858a912f33cec4bd10c10",
+      "matches_previous_approved_build": true,
+      "ads_disabled": true
+    },
+    {
+      "path": "/config.js",
+      "status": 200,
+      "url": "https://pepday.com.br/config.js",
+      "sha256": "f9b1a9c5e4aea03c7101c97a30170fb05a60f764c00858a912f33cec4bd10c10",
+      "matches_previous_approved_build": true,
+      "ads_disabled": true
+    }
+  ]
+}

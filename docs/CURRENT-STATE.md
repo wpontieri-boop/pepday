@@ -1,6 +1,16 @@
 # PepDay — Current State
 
-Atualização: 09/10/2026.
+Atualização: 15/10/2026.
+
+## Checkpoint 15/10/2026 — Release AdSense AUTORIZADA, publicação BLOQUEADA por login Render
+- Escopo desta branch é exclusivamente a release de descoberta, baseada em PROD estável166de8f; o restante deste documento é o histórico preservado dessa base. O estado de desenvolvimento TEST atualizado continua em `v3.0-bloco-b`; nenhuma alteração/merge/publicação dessa branch foi feita nesta sessão.
+- Autorização expressa recebida para serviço PROD `srv-davto4tg1s2s73brihf0`, **Manual Deploy → Deploy a specific commit**, SHA EXATA **fc12b0a6271882097671373c6bd5ea8587f87f81**. Não publicar ponta de TEST/release, não habilitar Ads, não solicitar revisão Google. A autorização supera o gate histórico “ainda não publicar” no documento da release, sem ampliar o escopo.
+- Fetch e comparação: release remota e local HEAD=fc12b0a,0/0,árvore limpa antes da documentação. AGENTS/CURRENT e `operations/ADSENSE-ISOLATED-RELEASE-20261015.md` consultados; continuidade recente da branch TEST lida sem sobrescrevê-la. Worktrees isolados de release e baseline criados; nenhuma cópia Mac/PC ou divergência sobrescrita.
+- Build independente confirmou94arquivos baseline/98candidato e **exatamente seis diferenças públicas**: `index.html`, `app/app.js`, `calculadora/index.html`, `guia-calculadora/index.html`, `robots.txt`, `sitemap.xml`; **zero diferença fora da allowlist**. Testes focais10/10PASS; não repetir QA humano anterior. Anúncios da release seguem `enabled=false`, sem loader novo nem ativação.
+- **Bloqueio observado:** navegador cloud no URL exato do serviço abriu **Sign In to Render**, com campos e-mail/senha e opções de provedor; nenhuma sessão Render autenticada disponível. Conforme ordem do proprietário, interrompida SOMENTE a publicação nesse ponto. Nenhum login/OTP/credencial solicitado ou inserido, nenhum segredo procurado, nenhuma tentativa alternativa para ultrapassar o login. Conector Render lê serviço/deploy, mas `trigger_deploy` não aceita SHA e publicaria a ponta TEST configurada: NÃO USADO.
+- PROD por leitura continua **166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6 / dep-db4gualg1s2s739d8sn0 LIVE**, autoDeployOFF. **fc12b0a NÃO PUBLICADO**, nenhuma tentativa/deploy criado; rollback não necessário. Evidência HTTP complementar em `operations/ADSENSE-PUBLISH-BLOCKED-EVIDENCE-20261015.json`; não alegar validação pós-deploy ou indexação.
+- Encerramento SOMENTE documental nesta branch release, com `[skip render]`; não fazer deploy do novo commit documental. Manter fc12b0a como SHA exata autorizada. Código/build candidato preservados; nenhum merge/main/V2.9/TEST/Supabase/Ads/AdSense alterado.
+- **Próxima ação exata:** disponibilizar sessão autenticada no navegador Render autorizado; então selecionar Manual Deploy → Deploy a specific commit → **fc12b0a6271882097671373c6bd5ea8587f87f81**, conferir LIVE/SHA e98artefatos/allowlist antes de avisar proprietário para pedir revisão. **Domínio ainda não liberado para nova revisão**, porque pacote não foi publicado. Proprietário fará o pedido; não há garantia de aprovação Google.
 
 ## Fonte de verdade operacional
 
