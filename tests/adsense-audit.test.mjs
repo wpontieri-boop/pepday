@@ -21,6 +21,7 @@ test('TEST discovery has static calculator and original guide, crawlable links a
     await prepareTestDiscovery(dir);
     const calc=await readFile(path.join(dir,'calculadora/index.html'),'utf8');
     assert.match(calc,/<base href="\/">/);
+    assert.match(calc,/name="pepday-entry-screen" content="calculator"/);
     assert.match(calc,/id="calculator" class="screen active"/);
     assert.match(calc,/id="home" class="screen"/);
     // Original fields and result output remain identical; no calculator rewrite.
@@ -60,7 +61,7 @@ async function adHarness({provider='adsense',enabled=true,pro=false,ready=true,i
   const context=vm.createContext({document,navigator:{standalone:ios,onLine:online,userAgent:'QA Browser'},config:{ads:{enabled,provider,publisherId:'ca-pub-1234567890123456',slotId:'1234567890'}},shouldShowFreeAd,validAdsensePublicConfig,realAdsAllowed,
     PepDayAccess:{snapshot:()=>access,ready:()=>ready},MutationObserver:class{constructor(cb){this.cb=cb}observe(target){observers.push({target,cb:this.cb})}},matchMedia:q=>({matches:installed&&q==='(display-mode: standalone)',addEventListener(){}}),addEventListener(){},self:{},top:{}});
   if(!embedded)context.top=context.self;
-  vm.runInContext((await readFile('src/ads.mjs','utf8')).replace(/^import .*;\n/gm,''),context);
+  vm.runInContext((await readFile('src/ads.mjs','utf8')).replace(/^import .*;\r?\n/gm,''),context);
   await new Promise(resolve=>setImmediate(resolve));
   return {context,scripts,slot,mount,observers,setPro(value){access={pro:value};listeners['pepday:entitlement']()},async loaded(){scripts[0].onload();await new Promise(resolve=>setImmediate(resolve))}};
 }
