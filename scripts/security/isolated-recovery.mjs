@@ -4,6 +4,16 @@ import {sha256} from './clamav-scanner.mjs';
 const scope='pepday:test-synthetic:postgres-storage:v1';
 const qa=s=>typeof s==='string'&&/^QA-[A-Za-z0-9_-]{1,80}$/.test(s);
 const deny=()=>{throw Error('RECOVERY_DENIED')};
+const maxDb=64*1024*1024,maxObject=5242880,maxTotal=96*1024*1024;
+const keysAre=(value,allowed)=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>allowed.includes(key));
+const decode=(value,maximum)=>{
+  if(typeof value!=='string'||value.length>Math.ceil(maximum/3)*4+4||value.length%4!==0||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value))deny();
+  const bytes=Buffer.from(value,'base64');
+  if(bytes.length>maximum||bytes.toString('base64')!==value)deny();
+  return bytes;
+};
+const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+const validMime=value=>['application/pdf','image/png','image/jpeg'].includes(value);
 export function sealRecovery({database,objects=[],synthetic=false,key}={}){
   if(synthetic!==true||!Buffer.isBuffer(database)||database.length>64*1024*1024||!Buffer.isBuffer(key)||key.length!==32||!Array.isArray(objects)||objects.length>20)deny();
   const seen=new Set();let total=database.length;
@@ -22,9 +32,16 @@ export function openRecovery(bundle,key,{target='test-isolated-restore',syntheti
   let plain;
   try{const cipher=createDecipheriv('aes-256-gcm',key,bundle.iv);cipher.setAAD(Buffer.from(scope));cipher.setAuthTag(bundle.tag);plain=Buffer.concat([cipher.update(bundle.ciphertext),cipher.final()])}catch{deny()}
   try{
-    const data=JSON.parse(plain.toString());if(data.version!==1||data.scope!==scope||!Array.isArray(data.objects)||data.objects.length>20)deny();
-    const database=Buffer.from(data.database,'base64');if(sha256(database)!==data.databaseSha256)deny();
-    const objects=data.objects.map(o=>{const bytes=Buffer.from(o.bytes,'base64');if(!qa(o.id)||!qa(o.owner)||sha256(bytes)!==o.sha256)deny();return {...o,bytes}});
+    const data=JSON.parse(plain.toString());
+    if(!keysAre(data,['version','scope','database','databaseSha256','objects'])||data.version!==1||data.scope!==scope||!Array.isArray(data.objects)||data.objects.length>20||!validHash(data.databaseSha256))deny();
+    const database=decode(data.database,maxDb);if(sha256(database)!==data.databaseSha256)deny();
+    let total=database.length;const seen=new Set();
+    const objects=data.objects.map(o=>{
+      if(!keysAre(o,['id','owner','mime','sha256','bytes'])||!qa(o.id)||!qa(o.owner)||!validMime(o.mime)||!validHash(o.sha256)||seen.has(o.id))deny();
+      seen.add(o.id);const bytes=decode(o.bytes,maxObject);total+=bytes.length;
+      if(total>maxTotal||sha256(bytes)!==o.sha256)deny();
+      return {id:o.id,owner:o.owner,mime:o.mime,sha256:o.sha256,bytes};
+    });
     return {database,objects,remoteWrite:false,productionWrite:false};
-  }finally{plain.fill(0)}
+  }catch{deny()}finally{plain.fill(0)}
 }
