@@ -712,7 +712,9 @@ function finishTutorial(){
   localStorage.setItem(tutorialStorageKey,'1');
   tutorialEl('tutorialOverlay')?.classList.add('hidden');
   document.body.classList.remove('tutorial-open');
-  go('home');
+  // Only the explicit calculator entry returns to Calcular after the tutorial.
+  const calculatorEntry=document.querySelector('meta[name="pepday-entry-screen"]')?.content==='calculator';
+  go(calculatorEntry?'calculator':'home');
 }
 
 tutorialEl('tutorialNext')?.addEventListener('click',()=>{

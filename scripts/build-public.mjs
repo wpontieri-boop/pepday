@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import {preparePublicDiscovery} from './prepare-public-discovery.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -62,4 +63,5 @@ await copy('src/firebase-messaging-sw.production.js','app/src/firebase-messaging
 await copy('vendor','app/vendor');
 await copy('cartao','app/cartao');
 
+await preparePublicDiscovery(out);
 console.log('PepDay public build pronto:',out);
