@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-15",
+  "base_commit": "0c6361729787d1d9ca76aae6d65a0b8ea9597a4d",
+  "http_before": [
+    {
+      "path": "/",
+      "status": 200,
+      "url": "https://pepday.com.br/",
+      "sha256": "3c9ae74e292eeb0a5d70c221f202369665fd9adc1940e0b8cba814a87e30af88",
+      "bytes": 18978,
+      "type": "text/html; charset=utf-8",
+      "xrobots": null,
+      "body": null
+    },
+    {
+      "path": "/app/",
+      "status": 200,
+      "url": "https://pepday.com.br/app/",
+      "sha256": "af87f712dc14bd9f3049e73da1ff33200038d9128d1d83c27a82974d0bfc7e85",
+      "bytes": 30286,
+      "type": "text/html; charset=utf-8",
+      "xrobots": null,
+      "body": null
+    },
+    {
+      "path": "/robots.txt",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "path": "/sitemap.xml",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "path": "/ads.txt",
+      "status": 200,
+      "url": "https://pepday.com.br/ads.txt",
+      "sha256": "23d47a23702a18605351c33de429d954dfd607780f0bffab314880fcb9b14ec7",
+      "bytes": 59,
+      "type": "text/plain; charset=utf-8",
+      "xrobots": null,
+      "body": "google.com, pub-9704076016670249, DIRECT, f08c47fec0942fa0\n"
+    },
+    {
+      "path": "/termos.html",
+      "status": 200,
+      "url": "https://pepday.com.br/termos.html",
+      "sha256": "a38ca2eb07287f0ba8c509da8d6eff8b1b0dc7f075cc491991265f0f8288e34c",
+      "bytes": 9973,
+      "type": "text/html; charset=utf-8",
+      "xrobots": null,
+      "body": null
+    },
+    {
+      "path": "/privacidade.html",
+      "status": 200,
+      "url": "https://pepday.com.br/privacidade.html",
+      "sha256": "c78aab25d2e5d101c6c622cd84fd52bff9f4a05f406f86472e365e6e3a0091c2",
+      "bytes": 14319,
+      "type": "text/html; charset=utf-8",
+      "xrobots": null,
+      "body": null
+    }
+  ],
+  "validation": {
+    "focused": {
+      "pass": 43,
+      "fail": 0,
+      "skip": 0
+    },
+    "real_ads_enabled": false,
+    "google_approval_claimed": false,
+    "review_requested": false,
+    "production_modified": false
+  },
+  "limitations": [
+    "No Search Console URL Inspection, Policy Center detail or authentic crawler logs",
+    "No local Chromium: official download returned truncated artifact",
+    "UA simulation is not an authentic Google crawl"
+  ],
+  "ua_simulation": [
+    {
+      "url": "https://pepday.com.br/",
+      "status": 200,
+      "sha256": "3c9ae74e292eeb0a5d70c221f202369665fd9adc1940e0b8cba814a87e30af88",
+      "bytes": 18978,
+      "ua": "simulated Googlebot (not proof of Google crawl)"
+    },
+    {
+      "url": "https://pepday.com.br/app/",
+      "status": 200,
+      "sha256": "af87f712dc14bd9f3049e73da1ff33200038d9128d1d83c27a82974d0bfc7e85",
+      "bytes": 30286,
+      "ua": "simulated Googlebot (not proof of Google crawl)"
+    }
+  ]
+}

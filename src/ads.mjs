@@ -1,9 +1,22 @@
 import {config} from '../config.js';
-import {shouldShowFreeAd,validAdsensePublicConfig} from './ad-policy.mjs';
+import {shouldShowFreeAd,validAdsensePublicConfig,realAdsAllowed} from './ad-policy.mjs?v=2';
 
 const slot=document.getElementById('freeAdSlot');
 const mount=document.getElementById('freeAdMount');
 const result=document.getElementById('result');
+const calculator=document.getElementById('calculator');
+
+function realContextAllowed(){
+  const installed=navigator.standalone===true||['standalone','fullscreen','minimal-ui','window-controls-overlay'].some(mode=>globalThis.matchMedia?.(`(display-mode: ${mode})`).matches);
+  const embedded=globalThis.top!==globalThis.self||/^android-app:/i.test(document.referrer)||/; wv\)|\bWebView\b/i.test(navigator.userAgent);
+  return realAdsAllowed({enabled:config.ads?.enabled,online:navigator.onLine,installed,embedded,calculatorActive:calculator?.classList.contains('active')===true});
+}
+
+function eligibleNow(){
+  return accessReady&&shouldShowFreeAd(access,{enabled:config.ads?.enabled===true,resultVisible:resultVisible()})&&
+    calculator?.classList.contains('active')===true&&
+    (config.ads?.provider==='preview'||(config.ads?.provider==='adsense'&&validAdsenseConfig()&&realContextAllowed()));
+}
 
 let access=globalThis.PepDayAccess?.snapshot?.()||{pro:false};
 let accessReady=globalThis.PepDayAccess?.ready?.()===true;
@@ -42,7 +55,7 @@ function renderPreview(){
 }
 
 async function renderAdsense(){
-  if(rendered||!validAdsenseConfig())return;
+  if(rendered||!validAdsenseConfig()||!eligibleNow())return;
   const ad=document.createElement('ins');
   ad.className='adsbygoogle';
   ad.style.display='block';
@@ -53,6 +66,8 @@ async function renderAdsense(){
   mount.replaceChildren(ad);
   rendered=true;
   await ensureAdsenseScript();
+  // Entitlement, page visibility or display mode may change during script loading.
+  if(!eligibleNow()){slot.classList.add('hidden');mount.replaceChildren();rendered=false;return}
   (globalThis.adsbygoogle=globalThis.adsbygoogle||[]).push({});
 }
 
@@ -62,7 +77,7 @@ function resultVisible(){
 
 async function refreshAdVisibility(){
   if(!slot||!mount)return;
-  const show=accessReady&&shouldShowFreeAd(access,{resultVisible:resultVisible()});
+  const show=eligibleNow();
   slot.classList.toggle('hidden',!show);
   slot.dataset.adState=show?'visible':'hidden';
   if(!show)return;
@@ -79,5 +94,9 @@ document.addEventListener('pepday:entitlement',()=>{
 if(result){
   new MutationObserver(()=>void refreshAdVisibility()).observe(result,{attributes:true,attributeFilter:['class']});
 }
+if(calculator)new MutationObserver(()=>void refreshAdVisibility()).observe(calculator,{attributes:true,attributeFilter:['class']});
+for(const mode of ['standalone','fullscreen','minimal-ui','window-controls-overlay'])globalThis.matchMedia?.(`(display-mode: ${mode})`).addEventListener?.('change',()=>void refreshAdVisibility());
+globalThis.addEventListener('online',()=>void refreshAdVisibility());
+globalThis.addEventListener('offline',()=>void refreshAdVisibility());
 
 void refreshAdVisibility();
