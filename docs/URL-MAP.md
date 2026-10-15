@@ -36,6 +36,14 @@ Rotas P1/P2 publicadas nos dois ambientes conforme [PARCEIROS-AFILIADOS.md](PARC
 
 Links públicos por parceiro: **/cartao/?ref=<slug>**, mais código curto único no fluxo do cartão. Em homologação, usar apenas `homologacao.pepday.com.br`. O admin TEST atual em **/site/admin/** será preservado com aliases canônicos **/admin/** e **/admin/parceiros/** no empacotamento TEST. Nenhuma dessas rotas novas deve ser anunciada como LIVE antes de implementar e verificar o build correspondente.
 
+## Rotas adicionais preparadas em TEST (15/10/2026; NÃO publicadas em PROD)
+
+- `https://homologacao.pepday.com.br/calculadora/`: acesso direto à mesma calculadora aprovada, com retorno à calculadora após encerrar o tutorial; `noindex` de homologação.
+- `https://homologacao.pepday.com.br/guia-calculadora/`: guia original sobre campos, unidades e limites, sem prescrição; `noindex` de homologação.
+- No commit `40a9deb`, `build:public` já prepara as futuras URLs `https://pepday.com.br/calculadora/` e `/guia-calculadora/`, além de robots/sitemap/canonical de PROD. **Ainda não estão publicadas nem autorizadas em PROD**; `pepday.com.br/` e `/app/` continuam funcionando como antes. Ads reais continuam OFF em todos os ambientes.
+- Antes da publicação, aprovar visualmente apenas as duas novas rotas, revisar o pacote público, receber autorização expressa para o deploy PROD e validar URLs/canonical/Search Console; solicitar nova revisão AdSense somente após consentimento específico.
+- Evidências: `docs/operations/ADSENSE-PUBLIC-PREPARATION-20261015.md`; demais PASS/NÃO REPETIR preservados.
+
 ## Regra de continuidade
 
 Sempre consultar este arquivo junto com `AGENTS.md` e `docs/CURRENT-STATE.md` antes de alterar rotas públicas, landing, app, administração, cartão ou áreas de parceiros.
