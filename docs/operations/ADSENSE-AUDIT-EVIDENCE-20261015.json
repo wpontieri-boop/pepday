@@ -92,5 +92,160 @@
       "bytes": 30286,
       "ua": "simulated Googlebot (not proof of Google crawl)"
     }
-  ]
+  ],
+  "test_live": {
+    "commit": "a3f2e2fadbc5b7cf873571eb27cc2f3bf888c351",
+    "deploy": "dep-db8j8i6i0phs738p4q4g",
+    "finished_utc": "2026-10-15T20:15:15.823753Z",
+    "status": "live",
+    "service": "srv-date0i6k1f9s73ft9vo0",
+    "integrity": [
+      {
+        "path": "/",
+        "status": 200,
+        "sha256": "30b8e77a57ff94e2ce63c05f784b3e60e55cff46570f8a85a7f50542856af897",
+        "matches_build": true
+      },
+      {
+        "path": "/site/",
+        "status": 200,
+        "sha256": "234f990d6866fd6e53af282769abec40adaa67a4780bd1d191c2bb7fef192076",
+        "matches_build": true
+      },
+      {
+        "path": "/calculadora/",
+        "status": 200,
+        "sha256": "deb1db3e8178e62a3199dfbe4c1910c76628b9073bfa85a83f6c086c003cfd99",
+        "matches_build": true
+      },
+      {
+        "path": "/guia-calculadora/",
+        "status": 200,
+        "sha256": "6f7fb6c411ef8791947c8dabef77949bab83f13fc71aff21f9bfe2b85d489eb2",
+        "matches_build": true
+      },
+      {
+        "path": "/robots.txt",
+        "status": 200,
+        "sha256": "49872ec3f12c69a2a1fed052b8d166545d6946b9063bc9b5e365bef2b38c4927",
+        "matches_build": true
+      },
+      {
+        "path": "/sitemap.xml",
+        "status": 200,
+        "sha256": "b4c78e5cc165ed33887a95f15a257ea6e8c68a4d4a1dbece0c024ce83c4948c2",
+        "matches_build": true
+      },
+      {
+        "path": "/src/ads.mjs",
+        "status": 200,
+        "sha256": "c5d24c02e70237357782873ad90df93629dfa5daedab716e51a1461127f0cbcd",
+        "matches_build": true
+      },
+      {
+        "path": "/src/ad-policy.mjs",
+        "status": 200,
+        "sha256": "fc1e03a833a09840909e475ac92d3087ae95261efe3ffee96ab515bbb99baeac",
+        "matches_build": true
+      },
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "sha256": "23a7544e9e6f35b97d4aa44b1f3323399eb19f7640980861ea2700a770a4120d",
+        "matches_build": true
+      },
+      {
+        "path": "/admin/",
+        "status": 200,
+        "sha256": "cc46598a115d992ccdc58f3d76a9438d66840a7924b6bc1dbe9994603a8ee2f9",
+        "matches_build": true
+      },
+      {
+        "path": "/site/admin/",
+        "status": 200,
+        "sha256": "cc46598a115d992ccdc58f3d76a9438d66840a7924b6bc1dbe9994603a8ee2f9",
+        "matches_build": true
+      },
+      {
+        "path": "/termos.html",
+        "status": 200,
+        "sha256": "25d829e94e80fa4b0bdef121219c76e29b7a8710c296507945f9832ced48ee2a",
+        "matches_build": true
+      },
+      {
+        "path": "/privacidade.html",
+        "status": 200,
+        "sha256": "537a197f87b264593519f983deb61e24539b3bdbd7d6e6f25c4968ff9e956a60",
+        "matches_build": true
+      }
+    ]
+  },
+  "browser": {
+    "kind": "cloud Chromium desktop, technical not human",
+    "guide": {
+      "url": "https://homologacao.pepday.com.br/guia-calculadora/",
+      "readable": true,
+      "overflow": false,
+      "noindex": true,
+      "canonical_matches": true
+    },
+    "landing": {
+      "url": "https://homologacao.pepday.com.br/site/?audit=a3f2e2f",
+      "cta": "/calculadora/",
+      "faq": "/guia-calculadora/",
+      "overflow": false,
+      "noindex": true,
+      "canonical_matches": true
+    },
+    "calculator": {
+      "url": "https://homologacao.pepday.com.br/calculadora/",
+      "initial_static_calculator": true,
+      "first_use_tutorial_preserved": true,
+      "reloaded_after_skip": true,
+      "synthetic_inputs": {
+        "vialMg": 10,
+        "waterMl": 2,
+        "doseMg": 1
+      },
+      "result": {
+        "ui": 20,
+        "ml": 0.2,
+        "concentrationMgMl": 5,
+        "theoreticalPortions": 10
+      },
+      "preview_only": true,
+      "signed_in": false
+    },
+    "limits": [
+      "No physical mobile or standalone device QA repeated",
+      "No real Google ad script requested",
+      "Old /site/ browser cache observed before new content; cache-busted URL and direct HTTP showed new build"
+    ]
+  },
+  "production_after": {
+    "commit": "166de8f56bf4f1c0f2e7ed2ee37a04ec9b0ae4e6",
+    "deploy": "dep-db4gualg1s2s739d8sn0",
+    "status": "live",
+    "auto_deploy": "off",
+    "http": [
+      {
+        "path": "/",
+        "status": 200,
+        "sha256": "3c9ae74e292eeb0a5d70c221f202369665fd9adc1940e0b8cba814a87e30af88",
+        "unchanged": true
+      },
+      {
+        "path": "/app/",
+        "status": 200,
+        "sha256": "af87f712dc14bd9f3049e73da1ff33200038d9128d1d83c27a82974d0bfc7e85",
+        "unchanged": true
+      },
+      {
+        "path": "/ads.txt",
+        "status": 200,
+        "sha256": "23d47a23702a18605351c33de429d954dfd607780f0bffab314880fcb9b14ec7",
+        "unchanged": true
+      }
+    ]
+  }
 }
