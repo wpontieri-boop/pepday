@@ -2,6 +2,14 @@
 
 Atualização: 15/10/2026.
 
+## Checkpoint 15/10/2026 — Release isolada AdSense pronta para aprovação, SEM PRODUÇÃO
+- Auditoria comparou `build:public` de `v3.0-bloco-b` (bbffdcf) contra a produção aprovada `166de8f`: atualizar a branch de TEST diretamente em PROD mudaria **53 arquivos públicos**, inclusive Admin, fiscal, sincronização, CSS e rotas internas. **Não fazer esse deploy.**
+- Criada branch independente `release/adsense-discovery-20261015` a partir da exata produção aprovada `166de8f` e publicada no GitHub em **fc12b0a6271882097671373c6bd5ea8587f87f81**. Apenas landing/calculadora/guia, canonical, robots e sitemap foram selecionados; não trouxe P3/portal/Auth/billing/transferências.
+- Build público isolado comparado por SHA256 byte a byte com o baseline: **94 arquivos originais, 98 no candidato, exatamente seis caminhos novos/alterados**: `index.html`, `app/app.js`, `calculadora/index.html`, `guia-calculadora/index.html`, `robots.txt`, `sitemap.xml`; **zero diferenças fora da allowlist**. O app original conserva a Home após tutorial; alias retorna à calculadora.
+- **PASS 10/10** testes focados na branch isolada, build público PASS e checagem de escopo PASS. `HEAD=origin/release/adsense-discovery-20261015`, divergência 0/0 e árvore limpa. Mais detalhes em `docs/operations/ADSENSE-ISOLATED-RELEASE-20261015.md` da branch release. Nenhum PASS humano anterior foi repetido.
+- PROD `166de8f`/Render `dep-db4gualg1s2s739d8sn0` permanece LIVE e AUTO-DEPLOY OFF. Teste externo na produção atual: landing e `/app/` HTTP200, `ads.txt` HTTP200; `robots.txt` e `sitemap.xml` ainda HTTP404 e novas páginas ainda não existem até promoção. Nenhum anúncio real, Search Console, nova revisão Google ou deploy de produção executados.
+- **Próxima ação curta:** obter aprovação expressa do proprietário para publicação da release ISOLADA `fc12b0a` em `pepday.com.br` ainda Ads OFF, após validar deploy com rollback e allowlist; então inspecionar canonical, sitemap, indexação via Search Console e solicitar nova revisão AdSense apenas com autorização. Evitar publicar `v3.0-bloco-b` inteira.
+
 ## Checkpoint 15/10/2026 — Correção tutorial calculadora e preparação do pacote AdSense, SOMENTE TEST
 - Proprietário autorizou avançar com a **preparação** do modelo conservador: publicidade futura somente no FREE pelo navegador; PWA instalado e PRO/trial/cartão/promo sem Ads. **Não autorizou ainda publicar PROD nem solicitar revisão ao Google.**
 - PC CenterPhone branch `v3.0-bloco-b` limpa porém 53 commits atrás (`cb3b264`); `git fetch`, divergência 0/53 e `pull --ff-only` avançaram para base oficial `841afb5` sem sobrescrever arquivos. Mac e branch P3 não alterados.
