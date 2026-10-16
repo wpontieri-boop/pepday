@@ -2,6 +2,16 @@
 
 Atualização: 15/10/2026.
 
+## Checkpoint 15/10/2026 — Retomada segura Mac/PC e prontidão de segurança, SEM ATIVAÇÃO REAL
+- **Autorização:** proprietário confirmou “vamos” após a recuperação do estado oficial, para iniciar a próxima etapa. Escopo efetivamente executado: sincronização Mac e inventário de segurança somente leitura; nenhum serviço instalado, custo contratado, dado real exportado, mensagem enviada, teste humano repetido ou deploy PROD/TEST.
+- **Git:** branch `v3.0-bloco-b` remoto `ed21b88cadb254834873a8166cac6c7acca8fd01`; Mac em `60c9dd1` limpo, 0/12 após fetch, avançou por **fast-forward** a `ed21b88`; `git fetch` final, divergência **0/0** e árvore limpa antes desta documentação. PC CenterPhone já estava em `ed21b88`, 0/0 e limpo. Main/V2.9 preservada.
+- **Render somente leitura:** TEST LIVE `40a9deb` deploy `dep-db8jmqgae00c73a844s0` (autodeploy ON); PROD LIVE `fc12b0a` deploy `dep-db8kv459fdbs739o8jr0` (autodeploy OFF). Pós-checkpoint `ed21b88` no Git não representa frontend ou worker hospedado.
+- **Supabase TEST somente leitura:** projeto `fsbqpyyprtymwrmzsacp` `ACTIVE_HEALTHY`, PostgreSQL 17.6.1, organização PepDay Free. Security Advisors: 0 ERROR; INFO RLS sem policy 54; WARN anon DEFINER 1, authenticated DEFINER 60, proteção leaked-password 1 (já conhecidos, com guardas dependentes de contexto). Sem SQL de dados pessoais, migração, exportação nem escrita.
+- **Bloqueios reais mantidos:** Mac não tem `pg_dump/pg_restore`, ClamAV/FreshClam, gcloud ou Docker no PATH; zero instalações. Base ClamAV de QA e restore sintético local continuam PASS histórico e NÃO demonstram proteção/backup operativo. Free requer backup externo manual; DB dump não contém objetos Storage. Google Cloud não reinspecionado. Sem WABA/Phone ID, templates Meta aprovados ou parecer fiscal novo no repositório; flags reais WhatsApp/portal preservadas OFF.
+- **Relatório e evidências:** [prontidão 15/10](operations/SECURITY-READINESS-RECONCILIATION-20261015.md). Todos PASS HUMANO/NÃO REPETIR (inclusive páginas públicas PROD) mantidos; não solicitar reteste sem mudança direta no fluxo.
+- **Próxima ação curta:** confirmar runtime privado **exclusivo PepDay**, destino cifrado durável e alvo isolado autorizado; só então preparar ClamAV com assinaturas oficiais e backup TEST+Storage/restauração real. Recuperar inspeção Google Cloud; aguardar parâmetros fiscais da contadora e cadastro Meta. Não reutilizar VPS de outros projetos, exportar usuários ou modificar PROD sem autorização específica.
+
+
 ## Checkpoint 15/10/2026 — Reforço de recuperação sintética e prontidão operacional TEST, SEM DADOS REAIS
 - **Autorização:** proprietário “Sim, manda ver” para adiantar segurança e recuperação do PepDay **somente TEST**, sem produção, coleta real, Meta, fiscal, serviço/custo novo nem repetição de PASS humanos.
 - **Continuidade:** GitHub + `AGENTS.md` + este CURRENT integralmente consultados; `docs/operations/ACTIVATION-SECURITY-PREPARATION-20261012.md` e segurança interna revisados. PC CenterPhone branch `v3.0-bloco-b`, fetch, base `6f0842c`, `HEAD=origin` divergência **0/0** e árvore limpa antes de iniciar. TEST Render LIVE `40a9deb`; PROD LIVE `fc12b0a`, totalmente preservada.
