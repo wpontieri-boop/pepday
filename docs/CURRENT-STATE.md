@@ -1,6 +1,14 @@
 # PepDay — Current State
 
-Atualização: 15/10/2026.
+Atualização: 16/10/2026.
+
+## Checkpoint 16/10/2026 — Correção SSH PC da loja para Hostinger, sem implantação
+- **Correção do proprietário:** o PC CenterPhone JÁ possui e usa SSH próprio do projeto Central IA — WP GROUP na VPS Hostinger. Ausência de arquivo `~/.ssh/config` / alias local NÃO significa falta de SSH. Não pedir recriação da chave ou reinstalação de SSH.
+- **Leitura PC:** Windows OpenSSH existente; arquivos específicos `~/.ssh/central_ia_wp_group_centerphone` (chave privada **não lida nem copiada**), `.pub` e `~/.ssh/central_ia_known_hosts` presentes. Conta remota conforme procedimento anterior `centraladmin`; login root desativado. Usuário diz que já usa a conexão. O comando automatizado desta sessão não confirmou login (saída 255) e a ferramenta barrou a tentativa subsequente; NÃO contornar restrição da ferramenta, nem afirmar SSH operacional validado hoje.
+- **Isolamento:** mesma VPS pode receber PepDay desde que projeto/rede Docker/contêiner/volume/usuário de serviço e futuras credenciais sejam exclusivos; acesso administrativo existente serve em tese para preparar esse isolamento, mas **não** reutilizar dados, banco, chaves ou redes da Central IA, nem reiniciar seus serviços. Um segundo acesso SSH é recomendável por privilégio mínimo depois, mas não é requisito para começar a preparação.
+- **Sem alteração operacional:** nenhum contêiner implantado, backup exportado, dado real acessado, deploy Render ou alteração Central IA. ClamAV e backup continuam **NÃO PASS OPERACIONAL**. Mac não estava online para conferência nesta sessão.
+- **Próxima ação curta:** usar caminho de execução remoto formalmente permitido para validar login SSH `centraladmin` pela chave existente no PC e implantar somente contêiner PepDay TEST isolado; se a ferramenta continuar bloqueando, parar e não contornar.
+
 
 ## Checkpoint 15/10/2026 — Pasta privada Drive TEST CRIADA; backup/ClamAV ainda NÃO ATIVOS
 - **Autorização e escopo:** proprietário confirmou “vamos” para prosseguir na implantação de segurança PepDay com **separação absoluta da Central IA**, respeitando PASS/NÃO REPETIR, sem mudança PROD, sem custo novo, sem envio de documentos de clientes, sem tocar serviços, redes ou Postgres da Central. Projeto consultado integralmente via GitHub `AGENTS.md`, este `CURRENT-STATE.md` e ops relevantes.
