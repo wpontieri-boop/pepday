@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+<title>PepDay — Chave de recuperação TEST</title>
+<style>
+:root{color-scheme:dark;font:16px Segoe UI,Arial,sans-serif;background:#081627;color:#e7f4ff}
+*{box-sizing:border-box}main{max-width:720px;margin:5vh auto;background:#0c2338;padding:30px;border-radius:20px;border:1px solid #236487}
+h1{color:#7cddff;font-size:28px}p{line-height:1.6;color:#c8ddf0}
+small{color:#9bbdce;line-height:1.6}section{margin:20px 0;padding:18px;border:1px solid #2d6784;border-radius:12px;background:#0b1d31}
+.warn{border-left:4px solid #f9ba63;background:#2a2630;padding:12px;color:#ffe6bc}
+button{border:0;border-radius:9px;background:#28c4e6;color:#071624;font-weight:700;padding:12px;margin:6px 6px 6px 0;cursor:pointer}
+button.alt{background:#214861;color:#dbf8ff}button:disabled{opacity:.4}
+label{display:block;margin:12px 0 6px;font-weight:700}
+input{width:100%;padding:12px;background:#061322;color:#e5f8ff;border:1px solid #256184;border-radius:9px;font:16px Consolas,monospace}
+.hidden{display:none!important}#status{color:#9bf2c3;font-weight:700;padding:8px 0}
+.kicker{color:#5bcafa;letter-spacing:2px;font-size:12px;font-weight:800}
+</style></head><body><main>
+<div class="kicker">PEPDAY · RECUPERAÇÃO · HOMOLOGAÇÃO</div>
+<h1>Guarde sua chave de backup</h1>
+<p>Esta página funciona apenas neste navegador, sem conexão com servidores. Ela <strong>não envia</strong> a chave ao ChatGPT, ao GitHub, ao Google Drive ou à Hostinger.</p>
+<p class="warn"><strong>Importante:</strong> Guarde a chave em um cofre de senhas seu, que continue acessível se o PC da loja for perdido. Não envie a chave nesta conversa, não tire print e não salve no GitHub ou Drive. Sem ela, não poderemos restaurar o backup cifrado.</p>
+<section id="creation"><strong>1. Gerar a chave</strong>
+<p>No seu cofre de senhas, crie o item: <strong>PepDay — Backup TEST — AES-256</strong>.</p>
+<button id="generate" type="button">Gerar chave exclusiva</button>
+<div id="secret-area" class="hidden">
+<label for="secret">Chave gerada (43 caracteres)</label><input id="secret" type="password" readonly autocomplete="off" spellcheck="false">
+<button id="copy" class="alt" type="button">Copiar para o cofre</button>
+<button id="show" class="alt" type="button">Mostrar / ocultar</button>
+<p><small>Depois de colar a chave no cofre, substitua o conteúdo da área de transferência do Windows. Não deixe a chave em anotações ou arquivos comuns.</small></p>
+<button id="saved" type="button">Salvei no cofre — verificar</button>
+</div></section>
+<section id="checking" class="hidden"><strong>2. Confirmar que é recuperável</strong>
+<p>Abra o item no seu cofre de senhas e cole a chave abaixo. A chave original já foi apagada do formulário. A verificação acontece só no navegador.</p>
+<label for="check-value">Chave recuperada do cofre</label><input id="check-value" type="password" autocomplete="off" spellcheck="false">
+<button id="verify" type="button">Verificar chave</button></section>
+<section id="done" class="hidden"><strong>Conferência local concluída</strong>
+<p>A chave do seu cofre confere com a chave gerada. Feche esta página e me diga no chat apenas: <strong>Chave salva e verificada</strong>.</p>
+<small id="fingerprint"></small></section>
+<div id="status" role="status" aria-live="polite"></div>
+<small>A página não grava chaves em disco, cookie, localStorage ou banco de dados. A validação do cofre depende de você; nenhuma rotina de backup é ativada por esta página.</small>
+</main><script>
+'use strict';
+const $=id=>document.getElementById(id);let expectedDigest=null;
+const valid=/^[A-Za-z0-9_-]{43}$/;
+const say=msg=>{$('status').textContent=msg};
+async function checksum(secret){
+  const bytes=new TextEncoder().encode(secret);
+  const hash=await crypto.subtle.digest('SHA-256',bytes);
+  bytes.fill(0);
+  return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+}
+$('generate').addEventListener('click',async()=>{
+  if(!globalThis.crypto?.getRandomValues||!crypto.subtle){say('Navegador incompatível. Não use gerador alternativo.');return}
+  const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);
+  const secret=btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  bytes.fill(0);
+  if(!valid.test(secret)){say('Erro inesperado no formato; não utilize esta chave.');return}
+  expectedDigest=await checksum(secret);
+  $('secret').value=secret;$('secret-area').classList.remove('hidden');$('generate').disabled=true;
+  say('Chave gerada localmente. Salve no cofre antes de verificar.');
+});
+$('copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText($('secret').value);say('Copiada. Cole no seu cofre e substitua o clipboard depois.')}
+  catch{$('secret').type='text';$('secret').focus();$('secret').select();say('Pressione Ctrl+C para copiar a seleção para seu cofre.')}
+});
+$('show').addEventListener('click',()=>{$('secret').type=$('secret').type==='password'?'text':'password'});
+$('saved').addEventListener('click',()=>{
+  if(!expectedDigest||!valid.test($('secret').value))return;
+  $('secret').value='';$('creation').classList.add('hidden');$('checking').classList.remove('hidden');
+  $('check-value').focus();say('Recupere do seu cofre o valor completo para comparar.');
+});
+$('verify').addEventListener('click',async()=>{
+  const secret=$('check-value').value.trim();if(!valid.test(secret)){say('Formato inválido. Consulte o item salvo no seu cofre.');return}
+  const hash=await checksum(secret);$('check-value').value='';
+  if(hash!==expectedDigest){say('A chave NÃO corresponde. Verifique o valor salvo no cofre.');return}
+  $('checking').classList.add('hidden');$('done').classList.remove('hidden');
+  $('fingerprint').textContent='Identificador não secreto: SHA-256 '+hash.slice(0,16);
+  expectedDigest=null;say('Chave recuperada e validada localmente. Pode fechar esta janela.');
+});
+</script></body></html>

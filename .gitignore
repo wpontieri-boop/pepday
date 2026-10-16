@@ -7,4 +7,14 @@ public/
 preview/
 test-output/
 *.dump
+# Private PepDay backup/export material: never stage or commit
+private-backups/
+*.pepday-backup
+*.pepday-recovery-key
+*.pgdump
+*.backup.gcm
+*.agekey
+*.pem
+*.p12
+*.key
 supabase/.temp/
