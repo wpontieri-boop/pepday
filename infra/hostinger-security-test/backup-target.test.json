@@ -1,0 +1,41 @@
+{
+  "_status": "PREPARATION_ONLY_NOT_DEPLOYED",
+  "_scope": "PEPDAY_TEST_ONLY",
+  "enabled": false,
+  "database_export_enabled": false,
+  "storage_export_enabled": false,
+  "upload_enabled": false,
+  "scheduled_jobs_enabled": false,
+  "restore_enabled": false,
+  "production_access_allowed": false,
+  "source": {
+    "provider": "supabase",
+    "project_id": "fsbqpyyprtymwrmzsacp",
+    "database_major": 17,
+    "include_storage_object_bytes": true
+  },
+  "destination": {
+    "provider": "google_drive",
+    "folder_id": "1eM-rWJoBTkhNrxfTVAhoJ0PfiY859XMO",
+    "folder_url": "https://drive.google.com/drive/folders/1eM-rWJoBTkhNrxfTVAhoJ0PfiY859XMO",
+    "shared": false,
+    "cloud_offsite": true
+  },
+  "security": {
+    "encryption_required_before_upload": true,
+    "encryption_algorithm": "AES-256-GCM",
+    "manifest_sha256_required": true,
+    "secret_must_remain_off_drive_off_git_off_vps": true,
+    "no_plaintext_cloud_fallback": true,
+    "no_central_ia_database_or_volumes": true
+  },
+  "activation_gates": {
+    "backup_service_credentials_configured_privately": false,
+    "encryption_key_custodian_confirmed": false,
+    "restore_target_isolated_confirmed": false,
+    "storage_object_backup_implemented": false,
+    "recovery_drill_passed": false,
+    "retention_policy_approved": false,
+    "quota_monitoring_ready": false
+  }
+}
