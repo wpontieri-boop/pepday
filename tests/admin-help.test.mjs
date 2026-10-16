@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {helpTopics,visibleTopics,normalized} from '../site/admin/admin-help-data.mjs';
-const html=await readFile(new URL('../site/admin/index.html',import.meta.url),'utf8');
+// Normaliza CRLF do checkout Windows; o contrato HTML é independente do EOL.
+const html=(await readFile(new URL('../site/admin/index.html',import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 const css=await readFile(new URL('../site/admin/admin-help.css',import.meta.url),'utf8');
 const js=await readFile(new URL('../site/admin/admin-help.mjs',import.meta.url),'utf8');
 const adminJs=await readFile(new URL('../site/admin/admin.mjs',import.meta.url),'utf8');

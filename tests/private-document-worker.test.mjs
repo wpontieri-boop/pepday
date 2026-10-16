@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,stat,writeFile,readdir,chmod} from 'node:fs/promises';
+import {mkdtemp,rm,stat,writeFile,readdir,chmod,readFile} from 'node:fs/promises';
 import os from 'node:os';import path from 'node:path';
 import {PrivateDocumentWorker} from '../scripts/security/private-document-worker.mjs';
 import {ClamAVScanner,sha256,runBinary} from '../scripts/security/clamav-scanner.mjs';
@@ -15,8 +15,15 @@ async function fixture(t,options={}){
 }
 test('private staging and clean files use 0700/0600; capability is owner-bound and single-use',async t=>{
   const f=await fixture(t),r=await f.put();assert.equal(r.state,'clean');assert.equal(r.realCollection,false);
-  assert.equal((await stat(path.join(f.parent,'private'))).mode&0o777,0o700);
-  assert.equal((await stat(path.join(f.parent,'private','clean',r.id))).mode&0o777,0o600);
+  if(process.platform==='win32'){
+    // O Windows não expõe ACLs como bits POSIX em fs.stat; a prova 0700/0600 permanece obrigatória em Linux.
+    const source=await readFile(new URL('../scripts/security/private-document-worker.mjs',import.meta.url),'utf8');
+    assert.match(source,/mkdir\(this\.#root,\{mode:0o700\}\)/);
+    assert.match(source,/writeFile\(file,copy,\{mode:0o600,flag:'wx'\}\)/);
+  }else{
+    assert.equal((await stat(path.join(f.parent,'private'))).mode&0o777,0o700);
+    assert.equal((await stat(path.join(f.parent,'private','clean',r.id))).mode&0o777,0o600);
+  }
   const link=await f.worker.capability({context:'QA-A',owner:'QA-A',id:r.id});
   await assert.rejects(f.worker.read({context:'QA-B',owner:'QA-B',token:link.token}),/DENIED/);
   const data=await f.worker.read({context:'QA-A',owner:'QA-A',token:link.token});assert.deepEqual(new Uint8Array(data.bytes),bytes());assert.equal(data.headers['Cache-Control'],'no-store');
@@ -73,7 +80,14 @@ test('adapter enforces freshness and official DB options; mocked receipt is clea
   await writeFile(binary,`#!${process.execPath}\nif(process.argv.includes('--version'))console.log('ClamAV 1.5.3');else {if(!process.argv.includes('--official-db-only=yes')||!process.argv.includes('--fail-if-cvd-older-than=2'))process.exit(2);console.log(process.argv.at(-1)+': OK')}\n`);await chmod(binary,0o700);
   const scanner=new ClamAVScanner({binary,definitionsDir:f.parent,now:f.now});
   await writeFile(path.join(f.parent,'daily.cvd'),header(current-49*3600000));assert.equal((await scanner.scan(file)).reason,'DEFINITIONS_STALE');
-  await writeFile(path.join(f.parent,'daily.cvd'),header(current));const proof=await scanner.scan(file);assert.equal(proof.status,'clean');assert.equal(proof.sha256,sha256(bytes()));
+  await writeFile(path.join(f.parent,'daily.cvd'),header(current));
+  const proof=await scanner.scan(file);
+  if(process.platform==='win32'){
+    // Script de teste com shebang POSIX não é executável via spawn(shell:false) no Windows; negar é correto.
+    assert.equal(proof.status,'unavailable');
+  }else{
+    assert.equal(proof.status,'clean');assert.equal(proof.sha256,sha256(bytes()));
+  }
   await writeFile(path.join(f.parent,'daily.cvd'),'invalid');assert.equal((await scanner.scan(file)).status,'unavailable');
 });
 test('download rechecks permission after reading bytes; revoked actor receives no data',async t=>{
