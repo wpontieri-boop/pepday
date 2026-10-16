@@ -2,6 +2,14 @@
 
 Atualização: 15/10/2026.
 
+## Checkpoint 15/10/2026 — Destino externo de backup: Google Drive PREFERIDO, NÃO ATIVADO
+- **Preferência provisória informada pelo proprietário:** usar Google Drive como armazenamento externo criptografado do backup PepDay; futuro computador da loja que está sendo preparado para a Central IA **poderá** servir como segunda cópia independente quando estiver configurado, **mas não está pronto nem autorizado para execução agora**. Não acoplar o backup do PepDay aos serviços/volumes/dados da Central IA.
+- **Inspeção da conexão Google Drive, somente leitura:** perfil Drive conectado confirmado, busca por pasta `PepDay` do tipo folder não encontrou pasta; nenhuma criada. A integração Drive disponível **não retornou quota/capacidade livre**, portanto adequação de espaço **não comprovada**. Nenhum arquivo transferido nem permissão de pasta alterada.
+- **Arquitetura pretendida:** exportar separadamente PostgreSQL TEST 17.6 e bytes do Storage (não usar `central-postgres`), cifrar antes do upload, armazenar o segredo de decifração fora da VPS, Drive e GitHub, manter manifesto/hash e retenção conservadora, testar RESTORE para alvo isolado antes de marcar PASS de backup. Não presumir que o Drive é backup suficiente só por existir uma pasta.
+- **Pendências/bloqueios:** verificar quota real e permissões do Drive; decidir custódia de chave e políticas de retenção/versionamento sem novo custo; autorizar mecanismo seguro de exportação de TEST, credenciais de menor privilégio e destino de restore isolado; contêiner ClamAV Hostinger ainda **não operacional** devido ao bloqueio `Command not allowed`. Não ativar exportação de dados, cron, upload, serviços novos ou produção neste checkpoint.
+- **Próxima ação curta:** conferir capacidade/quota do Drive e preparar pasta privada somente após validação de permissões; depois configurar backup TEST criptografado com restauração isolada, sem depender do computador da Central IA.
+
+
 ## Checkpoint 15/10/2026 — Manifesto do antivírus PepDay TEST pronto e validado SEM EXECUÇÃO
 - **Autorização:** proprietário confirmou “vamos ver o que mais falta ... vamos fazer”, mantendo autorização anterior de usar Hostinger **somente para antivírus/backup isolados** sob condição de não interferir na Central IA. Sem liberação para contornar bloqueio da ferramenta, PROD, dados pessoais reais, contrato/serviço pago, portas públicas ou uso das redes, banco e volumes da Central.
 - **Continuidade:** GitHub `wpontieri-boop/pepday`, `AGENTS.md` integral, este `CURRENT-STATE.md` e documentação operacional pertinente relidos. Antes da mudança, branch Mac/PC `v3.0-bloco-b` em `c72512e1e9f77a159e067415e73b9f1bf7a97370`, fetch, **0/0 divergência**, árvores limpas. TEST Render LIVE `40a9deb`; PROD Render LIVE `fc12b0a`, preservados.
