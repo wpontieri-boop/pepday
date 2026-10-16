@@ -2,6 +2,15 @@
 
 Atualização: 15/10/2026.
 
+## Checkpoint 15/10/2026 — Hostinger autorizada para antivírus/backup ISOLADOS, Central IA intacta
+- **Autorização expressa do proprietário:** aproveitar a VPS Hostinger existente somente para **antivírus e backup do PepDay**, sob condição de não modificar nenhum componente da Central IA — WP GROUP nem comprometer seu desempenho. Sem autorização de produção, mensagens reais, documentos reais, dados de clientes, novo custo ou portas públicas.
+- **Verificação real via SSH somente leitura:** Ubuntu 26.04.1, Docker 29.9.0, **4 vCPUs, 15 GiB RAM (~1,3 GiB em uso/~14 GiB disponíveis), 193 GiB disco (~6,4 GiB usados antes do pull; ~187 GiB livres)**, carga inicial 0.01/0.07/0.04. **7/7 contêineres da Central healthy** antes/depois, recursos e redes próprias intocados; `central-postgres` é exclusivo da Central (Postgres 18.6), não usar para PepDay.
+- **Preparação parcial:** pull realizado apenas da imagem **oficial** ClamAV `clamav/clamav:1.5.4` (401 MB descompactados reportados), digest `sha256:638d90201ee7ee6a82d249a2fc23b132e578673b5f1f2766852b127676ca1ef6`. Não é scanner iniciado. Reservar até **4 GiB RAM, 0,75 vCPU** em contêiner exclusivo sem portas públicas; essa é proposta de limite, **não implantada**.
+- **Bloqueio de ferramenta:** comando de criação da infraestrutura PepDay via Remote Desktop Commander recebeu **“Command not allowed”**; nenhuma ação dessa tentativa foi executada. Inventário posterior: **zero contêiner/rede/volume PepDay, diretório privado de backup não criado**; não contornar restrição de execução. Nenhum dump, restore, FreshClam ou EICAR remoto foi executado, e não houve deploy Render/alteração Supabase/PROD.
+- **Evidência:** [capacidade/limites Hostinger](operations/HOSTINGER-SECURITY-CAPACITY-20261015.md). PASS/NÃO REPETIR permanecem preservados. ClamAV oficial operacional e backup off-site **NÃO PASS**. Armazenamento de backup somente na VPS **não** é redundância contra perda do host.
+- **Próxima ação curta:** habilitar caminho autorizado de execução do contêiner PepDay isolado, sem tocar Central; validar assinaturas oficiais/falha fechada com QA, e somente depois definir destino externo cifrado e alvo de restauração TEST autorizado. Não exportar dados reais ou usar banco da Central.
+
+
 ## Checkpoint 15/10/2026 — Retomada segura Mac/PC e prontidão de segurança, SEM ATIVAÇÃO REAL
 - **Autorização:** proprietário confirmou “vamos” após a recuperação do estado oficial, para iniciar a próxima etapa. Escopo efetivamente executado: sincronização Mac e inventário de segurança somente leitura; nenhum serviço instalado, custo contratado, dado real exportado, mensagem enviada, teste humano repetido ou deploy PROD/TEST.
 - **Git:** branch `v3.0-bloco-b` remoto `ed21b88cadb254834873a8166cac6c7acca8fd01`; Mac em `60c9dd1` limpo, 0/12 após fetch, avançou por **fast-forward** a `ed21b88`; `git fetch` final, divergência **0/0** e árvore limpa antes desta documentação. PC CenterPhone já estava em `ed21b88`, 0/0 e limpo. Main/V2.9 preservada.
