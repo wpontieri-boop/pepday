@@ -1,6 +1,7 @@
 # PepDay — procedimento de custódia de chave TEST (16/10/2026)
 
 ## Contexto e autorização
+- **Atualização 16/10/2026 — PASS HUMANO / NÃO REPETIR:** no **PC CenterPhone**, o proprietário confirmou agora que gerou a chave de recuperação TEST, salvou no próprio cofre e recuperou/conferiu com sucesso pela tela local. **Evidência: confirmação verbal da tela “Conferência local concluída”.** Nenhuma chave, fingerprint, captura, clipboard ou conteúdo do cofre foi solicitado, lido ou registrado pelo assistente. Este registro supera as pendências humanas anteriores; não pedir novo teste da chave. Não comprova dump, upload cifrado ou restore real, nem prova independente de recuperação após perda do PC.
 - Proprietário respondeu **“Pode seguir, segue”** à proposta de criar chave de recuperação AES-256 para backups PepDay TEST e guardá-la em cofre de senhas sob controle do proprietário.
 - Essa resposta autoriza **preparar o gerador local seguro**, não fornece acesso ao cofre, não significa que o segredo tenha sido salvo e não autoriza descarregar dados reais, ativar PROD ou compartilhar a chave.
 - Fonte oficial de continuidade: `AGENTS.md`, `docs/CURRENT-STATE.md`, `docs/operations/GOOGLE-DRIVE-BACKUP-TEST-20261015.md`.
@@ -20,8 +21,8 @@
 - As chaves geradas nesta página são inteiramente privadas ao navegador do proprietário. Não persistir chave no repositório/servidor por automação.
 
 ## Status e gates
-- **Chave real gerada?** NÃO CONFIRMADO até o proprietário clicar Gerar.
-- **Cópia em cofre externo?** NÃO CONFIRMADO até o proprietário concluir comparação do valor recuperado do cofre.
+- **Chave real gerada?** PASS HUMANO em 16/10/2026, PC CenterPhone, confirmação verbal acima.
+- **Salva e recuperada do próprio cofre?** PASS HUMANO / NÃO REPETIR em 16/10/2026. Não solicitar segredo/fingerprint ou refazer a conferência. Independência em relação à perda do PC não foi testada separadamente.
 - **Exportação DB PostgreSQL 17 TEST?** NÃO ATIVADA. O PC CenterPhone não possui `pg_dump`/`pg_restore`/CLI PostgreSQL17 no PATH; execução da exportação exige caminho credenciado e destino seguro.
 - **Storage?** Duas buckets privadas, zero objetos no inventário anterior; inventário de bytes deverá ser refeito no momento do backup.
 - **Google Drive:** pasta TEST privada `1eM-rWJoBTkhNrxfTVAhoJ0PfiY859XMO` (não colocar chave nela), ainda sem exportação criptografada.
@@ -29,4 +30,4 @@
 - **Central IA e PROD:** intocados. Apenas WhatsApp real e documentação/parecer da contadora foram adiados; backup permanece objetivo ativo.
 
 ## Próxima ação curta
-**Proprietário abre a janela local do gerador, guarda a chave no próprio cofre, recupera-a no mesmo formulário e informa somente “Chave salva e verificada”.** Depois, preparar exportação PostgreSQL17 TEST e Storage com criptografia antes de enviar ao Drive, mais restauração isolada; não tratar posse da pasta/chave como backup pronto.
+**Viabilizar utilitários PostgreSQL 17, credenciais TEST protegidas e alvo de restore isolado autorizado.** Seguir [preparação do backup TEST](BACKUP-TEST-PREPARATION-20261016.md) para Storage e criptografia antes do Drive. Não repetir a conferência humana da chave nem tratar custódia como backup pronto.

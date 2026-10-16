@@ -31,7 +31,7 @@
   },
   "activation_gates": {
     "backup_service_credentials_configured_privately": false,
-    "encryption_key_custodian_confirmed": false,
+    "encryption_key_custodian_confirmed": true,
     "restore_target_isolated_confirmed": false,
     "storage_object_backup_implemented": false,
     "recovery_drill_passed": false,

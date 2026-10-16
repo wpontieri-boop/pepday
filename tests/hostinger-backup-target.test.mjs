@@ -31,10 +31,12 @@ test('criptografia antes de qualquer upload e integridade obrigatórias', () => 
   assert.equal(backup.security.secret_must_remain_off_drive_off_git_off_vps, true);
 });
 
-test('todos os requisitos de ativação estão pendentes, sem PASS inventado', () => {
+test('custódia humana confirmada sem liberar outros requisitos de ativação', () => {
   assert.ok(Object.keys(backup.activation_gates).length >= 6);
+  assert.equal(backup.activation_gates.encryption_key_custodian_confirmed, true);
   for (const [name, passed] of Object.entries(backup.activation_gates))
-    assert.equal(passed, false, `Gate not approved: ${name}`);
+    if (name !== 'encryption_key_custodian_confirmed')
+      assert.equal(passed, false, `Gate not approved: ${name}`);
 });
 
 test('bloqueia acoplamento Central IA e exige bytes Storage', () => {

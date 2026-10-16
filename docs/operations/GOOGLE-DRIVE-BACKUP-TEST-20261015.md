@@ -20,7 +20,7 @@ O proprietário confirmou a separação integral dos projetos e autorizou contin
 Testes **novos** exclusivos do manifesto em `tests/hostinger-backup-target.test.mjs`: 6/6 PASS. Essa prova de configuração **não comprova** backup real, upload, criptografia efetivamente executada, recuperabilidade, atualização de assinaturas ClamAV ou integração entre plataformas. Nenhuma validação humana PASS / NÃO REPETIR anterior foi repetida.
 
 ## Ativação ainda bloqueada
-1. Autorizar e definir **chave/custódia offline** do envelope criptográfico e capacidade de recuperação mesmo após perda do servidor. Não imprimir nem enviar chave para ChatGPT, repositório, Drive ou logs.
+1. **Custódia: PASS HUMANO / NÃO REPETIR em 16/10/2026, PC CenterPhone**, conforme [registro da chave](BACKUP-KEY-CUSTODY-TEST-20261016.md): proprietário gerou, salvou no cofre e recuperou pela tela “Conferência local concluída”. Sem segredo/fingerprint registrado. Recuperabilidade após perda do PC não foi testada separadamente; não solicitar nova cerimônia da chave. Posse confirmada não libera exportação ou restore.
 2. Definir integração Drive **de menor privilégio** em serviço privado, com fluxo OAuth/credencial técnica segregado e token protegido fora de Git; **o login do usuário no conector do ChatGPT não implica acesso de serviço/automações na Hostinger**.
 3. Determinar cron, retenção, verificação de quota e alertas de falha; nenhuma duração foi aprovada ou configurada.
 4. Confirmar backup lógico da instância **Supabase TEST** (Postgres 17.6) com autenticação exclusiva, mais backup dos **bytes** de objetos Storage e metadados; não usar Postgres da Central e não coletar documentos reais.
@@ -28,4 +28,4 @@ Testes **novos** exclusivos do manifesto em `tests/hostinger-backup-target.test.
 6. Scanner ClamAV TEST Hostinger continua sem contêiner iniciado: comando de criação anteriormente bloqueado pela ferramenta `Command not allowed`. Respeitar bloqueio; não tentar contornar, não marcar ClamAV/backup como operacionais.
 
 ## Próxima ação explícita
-**Definir custódia da chave de criptografia e destino de restauração isolado; obter caminho permitido para implantar o contêiner ClamAV sem tocar Central IA.** Depois configurar acesso Drive de menor privilégio e fazer prova de backup TEST + Storage/restauração no ambiente autorizado.
+**Viabilizar PostgreSQL 17, credenciais protegidas e destino de restauração isolado autorizado**, seguindo [preparação 16/10](BACKUP-TEST-PREPARATION-20261016.md). Configurar acesso Drive de menor privilégio e provar backup TEST + Storage/restauração. ClamAV continua pendente sob caminho permitido, sem tocar Central IA; não repetir custódia PASS.
