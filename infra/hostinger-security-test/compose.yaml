@@ -1,0 +1,37 @@
+# Preparação exclusivamente TEST. Não executado na Hostinger nesta etapa.
+# Nenhuma porta pública, montagem ou rede da Central IA.
+name: pepday-security-test
+
+services:
+  clamav:
+    image: clamav/clamav:1.5.4@sha256:638d90201ee7ee6a82d249a2fc23b132e578673b5f1f2766852b127676ca1ef6
+    container_name: pepday-clamav-test
+    restart: unless-stopped
+    cpus: 0.75
+    mem_limit: 4g
+    memswap_limit: 4g
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    networks:
+      - pepday_security
+    volumes:
+      - clamav_signatures:/var/lib/clamav
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  pepday_security:
+    driver: bridge
+
+volumes:
+  clamav_signatures:
