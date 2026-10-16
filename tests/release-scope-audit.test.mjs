@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {
   approvedProdBase,classifyReleasePath,auditReleasePaths,getGitDiffNames
 } from '../scripts/security/release-scope-audit.mjs';
@@ -69,4 +71,16 @@ test('real Git comparison is read-only and never auto-approves a branch',t=>{
   if(list.includes('supabase/functions/meta-whatsapp-gateway/index.mjs')){
     assert.ok(result.deferredIntegrationTouchpoints.includes('supabase/functions/meta-whatsapp-gateway/index.mjs'));
   }
+});
+
+test('CLI gate always requires human approval and never returns success',t=>{
+  const cli=fileURLToPath(new URL('../scripts/security/release-scope-audit.mjs',import.meta.url));
+  const result=spawnSync(process.execPath,[cli,'--gate'],{encoding:'utf8',timeout:10000});
+  if(result.status===1&&/fatal:|unknown revision/.test(result.stderr||'')){
+    t.skip('Git checkout lacks the PROD baseline');return;
+  }
+  assert.ok([3,4].includes(result.status),'unexpected gate exit code '+result.status);
+  const report=JSON.parse(result.stdout);
+  assert.equal(report.productionApproved,false);
+  assert.equal(report.runInProduction,false);
 });

@@ -47,6 +47,6 @@ if(isCli){
   if(args.some(x=>!['--gate','--report'].includes(x)))throw Error('UNKNOWN_ARGUMENT');
   const report=reportCurrentRelease();
   console.log(JSON.stringify(report,null,2));
-  // For pipelines only, a changed application/backend must not pass silently.
-  if(gate&&report.verdict==='BLOCKED_MIXED_RELEASE')process.exitCode=3;
+  // Never return success as authorization to deploy, even for docs-only changes.
+  if(gate)process.exitCode=report.verdict==='BLOCKED_MIXED_RELEASE'?3:4;
 }
